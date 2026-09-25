@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FacelessAI - 1-Click Viral Video Generator</title>
+    <style>
+        /* ================== GLOBAL & FONTS ================== */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px; /* Navbar height compensation */
+            overflow-x: hidden;
+        }
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ================== AMBIENT GLOW ================== */
+        .bg-glow {
+            position: absolute;
+            width: 50vw;
+            height: 50vw;
+            min-width: 400px;
+            min-height: 400px;
+            background: radial-gradient(circle, rgba(255, 0, 255, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+            top: -10%;
+            left: -10%;
+            z-index: -1;
+            filter: blur(60px);
+        }
+        .bg-glow-2 {
+            position: absolute;
+            width: 50vw;
+            height: 50vw;
+            min-width: 400px;
+            min-height: 400px;
+            background: radial-gradient(circle, rgba(0, 255, 204, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+            bottom: -10%;
+            right: -10%;
+            z-index: -1;
+            filter: blur(60px);
+        }
+
+        h1, h2, h3, .price { font-family: 'Orbitron', sans-serif; }
+
+        /* ================== GLASSMORPHISM ================== */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* ================== NAVBAR ================== */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 999;
+            transition: all 0.4s ease;
+        }
+        nav.scrolled {
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .logo { font-size: 1.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0,255,204,0.6); cursor: pointer; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links button {
+            background: transparent; border: none; color: #a1a1aa; font-family: 'Inter', sans-serif;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        .nav-links button:hover { color: #fff; }
+        .btn-signup {
+            background: rgba(0, 255, 204, 0.1) !important;
+            border: 1px solid #00ffcc !important;
+            color: #00ffcc !important;
+            padding: 8px 24px;
+            border-radius: 6px;
+        }
+        .btn-signup:hover { background: #00ffcc !important; color: #000 !important; box-shadow: 0 0 20px rgba(0, 255, 204, 0.5); }
+
+        /* ================== HERO SECTION ================== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 140px 20px 60px;
+        }
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem); /* Auto scaling for perfect fit */
+            line-height: 1.15;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 25px;
+            animation: fadeInDown 1s ease-out;
+        }
+        .neon-text { 
+            color: #00ffcc; 
+            -webkit-text-fill-color: #00ffcc; 
+            text-shadow: 0 0 25px rgba(0, 255, 204, 0.4); 
+        }
+        .hero p {
+            color: #a1a1aa; font-size: clamp(1rem, 2vw, 1.2rem); max-width: 650px; margin-bottom: 40px; line-height: 1.6; animation: fadeInUp 1s ease-out 0.3s backwards;
+        }
+
+        /* Call to Action Button */
+        .btn-glow {
+            background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
+            color: #000; font-size: 1.1rem; font-weight: 800; padding: 18px 45px;
+            border: none; border-radius: 50px; cursor: pointer; text-decoration: none;
+            display: inline-block; font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase; letter-spacing: 1px;
+            animation: pulseGlow 2.5s infinite, fadeInUp 1s ease-out 0.6s backwards;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-glow:hover { transform: scale(1.05) translateY(-3px); }
+
+        /* ================== DASHBOARD MOCKUP ================== */
+        .dashboard-mockup {
+            width: 100%; max-width: 900px; aspect-ratio: 16/9; margin-top: 70px;
+            padding: 2px; border-radius: 16px;
+            background: linear-gradient(135deg, rgba(255,0,255,0.4), rgba(0,255,204,0.4));
+            animation: fadeInUp 1s ease-out 0.9s backwards, float 6s ease-in-out infinite;
+        }
+        .dashboard-inner {
+            background: #09090b; width: 100%; height: 100%; border-radius: 14px; padding: 25px;
+            display: flex; flex-direction: column; text-align: left;
+        }
+        .mac-dots { display: flex; gap: 8px; margin-bottom: 25px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.r { background: #ff5f56; } .dot.y { background: #ffbd2e; } .dot.g { background: #27c93f; }
+        
+        .mock-ui-flex { display: flex; gap: 25px; height: calc(100% - 37px); }
+        .mock-sidebar { width: 220px; background: #121216; border-radius: 8px; padding: 20px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 15px; }
+        .mock-main { flex: 1; background: #121216; border-radius: 8px; padding: 30px; border: 1px solid #27272a; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        
+        .mock-skeleton-line { background: #27272a; height: 10px; border-radius: 5px; }
+        
+        .generating-bar { width: 80%; max-width: 400px; height: 8px; background: #27272a; border-radius: 10px; margin-top: 25px; overflow: hidden; }
+        .generating-fill { height: 100%; background: #00ffcc; width: 0%; animation: loadingBar 3s infinite ease-in-out; box-shadow: 0 0 10px #00ffcc; }
+
+        /* ================== PRICING SECTION ================== */
+        .pricing-section {
+            padding: 100px 20px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+        .pricing-section h2 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 15px; }
+        .pricing-card {
+            max-width: 420px; margin: 40px auto; padding: 50px 40px;
+            position: relative; overflow: hidden;
+            border-color: rgba(255, 0, 255, 0.4);
+            transition: all 0.4s ease;
+        }
+        .pricing-card:hover { border-color: #ff00ff; box-shadow: 0 15px 40px rgba(255, 0, 255, 0.15); transform: translateY(-10px); }
+        .price { font-size: 4.5rem; font-weight: 900; margin: 15px 0; color: #fff; line-height: 1; }
+        .price span { font-size: 1.5rem; color: #a1a1aa; font-family: 'Inter', sans-serif; font-weight: 400; }
+        .psychology { color: #00ffcc; font-size: 1rem; margin-bottom: 35px; font-style: italic; opacity: 0.9; }
+        
+        .feature-list { list-style: none; text-align: left; margin-bottom: 45px; }
+        .feature-list li { margin-bottom: 18px; font-size: 1.05rem; color: #e4e4e7; display: flex; align-items: flex-start; gap: 12px; }
+        .feature-list li::before { content: "✓"; color: #ff00ff; font-weight: 900; font-size: 1.2rem; line-height: 1.2; text-shadow: 0 0 8px rgba(255,0,255,0.5); }
+
+        /* ================== ANIMATIONS ================== */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); } 50% { box-shadow: 0 0 35px rgba(255, 0, 255, 0.6); } 100% { box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
+        @keyframes loadingBar { 0% { width: 0%; } 50% { width: 100%; } 100% { width: 0%; } }
+
+        /* ================== RESPONSIVE DESIGN ================== */
+        @media (max-width: 768px) {
+            .nav-links button:first-child { display: none; } /* Hide plain login on mobile, keep signup */
+            .dashboard-mockup { margin-top: 50px; aspect-ratio: auto; height: 350px; }
+            .mock-sidebar { display: none; }
+            .pricing-card { padding: 40px 25px; }
+            .price { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- NAVBAR -->
+    <nav id="navbar">
+        <div class="logo">FacelessAI</div>
+        <div class="nav-links">
+            <button>Login</button>
+            <button class="btn-signup">Sign Up</button>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <div class="hero">
+        <h1>Generate Viral Videos in <br><span class="neon-text">1-Click</span></h1>
+        <p>No camera. No mic. No editing skills required. Type a prompt and let our AI generate the script, voiceover, and visuals for your next viral Short.</p>
+        
+        <!-- Lemon Squeezy Checkout Button -->
+        <a href="https://facelessai-technologies68.lemonsqueezy.com/checkout/buy/62aae9a3-1e4b-4bc5-a0a9-a4c7c5746b9f" class="btn-glow lemonsqueezy-button">
+            Start Generating Now
+        </a>
+
+        <!-- ANIMATED DASHBOARD MOCKUP -->
+        <div class="dashboard-mockup glass">
+            <div class="dashboard-inner">
+                <div class="mac-dots">
+                    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+                </div>
+                <div class="mock-ui-flex">
+                    <div class="mock-sidebar">
+                        <div class="mock-skeleton-line" style="width: 70%;"></div>
+                        <div class="mock-skeleton-line" style="width: 100%; height: 35px; background: rgba(0, 255, 204, 0.08); border: 1px solid #00ffcc;"></div>
+                        <div class="mock-skeleton-line" style="width: 85%;"></div>
+                        <div class="mock-skeleton-line" style="width: 50%;"></div>
+                    </div>
+                    <div class="mock-main">
+                        <h3 style="color: #fff; margin-bottom: 12px; font-size: 1.3rem;">Prompt: "Scary story about the ocean"</h3>
+                        <p style="color: #a1a1aa; font-size: 0.95rem;">AI is crafting your viral masterpiece...</p>
+                        <div class="generating-bar">
+                            <div class="generating-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRICING SECTION -->
+    <div class="pricing-section" id="pricing">
+        <h2>Simple Pricing.<br><span style="color: #ff00ff;">Infinite Scale.</span></h2>
+        
+        <div class="pricing-card glass">
+            <h3 style="color: #00ffcc; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">Creator Pro</h3>
+            <div class="price">$9<span>/mo</span></div>
+            <p class="psychology">"Get 30 Viral Videos for the price of 1 Coffee.<br>Save $500/mo on hiring editors."</p>
+            
+            <ul class="feature-list">
+                <li>Unlimited AI Scripts</li>
+                <li>Premium ElevenLabs Voiceovers</li>
+                <li>Dynamic Vertical Stock Clips</li>
+                <li>Auto-Generated Mobile Captions</li>
+                <li>Commercial Rights Included</li>
+            </ul>
+
+            <!-- Lemon Squeezy Checkout Button -->
+            <a href="https://facelessai-technologies68.lemonsqueezy.com/checkout/buy/62aae9a3-1e4b-4bc5-a0a9-a4c7c5746b9f" class="btn-glow lemonsqueezy-button" style="width: 100%; padding: 16px 0; font-size: 1.05rem; text-align: center; display: block; box-sizing: border-box;">
+                Subscribe Now
+            </a>
+        </div>
+    </div>
+
+    <!-- Lemon Squeezy JS Overlay Script -->
+    <script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
+    <script>
+        // Solid Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 30) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Initialize Lemon Squeezy Popup
+        window.lemonSqueezyAffiliateConfig = { };
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.createLemonSqueezy) {
+                window.createLemonSqueezy();
+            }
+        });
+    </script>
+</body>
+  </html>
+  
