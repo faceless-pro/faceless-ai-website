@@ -16,7 +16,7 @@
 
         html {
             scroll-behavior: smooth;
-            scroll-padding-top: 80px; /* Navbar height compensation */
+            scroll-padding-top: 80px;
             overflow-x: hidden;
         }
 
@@ -112,7 +112,7 @@
             padding: 140px 20px 60px;
         }
         .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.5rem); /* Auto scaling for perfect fit */
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
             line-height: 1.15;
             background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
             -webkit-background-clip: text;
@@ -126,44 +126,52 @@
             text-shadow: 0 0 25px rgba(0, 255, 204, 0.4); 
         }
         .hero p {
-            color: #a1a1aa; font-size: clamp(1rem, 2vw, 1.2rem); max-width: 650px; margin-bottom: 40px; line-height: 1.6; animation: fadeInUp 1s ease-out 0.3s backwards;
+            color: #a1a1aa; font-size: clamp(1rem, 2vw, 1.2rem); max-width: 650px; margin-bottom: 30px; line-height: 1.6; animation: fadeInUp 1s ease-out 0.3s backwards;
         }
 
-        /* Call to Action Button */
-        .btn-glow {
-            background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
-            color: #000; font-size: 1.1rem; font-weight: 800; padding: 18px 45px;
-            border: none; border-radius: 50px; cursor: pointer; text-decoration: none;
-            display: inline-block; font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase; letter-spacing: 1px;
-            animation: pulseGlow 2.5s infinite, fadeInUp 1s ease-out 0.6s backwards;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-glow:hover { transform: scale(1.05) translateY(-3px); }
-
-        /* ================== DASHBOARD MOCKUP ================== */
+        /* ================== INTERACTIVE GENERATOR BOX ================== */
         .dashboard-mockup {
-            width: 100%; max-width: 900px; aspect-ratio: 16/9; margin-top: 70px;
+            width: 100%; max-width: 850px; margin-top: 30px;
             padding: 2px; border-radius: 16px;
             background: linear-gradient(135deg, rgba(255,0,255,0.4), rgba(0,255,204,0.4));
-            animation: fadeInUp 1s ease-out 0.9s backwards, float 6s ease-in-out infinite;
+            animation: fadeInUp 1s ease-out 0.9s backwards;
         }
         .dashboard-inner {
-            background: #09090b; width: 100%; height: 100%; border-radius: 14px; padding: 25px;
-            display: flex; flex-direction: column; text-align: left;
+            background: #09090b; width: 100%; border-radius: 14px; padding: 25px;
+            text-align: left;
         }
-        .mac-dots { display: flex; gap: 8px; margin-bottom: 25px; }
+        .mac-dots { display: flex; gap: 8px; margin-bottom: 20px; }
         .dot { width: 12px; height: 12px; border-radius: 50%; }
         .dot.r { background: #ff5f56; } .dot.y { background: #ffbd2e; } .dot.g { background: #27c93f; }
         
-        .mock-ui-flex { display: flex; gap: 25px; height: calc(100% - 37px); }
-        .mock-sidebar { width: 220px; background: #121216; border-radius: 8px; padding: 20px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 15px; }
-        .mock-main { flex: 1; background: #121216; border-radius: 8px; padding: 30px; border: 1px solid #27272a; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        
-        .mock-skeleton-line { background: #27272a; height: 10px; border-radius: 5px; }
-        
-        .generating-bar { width: 80%; max-width: 400px; height: 8px; background: #27272a; border-radius: 10px; margin-top: 25px; overflow: hidden; }
-        .generating-fill { height: 100%; background: #00ffcc; width: 0%; animation: loadingBar 3s infinite ease-in-out; box-shadow: 0 0 10px #00ffcc; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label {
+            display: block; color: #00ffcc; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; margin-bottom: 8px;
+        }
+        .input-group input {
+            width: 100%; padding: 14px; background: #121216; border: 1px solid #27272a;
+            color: #fff; border-radius: 8px; font-size: 1rem; outline: none; transition: 0.3s;
+        }
+        .input-group input:focus { border-color: #00ffcc; box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
+
+        .btn-generate {
+            width: 100%; background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
+            color: #000; font-size: 1.05rem; font-weight: 800; padding: 15px;
+            border: none; border-radius: 8px; cursor: pointer; font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;
+        }
+        .btn-generate:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); }
+
+        #statusText {
+            margin-top: 15px; color: #a1a1aa; font-size: 0.9rem; text-align: center; font-style: italic; display: none;
+        }
+
+        #videoContainer {
+            margin-top: 20px; text-align: center; display: none;
+        }
+        #outputVideo {
+            width: 100%; max-height: 350px; border-radius: 10px; border: 1px solid #27272a; background: #000;
+        }
 
         /* ================== PRICING SECTION ================== */
         .pricing-section {
@@ -191,15 +199,10 @@
         /* ================== ANIMATIONS ================== */
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulseGlow { 0% { box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); } 50% { box-shadow: 0 0 35px rgba(255, 0, 255, 0.6); } 100% { box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); } }
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
-        @keyframes loadingBar { 0% { width: 0%; } 50% { width: 100%; } 100% { width: 0%; } }
 
         /* ================== RESPONSIVE DESIGN ================== */
         @media (max-width: 768px) {
-            .nav-links button:first-child { display: none; } /* Hide plain login on mobile, keep signup */
-            .dashboard-mockup { margin-top: 50px; aspect-ratio: auto; height: 350px; }
-            .mock-sidebar { display: none; }
+            .nav-links button:first-child { display: none; }
             .pricing-card { padding: 40px 25px; }
             .price { font-size: 3.5rem; }
         }
@@ -227,42 +230,33 @@
             <span class="neon-text">1-Click</span>
         </h1>
         <p>
-            No camera. No mic. 
-            No editing skills required. 
-            Type a prompt and let our AI generate your viral Short.
+            No camera. No mic. No editing skills required. 
+            Type a prompt below and let our AI generate your viral Short instantly.
         </p>
-        <a 
-            href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1" 
-            target="_blank" 
-            style="display: inline-block; background: linear-gradient(135deg, #a855f7, #3b82f6); color: #fff; padding: 14px 28px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 18px; margin-top: 20px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);"
-        >
-            START GENERATING NOW
-        </a>
-    </div>  
 
-    <!-- ANIMATED DASHBOARD MOCKUP -->
-    <div class="dashboard-mockup glass">
-        <div class="dashboard-inner">
-            <div class="mac-dots">
-                <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
-            </div>
-            <div class="mock-ui-flex">
-                <div class="mock-sidebar">
-                    <div class="mock-skeleton-line" style="width: 70%;"></div>
-                    <div class="mock-skeleton-line" style="width: 100%; height: 35px; background: rgba(0, 255, 204, 0.08); border: 1px solid #00ffcc;"></div>
-                    <div class="mock-skeleton-line" style="width: 85%;"></div>
-                    <div class="mock-skeleton-line" style="width: 50%;"></div>
+        <!-- LIVE GENERATOR INTERACTIVE BOX -->
+        <div class="dashboard-mockup glass">
+            <div class="dashboard-inner">
+                <div class="mac-dots">
+                    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
                 </div>
-                <div class="mock-main">
-                    <h3 style="color: #fff; margin-bottom: 12px; font-size: 1.3rem;">Prompt: "Scary story about the ocean"</h3>
-                    <p style="color: #a1a1aa; font-size: 0.95rem;">AI is crafting your viral masterpiece...</p>
-                    <div class="generating-bar">
-                        <div class="generating-fill"></div>
-                    </div>
+                
+                <div class="input-group">
+                    <label>ENTER YOUR VIDEO TOPIC / PROMPT</label>
+                    <input type="text" id="topicInput" placeholder="e.g., Deep secrets of outer space...">
+                </div>
+
+                <button class="btn-generate" onclick="generateVideo()">Generate AI Video 🚀</button>
+                
+                <p id="statusText"></p>
+
+                <div id="videoContainer">
+                    <h3 style="color: #00ffcc; font-size: 1.1rem; margin-bottom: 10px;">Your Video is Ready!</h3>
+                    <video id="outputVideo" controls></video>
                 </div>
             </div>
         </div>
-    </div>
+    </div>  
 
     <!-- PRICING SECTION -->
     <div class="pricing-section" id="pricing">
@@ -299,17 +293,59 @@
             jashofficial.support@gmail.com
         </a>
     </div>
+
     <script>
-        
-    // Solid Navbar Scroll Effect
-    window.addEventListener('scroll', () => {
-        const nav = document.getElementById('navbar');
-        if (window.scrollY > 30) {
-            nav.classList.add('scrolled');
-        } else {
-            nav.classList.remove('scrolled');
+        // Solid Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 30) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // LIVE VIDEO GENERATOR FUNCTION CONNECTED TO TERMUX BACKEND
+        async function generateVideo() {
+            const topic = document.getElementById('topicInput').value.trim();
+            const statusText = document.getElementById('statusText');
+            const videoContainer = document.getElementById('videoContainer');
+            const outputVideo = document.getElementById('outputVideo');
+
+            if (!topic) {
+                alert('Please enter a topic first!');
+                return;
+            }
+
+            // UI Loading State
+            statusText.style.display = 'block';
+            statusText.innerText = '✨ AI is writing script, voicing, and rendering your video... Please wait (~20s)';
+            videoContainer.style.display = 'none';
+
+            try {
+                const response = await fetch('http://localhost:8000/generate-video', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ topic: topic })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'success') {
+                    statusText.innerText = '🎉 Video Generated Successfully!';
+                    outputVideo.src = 'http://localhost:8000' + data.video_url;
+                    videoContainer.style.display = 'block';
+                    outputVideo.load();
+                } else {
+                    statusText.innerText = '❌ Error: ' + (data.detail || 'Failed to generate video.');
+                }
+            } catch (error) {
+                statusText.innerText = '❌ Connection Error! Make sure your Termux Uvicorn server is running.';
+                console.error(error);
+            }
         }
-    });
     </script>
 </body>
 </html>
@@ -317,3 +353,4 @@
   
 
     
+
