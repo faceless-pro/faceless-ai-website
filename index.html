@@ -72,7 +72,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 5%;
+            padding: 15px 8%;
             position: fixed;
             width: 100%;
             top: 0;
@@ -85,7 +85,7 @@
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .logo { font-size: 1.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0,255,204,0.6); cursor: pointer; }
+        .logo { font-size: 1.6rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0,255,204,0.6); cursor: pointer; }
         .nav-links { display: flex; gap: 20px; align-items: center; }
         .nav-links button {
             background: transparent; border: none; color: #a1a1aa; font-family: 'Inter', sans-serif;
@@ -103,21 +103,21 @@
 
         /* ================== HERO SECTION ================== */
         .hero {
-            min-height: 100vh;
+            min-height: 90vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 140px 20px 60px;
+            padding: 120px 20px 40px;
         }
         .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-size: clamp(2.5rem, 5vw, 4.8rem);
             line-height: 1.15;
             background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             animation: fadeInDown 1s ease-out;
         }
         .neon-text { 
@@ -126,75 +126,136 @@
             text-shadow: 0 0 25px rgba(0, 255, 204, 0.4); 
         }
         .hero p {
-            color: #a1a1aa; font-size: clamp(1rem, 2vw, 1.2rem); max-width: 650px; margin-bottom: 30px; line-height: 1.6; animation: fadeInUp 1s ease-out 0.3s backwards;
+            color: #a1a1aa; font-size: clamp(1rem, 1.8vw, 1.25rem); max-width: 750px; margin-bottom: 30px; line-height: 1.6; animation: fadeInUp 1s ease-out 0.3s backwards;
         }
 
         /* ================== INTERACTIVE GENERATOR BOX ================== */
         .dashboard-mockup {
-            width: 100%; max-width: 850px; margin-top: 30px;
+            width: 100%; 
+            max-width: 1000px; 
+            margin-top: 10px;
             padding: 2px; border-radius: 16px;
             background: linear-gradient(135deg, rgba(255,0,255,0.4), rgba(0,255,204,0.4));
-            animation: fadeInUp 1s ease-out 0.9s backwards;
+            animation: fadeInUp 1s ease-out 0.6s backwards;
         }
         .dashboard-inner {
-            background: #09090b; width: 100%; border-radius: 14px; padding: 25px;
+            background: #09090b; width: 100%; border-radius: 14px; padding: 30px;
             text-align: left;
         }
         .mac-dots { display: flex; gap: 8px; margin-bottom: 20px; }
         .dot { width: 12px; height: 12px; border-radius: 50%; }
         .dot.r { background: #ff5f56; } .dot.y { background: #ffbd2e; } .dot.g { background: #27c93f; }
         
-        .input-group { margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
         .input-group label {
-            display: block; color: #00ffcc; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; margin-bottom: 8px;
+            display: block; color: #00ffcc; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; margin-bottom: 10px; letter-spacing: 1px;
         }
-        .input-group input {
-            width: 100%; padding: 14px; background: #121216; border: 1px solid #27272a;
-            color: #fff; border-radius: 8px; font-size: 1rem; outline: none; transition: 0.3s;
+
+        /* Desktop Row for Input + Button */
+        .generator-form-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
-        .input-group input:focus { border-color: #00ffcc; box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
+        .generator-form-row input {
+            flex: 1;
+            padding: 16px 20px; 
+            background: #121216; 
+            border: 1px solid #27272a;
+            color: #fff; 
+            border-radius: 8px; 
+            font-size: 1.05rem; 
+            outline: none; 
+            transition: 0.3s;
+        }
+        .generator-form-row input:focus { border-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.25); }
 
         .btn-generate {
-            width: 100%; background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
-            color: #000; font-size: 1.05rem; font-weight: 800; padding: 15px;
-            border: none; border-radius: 8px; cursor: pointer; font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;
+            white-space: nowrap;
+            background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
+            color: #000; 
+            font-size: 1rem; 
+            font-weight: 800; 
+            padding: 16px 30px;
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            transition: all 0.3s ease;
         }
-        .btn-generate:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); }
+        .btn-generate:hover { opacity: 0.95; transform: translateY(-2px); box-shadow: 0 0 25px rgba(0, 255, 204, 0.5); }
 
         #statusText {
-            margin-top: 15px; color: #a1a1aa; font-size: 0.9rem; text-align: center; font-style: italic; display: none;
+            margin-top: 18px; color: #a1a1aa; font-size: 0.95rem; text-align: center; font-style: italic; display: none;
         }
 
         #videoContainer {
-            margin-top: 20px; text-align: center; display: none;
+            margin-top: 25px; text-align: center; display: none;
         }
         #outputVideo {
-            width: 100%; max-height: 350px; border-radius: 10px; border: 1px solid #27272a; background: #000;
+            width: 100%; max-width: 450px; height: auto; border-radius: 12px; border: 1px solid #27272a; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
+
+        .btn-download {
+            display: inline-block;
+            margin-top: 18px;
+            background: linear-gradient(90deg, #00ffcc, #ff00ff);
+            color: #000;
+            font-weight: 800;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            transition: 0.3s;
+        }
+        .btn-download:hover { transform: scale(1.04); box-shadow: 0 0 25px rgba(255, 0, 255, 0.5); }
 
         /* ================== PRICING SECTION ================== */
         .pricing-section {
-            padding: 100px 20px;
+            padding: 80px 20px;
             text-align: center;
             position: relative;
             z-index: 10;
         }
-        .pricing-section h2 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 15px; }
+        .pricing-section h2 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 10px; }
         .pricing-card {
-            max-width: 420px; margin: 40px auto; padding: 50px 40px;
+            max-width: 480px; margin: 30px auto; padding: 45px 35px;
             position: relative; overflow: hidden;
             border-color: rgba(255, 0, 255, 0.4);
             transition: all 0.4s ease;
         }
-        .pricing-card:hover { border-color: #ff00ff; box-shadow: 0 15px 40px rgba(255, 0, 255, 0.15); transform: translateY(-10px); }
+        .pricing-card:hover { border-color: #ff00ff; box-shadow: 0 15px 40px rgba(255, 0, 255, 0.18); transform: translateY(-8px); }
         .price { font-size: 4.5rem; font-weight: 900; margin: 15px 0; color: #fff; line-height: 1; }
         .price span { font-size: 1.5rem; color: #a1a1aa; font-family: 'Inter', sans-serif; font-weight: 400; }
-        .psychology { color: #00ffcc; font-size: 1rem; margin-bottom: 35px; font-style: italic; opacity: 0.9; }
+        .psychology { color: #00ffcc; font-size: 0.98rem; margin-bottom: 30px; font-style: italic; opacity: 0.9; }
         
-        .feature-list { list-style: none; text-align: left; margin-bottom: 45px; }
-        .feature-list li { margin-bottom: 18px; font-size: 1.05rem; color: #e4e4e7; display: flex; align-items: flex-start; gap: 12px; }
+        .feature-list { list-style: none; text-align: left; margin-bottom: 40px; }
+        .feature-list li { margin-bottom: 16px; font-size: 1.05rem; color: #e4e4e7; display: flex; align-items: flex-start; gap: 12px; }
         .feature-list li::before { content: "✓"; color: #ff00ff; font-weight: 900; font-size: 1.2rem; line-height: 1.2; text-shadow: 0 0 8px rgba(255,0,255,0.5); }
+
+        .btn-subscribe {
+            display: inline-block;
+            width: 100%;
+            background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
+            color: #000;
+            padding: 16px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 1.1rem;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-subscribe:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.6);
+        }
 
         /* ================== ANIMATIONS ================== */
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
@@ -203,8 +264,11 @@
         /* ================== RESPONSIVE DESIGN ================== */
         @media (max-width: 768px) {
             .nav-links button:first-child { display: none; }
-            .pricing-card { padding: 40px 25px; }
+            .generator-form-row { flex-direction: column; }
+            .btn-generate { width: 100%; }
+            .pricing-card { padding: 35px 20px; }
             .price { font-size: 3.5rem; }
+            .hero { padding-top: 100px; }
         }
     </style>
 </head>
@@ -243,16 +307,21 @@
                 
                 <div class="input-group">
                     <label>ENTER YOUR VIDEO TOPIC / PROMPT</label>
-                    <input type="text" id="topicInput" placeholder="e.g., Deep secrets of outer space...">
+                    <div class="generator-form-row">
+                        <input type="text" id="topicInput" placeholder="e.g., Deep secrets of outer space...">
+                        <button class="btn-generate" onclick="generateVideo()">Generate AI Video 🚀</button>
+                    </div>
                 </div>
-
-                <button class="btn-generate" onclick="generateVideo()">Generate AI Video 🚀</button>
                 
                 <p id="statusText"></p>
 
                 <div id="videoContainer">
-                    <h3 style="color: #00ffcc; font-size: 1.1rem; margin-bottom: 10px;">Your Video is Ready!</h3>
+                    <h3 style="color: #00ffcc; font-size: 1.1rem; margin-bottom: 12px;">Your Video is Ready!</h3>
                     <video id="outputVideo" controls></video>
+                    <br>
+                    <a id="downloadBtn" download="faceless_ai_video.mp4" target="_blank" class="btn-download">
+                        Download Video 📥
+                    </a>
                 </div>
             </div>
         </div>
@@ -277,8 +346,8 @@
             </ul>
 
             <!-- Dodo Payments Checkout Button -->
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1" target="_blank" style="background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 18px;">
+            <div style="text-align: center;">
+                <a href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1" target="_blank" class="btn-subscribe">
                     Subscribe Now
                 </a>
             </div>
@@ -286,10 +355,10 @@
     </div>
 
     <!-- CONTACT US SECTION -->
-    <div style="text-align: center; padding: 40px 20px; margin-top: 50px; border-top: 1px solid #333;">
-        <h2 style="font-size: 24px; margin-bottom: 10px;">Contact Us</h2>
-        <p style="font-size: 16px; margin-bottom: 20px;">For any queries or support, feel free to reach out:</p>
-        <a href="mailto:jashofficial.support@gmail.com" style="color: #3b82f6; text-decoration: none; font-size: 18px; font-weight: bold;">
+    <div style="text-align: center; padding: 40px 20px; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <h2 style="font-size: 22px; margin-bottom: 10px;">Contact Us</h2>
+        <p style="font-size: 15px; margin-bottom: 15px; color: #a1a1aa;">For any queries or support, feel free to reach out:</p>
+        <a href="mailto:jashofficial.support@gmail.com" style="color: #00ffcc; text-decoration: none; font-size: 17px; font-weight: bold;">
             jashofficial.support@gmail.com
         </a>
     </div>
@@ -311,6 +380,7 @@
             const statusText = document.getElementById('statusText');
             const videoContainer = document.getElementById('videoContainer');
             const outputVideo = document.getElementById('outputVideo');
+            const downloadBtn = document.getElementById('downloadBtn');
 
             if (!topic) {
                 alert('Please enter a topic first!');
@@ -334,8 +404,10 @@
                 const data = await response.json();
 
                 if (response.ok && data.status === 'success') {
+                    const videoUrl = 'http://localhost:8000' + data.video_url;
                     statusText.innerText = '🎉 Video Generated Successfully!';
-                    outputVideo.src = 'http://localhost:8000' + data.video_url;
+                    outputVideo.src = videoUrl;
+                    downloadBtn.href = videoUrl;
                     videoContainer.style.display = 'block';
                     outputVideo.load();
                 } else {
@@ -348,9 +420,10 @@
         }
     </script>
 </body>
-</html>
+                </html>
 
   
 
     
+
 
