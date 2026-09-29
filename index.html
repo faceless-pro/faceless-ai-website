@@ -16,7 +16,7 @@
 
         html {
             scroll-behavior: smooth;
-            scroll-padding-top: 80px;
+            scroll-padding-top: 70px;
             overflow-x: hidden;
         }
 
@@ -32,10 +32,10 @@
         /* ================== AMBIENT GLOW ================== */
         .bg-glow {
             position: absolute;
-            width: 50vw;
-            height: 50vw;
-            min-width: 400px;
-            min-height: 400px;
+            width: 45vw;
+            height: 45vw;
+            min-width: 350px;
+            min-height: 350px;
             background: radial-gradient(circle, rgba(255, 0, 255, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
             top: -10%;
             left: -10%;
@@ -44,10 +44,10 @@
         }
         .bg-glow-2 {
             position: absolute;
-            width: 50vw;
-            height: 50vw;
-            min-width: 400px;
-            min-height: 400px;
+            width: 45vw;
+            height: 45vw;
+            min-width: 350px;
+            min-height: 350px;
             background: radial-gradient(circle, rgba(0, 255, 204, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
             bottom: -10%;
             right: -10%;
@@ -72,7 +72,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 8%;
+            padding: 12px 8%;
             position: fixed;
             width: 100%;
             top: 0;
@@ -85,7 +85,7 @@
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .logo { font-size: 1.6rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0,255,204,0.6); cursor: pointer; }
+        .logo { font-size: 1.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0,255,204,0.6); cursor: pointer; }
         .nav-links { display: flex; gap: 20px; align-items: center; }
         .nav-links button {
             background: transparent; border: none; color: #a1a1aa; font-family: 'Inter', sans-serif;
@@ -96,28 +96,28 @@
             background: rgba(0, 255, 204, 0.1) !important;
             border: 1px solid #00ffcc !important;
             color: #00ffcc !important;
-            padding: 8px 24px;
+            padding: 8px 22px;
             border-radius: 6px;
         }
         .btn-signup:hover { background: #00ffcc !important; color: #000 !important; box-shadow: 0 0 20px rgba(0, 255, 204, 0.5); }
 
-        /* ================== HERO SECTION ================== */
+        /* ================== HERO SECTION (GAP FIX) ================== */
         .hero {
-            min-height: 90vh;
+            min-height: auto; /* Height auto karke blank gap ko khatam kiya */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 120px 20px 40px;
+            padding: 95px 20px 25px; /* Compact top & bottom padding */
         }
         .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4.8rem);
+            font-size: clamp(2.2rem, 4.5vw, 4rem);
             line-height: 1.15;
             background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             animation: fadeInDown 1s ease-out;
         }
         .neon-text { 
@@ -126,32 +126,30 @@
             text-shadow: 0 0 25px rgba(0, 255, 204, 0.4); 
         }
         .hero p {
-            color: #a1a1aa; font-size: clamp(1rem, 1.8vw, 1.25rem); max-width: 750px; margin-bottom: 30px; line-height: 1.6; animation: fadeInUp 1s ease-out 0.3s backwards;
+            color: #a1a1aa; font-size: clamp(0.95rem, 1.5vw, 1.15rem); max-width: 700px; margin-bottom: 20px; line-height: 1.5; animation: fadeInUp 1s ease-out 0.3s backwards;
         }
 
         /* ================== INTERACTIVE GENERATOR BOX ================== */
         .dashboard-mockup {
             width: 100%; 
-            max-width: 1000px; 
-            margin-top: 10px;
+            max-width: 950px; 
+            margin-top: 5px;
             padding: 2px; border-radius: 16px;
             background: linear-gradient(135deg, rgba(255,0,255,0.4), rgba(0,255,204,0.4));
             animation: fadeInUp 1s ease-out 0.6s backwards;
         }
         .dashboard-inner {
-            background: #09090b; width: 100%; border-radius: 14px; padding: 30px;
+            background: #09090b; width: 100%; border-radius: 14px; padding: 22px 25px;
             text-align: left;
         }
-        .mac-dots { display: flex; gap: 8px; margin-bottom: 20px; }
+        .mac-dots { display: flex; gap: 8px; margin-bottom: 15px; }
         .dot { width: 12px; height: 12px; border-radius: 50%; }
         .dot.r { background: #ff5f56; } .dot.y { background: #ffbd2e; } .dot.g { background: #27c93f; }
         
-        .input-group { margin-bottom: 15px; }
         .input-group label {
-            display: block; color: #00ffcc; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; margin-bottom: 10px; letter-spacing: 1px;
+            display: block; color: #00ffcc; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; margin-bottom: 8px; letter-spacing: 1px;
         }
 
-        /* Desktop Row for Input + Button */
         .generator-form-row {
             display: flex;
             gap: 12px;
@@ -159,12 +157,12 @@
         }
         .generator-form-row input {
             flex: 1;
-            padding: 16px 20px; 
+            padding: 14px 18px; 
             background: #121216; 
             border: 1px solid #27272a;
             color: #fff; 
             border-radius: 8px; 
-            font-size: 1.05rem; 
+            font-size: 1rem; 
             outline: none; 
             transition: 0.3s;
         }
@@ -174,9 +172,9 @@
             white-space: nowrap;
             background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
             color: #000; 
-            font-size: 1rem; 
+            font-size: 0.95rem; 
             font-weight: 800; 
-            padding: 16px 30px;
+            padding: 14px 26px;
             border: none; 
             border-radius: 8px; 
             cursor: pointer; 
@@ -188,23 +186,23 @@
         .btn-generate:hover { opacity: 0.95; transform: translateY(-2px); box-shadow: 0 0 25px rgba(0, 255, 204, 0.5); }
 
         #statusText {
-            margin-top: 18px; color: #a1a1aa; font-size: 0.95rem; text-align: center; font-style: italic; display: none;
+            margin-top: 12px; color: #a1a1aa; font-size: 0.9rem; text-align: center; font-style: italic; display: none;
         }
 
         #videoContainer {
-            margin-top: 25px; text-align: center; display: none;
+            margin-top: 20px; text-align: center; display: none;
         }
         #outputVideo {
-            width: 100%; max-width: 450px; height: auto; border-radius: 12px; border: 1px solid #27272a; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            width: 100%; max-width: 400px; height: auto; border-radius: 12px; border: 1px solid #27272a; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
         .btn-download {
             display: inline-block;
-            margin-top: 18px;
+            margin-top: 15px;
             background: linear-gradient(90deg, #00ffcc, #ff00ff);
             color: #000;
             font-weight: 800;
-            padding: 12px 30px;
+            padding: 10px 24px;
             border-radius: 8px;
             text-decoration: none;
             font-family: 'Orbitron', sans-serif;
@@ -214,61 +212,71 @@
         }
         .btn-download:hover { transform: scale(1.04); box-shadow: 0 0 25px rgba(255, 0, 255, 0.5); }
 
-        /* ================== PRICING SECTION ================== */
+        /* ================== PRICING SECTION (GAP FIX) ================== */
         .pricing-section {
-            padding: 80px 20px;
+            padding: 30px 20px 40px; /* Reduced top gap */
             text-align: center;
             position: relative;
             z-index: 10;
         }
-        .pricing-section h2 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 10px; }
+        .pricing-section h2 { font-size: clamp(1.8rem, 3.5vw, 2.5rem); margin-bottom: 5px; }
         .pricing-card {
-            max-width: 480px; margin: 30px auto; padding: 45px 35px;
+            max-width: 450px; 
+            margin: 20px auto; 
+            padding: 35px 30px;
             position: relative; overflow: hidden;
             border-color: rgba(255, 0, 255, 0.4);
             transition: all 0.4s ease;
         }
-        .pricing-card:hover { border-color: #ff00ff; box-shadow: 0 15px 40px rgba(255, 0, 255, 0.18); transform: translateY(-8px); }
-        .price { font-size: 4.5rem; font-weight: 900; margin: 15px 0; color: #fff; line-height: 1; }
-        .price span { font-size: 1.5rem; color: #a1a1aa; font-family: 'Inter', sans-serif; font-weight: 400; }
-        .psychology { color: #00ffcc; font-size: 0.98rem; margin-bottom: 30px; font-style: italic; opacity: 0.9; }
+        .pricing-card:hover { border-color: #ff00ff; box-shadow: 0 15px 40px rgba(255, 0, 255, 0.18); transform: translateY(-5px); }
+        .price { font-size: 3.8rem; font-weight: 900; margin: 10px 0; color: #fff; line-height: 1; }
+        .price span { font-size: 1.3rem; color: #a1a1aa; font-family: 'Inter', sans-serif; font-weight: 400; }
+        .psychology { color: #00ffcc; font-size: 0.9rem; margin-bottom: 25px; font-style: italic; opacity: 0.9; }
         
-        .feature-list { list-style: none; text-align: left; margin-bottom: 40px; }
-        .feature-list li { margin-bottom: 16px; font-size: 1.05rem; color: #e4e4e7; display: flex; align-items: flex-start; gap: 12px; }
-        .feature-list li::before { content: "✓"; color: #ff00ff; font-weight: 900; font-size: 1.2rem; line-height: 1.2; text-shadow: 0 0 8px rgba(255,0,255,0.5); }
+        .feature-list { list-style: none; text-align: left; margin-bottom: 30px; }
+        .feature-list li { margin-bottom: 14px; font-size: 0.98rem; color: #e4e4e7; display: flex; align-items: flex-start; gap: 10px; }
+        .feature-list li::before { content: "✓"; color: #ff00ff; font-weight: 900; font-size: 1.1rem; line-height: 1.2; text-shadow: 0 0 8px rgba(255,0,255,0.5); }
 
         .btn-subscribe {
             display: inline-block;
             width: 100%;
             background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
             color: #000;
-            padding: 16px 32px;
+            padding: 14px 28px;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 800;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-family: 'Orbitron', sans-serif;
             text-transform: uppercase;
             box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
             transition: all 0.3s ease;
         }
         .btn-subscribe:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: 0 0 30px rgba(0, 255, 204, 0.6);
         }
 
+        /* ================== CONTACT US SECTION ================== */
+        .contact-section {
+            text-align: center;
+            padding: 25px 20px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
         /* ================== ANIMATIONS ================== */
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* ================== RESPONSIVE DESIGN ================== */
         @media (max-width: 768px) {
             .nav-links button:first-child { display: none; }
             .generator-form-row { flex-direction: column; }
             .btn-generate { width: 100%; }
-            .pricing-card { padding: 35px 20px; }
-            .price { font-size: 3.5rem; }
-            .hero { padding-top: 100px; }
+            .pricing-card { padding: 30px 20px; }
+            .price { font-size: 3.2rem; }
+            .hero { padding-top: 85px; }
         }
     </style>
 </head>
@@ -316,7 +324,7 @@
                 <p id="statusText"></p>
 
                 <div id="videoContainer">
-                    <h3 style="color: #00ffcc; font-size: 1.1rem; margin-bottom: 12px;">Your Video is Ready!</h3>
+                    <h3 style="color: #00ffcc; font-size: 1.05rem; margin-bottom: 10px;">Your Video is Ready!</h3>
                     <video id="outputVideo" controls></video>
                     <br>
                     <a id="downloadBtn" download="faceless_ai_video.mp4" target="_blank" class="btn-download">
@@ -332,7 +340,7 @@
         <h2>Simple Pricing.<br><span style="color: #ff00ff;">Infinite Scale.</span></h2>
         
         <div class="pricing-card glass">
-            <h3 style="color: #00ffcc; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">Creator Pro</h3>
+            <h3 style="color: #00ffcc; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Creator Pro</h3>
             <div class="price">$9<span>/mo</span></div>
             <p class="psychology">Get 150 Credits for the price of 1 Coffee<br>Save $500/mo on hiring editors.</p>
             
@@ -355,10 +363,10 @@
     </div>
 
     <!-- CONTACT US SECTION -->
-    <div style="text-align: center; padding: 40px 20px; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.08);">
-        <h2 style="font-size: 22px; margin-bottom: 10px;">Contact Us</h2>
-        <p style="font-size: 15px; margin-bottom: 15px; color: #a1a1aa;">For any queries or support, feel free to reach out:</p>
-        <a href="mailto:jashofficial.support@gmail.com" style="color: #00ffcc; text-decoration: none; font-size: 17px; font-weight: bold;">
+    <div class="contact-section">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Contact Us</h2>
+        <p style="font-size: 14px; margin-bottom: 12px; color: #a1a1aa;">For any queries or support, feel free to reach out:</p>
+        <a href="mailto:jashofficial.support@gmail.com" style="color: #00ffcc; text-decoration: none; font-size: 16px; font-weight: bold;">
             jashofficial.support@gmail.com
         </a>
     </div>
@@ -367,7 +375,7 @@
         // Solid Navbar Scroll Effect
         window.addEventListener('scroll', () => {
             const nav = document.getElementById('navbar');
-            if (window.scrollY > 30) {
+            if (window.scrollY > 20) {
                 nav.classList.add('scrolled');
             } else {
                 nav.classList.remove('scrolled');
@@ -420,10 +428,11 @@
         }
     </script>
 </body>
-                </html>
+    </html>
 
   
 
     
+
 
 
