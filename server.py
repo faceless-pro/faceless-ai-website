@@ -58,7 +58,7 @@ async def generate_video(req: VideoRequest):
         pexels_res = requests.get(pexels_url, headers=headers, timeout=15).json()
 
         if not pexels_res.get("videos") or len(pexels_res["videos"]) == 0:
-            raise HTTPException(status_code=404, detail="No video found on Pexels for this topic.")
+            raise HTTPException(status_code=404, detail="No video found")
 
         video_download_url = pexels_res["videos"][0]["video_files"][0]["link"]
         video_path = "output/background.mp4"
@@ -97,8 +97,5 @@ async def generate_video(req: VideoRequest):
         }
 
     except Exception as e:
-        print("Backend Details Error:", str(e))
-        raise HTTPException(status_co
-                            de=500, detail=str(e))
-
-      
+        raise HTTPException(status_code=500, detail=str(e))
+        
