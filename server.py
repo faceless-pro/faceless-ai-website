@@ -171,6 +171,11 @@ def is_temporary_gemini_error(error: Exception) -> bool:
 
 def generate_script(topic: str) -> str:
 
+    print(
+        "STEP 1: Starting Gemini script generation...",
+        flush=True
+    )
+
     prompt = f"""
 Create a high-retention short-form video narration.
 
@@ -208,6 +213,11 @@ Requirements:
 
             try:
 
+                print(
+                    f"Gemini: {model} | attempt {attempt + 1}/3",
+                    flush=True
+                )
+
                 response = gemini_client.models.generate_content(
                     model=model,
                     contents=prompt
@@ -218,14 +228,25 @@ Requirements:
                 ).strip()
 
                 if not script:
-
                     raise RuntimeError(
                         f"{model} returned an empty script."
                     )
 
+                print(
+                    f"STEP 2: Gemini completed. "
+                    f"Script length: {len(script)}",
+                    flush=True
+                )
+
                 return script
 
             except Exception as exc:
+
+                print(
+                    f"Gemini error: "
+                    f"{type(exc).__name__}: {exc}",
+                    flush=True
+                )
 
                 errors.append(
                     f"{model}: {exc}"
@@ -238,11 +259,12 @@ Requirements:
 
                     delay = (
                         (2 ** attempt)
-                        +
-                        random.uniform(
-                            0.5,
-                            1.5
-                        )
+                        + random.uniform(0.5, 1.5)
+                    )
+
+                    print(
+                        f"Retrying Gemini in {delay:.1f}s...",
+                        flush=True
                     )
 
                     time.sleep(delay)
@@ -263,6 +285,11 @@ async def generate_voice(
     output_path: Path
 ) -> None:
 
+    print(
+        "STEP 3: Starting Edge TTS...",
+        flush=True
+    )
+
     communicator = edge_tts.Communicate(
         text=text,
         voice="en-US-AndrewNeural",
@@ -274,6 +301,11 @@ async def generate_voice(
         str(output_path)
     )
 
+    print(
+        "STEP 4: Edge TTS completed.",
+        flush=True
+    )
+
 
 # ============================================================
 # PEXELS SEARCH
@@ -282,6 +314,11 @@ async def generate_voice(
 def search_pexels_video(
     query: str
 ) -> str:
+
+    print(
+        f"Pexels: searching '{query}'...",
+        flush=True
+    )
 
     response = requests.get(
         "https://api.pexels.com/videos/search",
@@ -389,6 +426,11 @@ def download_video(
     output_path: Path
 ) -> None:
 
+    print(
+        "STEP 6: Starting background video download...",
+        flush=True
+    )
+
     with requests.get(
         url,
         stream=True,
@@ -433,6 +475,11 @@ def download_video(
             "Downloaded video is empty or invalid."
         )
 
+    print(
+        "STEP 7: Background video downloaded.",
+        flush=True
+    )
+
 
 # ============================================================
 # CONVERT TO 9:16
@@ -465,6 +512,11 @@ def prepare_clip(
     input_path: Path,
     target_duration: float
 ):
+
+    print(
+        "STEP 8: Starting MoviePy processing...",
+        flush=True
+    )
 
     source = VideoFileClip(
         str(input_path)
@@ -583,8 +635,19 @@ async def generate_video(
     request: VideoRequest
 ):
 
+    print(
+        "REQUEST: /generate-video received.",
+        flush=True
+    )
+
     topic = validate_topic(
         request.topic
+    )
+
+    print(
+        f"REQUEST: Topic received "
+        f"({len(topic)} characters).",
+        flush=True
     )
 
     job_id = uuid.uuid4().hex
@@ -644,6 +707,11 @@ async def generate_video(
             )
 
         # 3. AUDIO
+        print(
+            "STEP 5: Loading audio...",
+            flush=True
+        )
+
         audio_clip = AudioFileClip(
             str(audio_path)
         )
@@ -659,7 +727,18 @@ async def generate_video(
                 "Invalid audio duration."
             )
 
+        print(
+            f"STEP 5: Audio loaded. "
+            f"Duration: {duration:.2f}s",
+            flush=True
+        )
+
         # 4. PEXELS SEARCH
+        print(
+            "STEP 6: Starting Pexels search...",
+            flush=True
+        )
+
         queries = []
 
         if len(topic) <= 80:
@@ -689,6 +768,12 @@ async def generate_video(
 
             except Exception as exc:
 
+                print(
+                    f"Pexels error: "
+                    f"{type(exc).__name__}: {exc}",
+                    flush=True
+                )
+
                 pexels_errors.append(
                     f"{query}: {exc}"
                 )
@@ -703,6 +788,11 @@ async def generate_video(
                 )
             )
 
+        print(
+            "Pexels search completed successfully.",
+            flush=True
+        )
+
         # 5. DOWNLOAD
         download_video(
             video_url,
@@ -715,12 +805,27 @@ async def generate_video(
             duration
         )
 
+        print(
+            "STEP 9: MoviePy processing completed.",
+            flush=True
+        )
+
         # 7. AUDIO
+        print(
+            "STEP 10: Attaching audio...",
+            flush=True
+        )
+
         video_clip = video_clip.with_audio(
             audio_clip
         )
 
         # 8. EXPORT
+        print(
+            "STEP 11: Starting MP4 export...",
+            flush=True
+        )
+
         video_clip.write_videofile(
             str(final_path),
             fps=30,
@@ -729,6 +834,11 @@ async def generate_video(
             preset="veryfast",
             threads=2,
             logger=None
+        )
+
+        print(
+            "STEP 12: MP4 export completed.",
+            flush=True
         )
 
         # 9. VERIFY
@@ -741,7 +851,17 @@ async def generate_video(
                 "Final video file was not created."
             )
 
+        print(
+            "STEP 13: Final video verified.",
+            flush=True
+        )
+
         # 10. RESPONSE
+        print(
+            "SUCCESS: Sending response to frontend.",
+            flush=True
+        )
+
         return {
             "success": True,
             "message": "Video generated successfully.",
@@ -756,6 +876,12 @@ async def generate_video(
 
     except Exception as exc:
 
+        print(
+            f"GENERATION ERROR: "
+            f"{type(exc).__name__}: {exc}",
+            flush=True
+        )
+
         raise HTTPException(
             status_code=500,
             detail=str(exc)
@@ -767,15 +893,21 @@ async def generate_video(
 
             try:
                 video_clip.close()
-            except Exception:
-                pass
+            except Exception as exc:
+                print(
+                    f"Video cleanup warning: {exc}",
+                    flush=True
+                )
 
         if audio_clip is not None:
 
             try:
                 audio_clip.close()
-            except Exception:
-                pass
+            except Exception as exc:
+                print(
+                    f"Audio cleanup warning: {exc}",
+                    flush=True
+                )
 
         try:
 
@@ -784,5 +916,9 @@ async def generate_video(
                 ignore_errors=True
             )
 
-        except Exception:
-            pass
+        except Exception as exc:
+
+            print(
+                f"Cleanup warning: {exc}",
+                flush=True
+    )
