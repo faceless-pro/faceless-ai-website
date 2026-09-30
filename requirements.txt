@@ -6,3 +6,5 @@ python-dotenv
 edge-tts
 google-genai
 moviepy
+imageio-ffmpeg
+
