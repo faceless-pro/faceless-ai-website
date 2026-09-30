@@ -1,11 +1,9 @@
 fastapi
-uvicorn
+uvicorn[standard]
 requests
-pydantic
 python-dotenv
 edge-tts
 google-genai
-moviepy==1.0.3
-imageio-ffmpeg
+moviepy>=2.0
 
 
