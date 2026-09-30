@@ -1,4 +1,4 @@
-Import os
+import os
 import requests
 import asyncio
 from fastapi import FastAPI, HTTPException
@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import edge_tts
 from google import genai
-from moviepy import VideoFileClip, AudioFileClip
+from moviepy.editor import VideoFileClip, AudioFileClip
 
 load_dotenv()
 
@@ -43,7 +43,7 @@ async def generate_video(req: VideoRequest):
     try:
         prompt = f"Write a compelling 30-second video script about '{req.topic}'. Output ONLY plain text script without formatting or scene instructions."
         response = client.models.generate_content(
-            model='gemini-3.8-flash',
+            model='gemini-2.5-flash',
             contents=prompt,
         )
         script_text = response.text.strip()
@@ -98,5 +98,6 @@ async def generate_video(req: VideoRequest):
 
     except Exception as e:
         print("Backend Details Error:", str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_co
+                            de=500, detail=str(e))
 
