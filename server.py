@@ -22,7 +22,6 @@ from moviepy import (
     concatenate_videoclips,
 )
 
-
 # ============================================================
 # ENVIRONMENT
 # ============================================================
@@ -32,10 +31,10 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 
-# You can change this from Render Environment Variables.
+# Latest Gemini Flash model
 GEMINI_MODEL = os.getenv(
     "GEMINI_MODEL",
-    "gemini-2.5-flash"
+    "gemini-3.8-flash"
 )
 
 if not GEMINI_API_KEY:
@@ -75,12 +74,12 @@ TEMP_DIR.mkdir(
 
 
 # ============================================================
-# FASTAPI APP
+# FASTAPI
 # ============================================================
 
 app = FastAPI(
     title="FacelessAI API",
-    version="2.0.0"
+    version="3.0.0"
 )
 
 
@@ -125,7 +124,7 @@ class VideoRequest(BaseModel):
 
 
 # ============================================================
-# TOPIC VALIDATION
+# VALIDATE TOPIC
 # ============================================================
 
 def validate_topic(topic: str) -> str:
@@ -168,16 +167,19 @@ Topic:
 Requirements:
 
 - 80 to 120 words.
-- Strong hook in the first sentence.
-- Fast-paced and engaging.
-- Simple spoken English.
+- Strong attention-grabbing hook in the first sentence.
+- Fast-paced.
+- Natural spoken English.
+- Easy to understand globally.
 - Useful and factual.
 - Suitable for YouTube Shorts, TikTok and Instagram Reels.
+- Keep viewers curious until the end.
+- End with a memorable takeaway.
 - No emojis.
 - No markdown.
 - No headings.
 - No bullet points.
-- Return only the narration.
+- Return ONLY the narration.
 """
 
     last_error = None
@@ -196,7 +198,6 @@ Requirements:
             ).strip()
 
             if not script:
-
                 raise RuntimeError(
                     "Gemini returned an empty script."
                 )
@@ -219,7 +220,8 @@ Requirements:
                     "504",
                     "UNAVAILABLE",
                     "RESOURCE_EXHAUSTED",
-                    "TIMEOUT"
+                    "TIMEOUT",
+                    "DEADLINE"
                 ]
             )
 
@@ -227,14 +229,17 @@ Requirements:
                 not temporary_error
                 or attempt == 3
             ):
-
                 raise RuntimeError(
                     f"Gemini API error: {exc}"
                 ) from exc
 
             delay = (
                 (2 ** attempt)
-                + random.uniform(0.5, 1.5)
+                +
+                random.uniform(
+                    0.5,
+                    1.5
+                )
             )
 
             time.sleep(delay)
@@ -245,7 +250,7 @@ Requirements:
 
 
 # ============================================================
-# TEXT TO SPEECH
+# EDGE TTS
 # ============================================================
 
 async def generate_voice(
@@ -266,7 +271,7 @@ async def generate_voice(
 
 
 # ============================================================
-# PEXELS SEARCH
+# PEXELS VIDEO SEARCH
 # ============================================================
 
 def search_pexels_video(
@@ -275,13 +280,16 @@ def search_pexels_video(
 
     response = requests.get(
         "https://api.pexels.com/videos/search",
+
         headers={
             "Authorization": PEXELS_API_KEY
         },
+
         params={
             "query": query,
             "per_page": 15
         },
+
         timeout=30
     )
 
@@ -295,15 +303,9 @@ def search_pexels_video(
     )
 
     if not videos:
-
         raise RuntimeError(
             f"No Pexels videos found for: {query}"
         )
-
-
-    # --------------------------------------------------------
-    # Prefer portrait videos
-    # --------------------------------------------------------
 
     portrait_files = []
 
@@ -327,7 +329,7 @@ def search_pexels_video(
 
                 portrait_files.append(file)
 
-
+    # Prefer vertical video
     if portrait_files:
 
         portrait_files.sort(
@@ -347,11 +349,7 @@ def search_pexels_video(
 
         return portrait_files[0]["link"]
 
-
-    # --------------------------------------------------------
-    # Fallback to any video
-    # --------------------------------------------------------
-
+    # Otherwise use largest available video
     usable_files = []
 
     for video in videos:
@@ -364,7 +362,6 @@ def search_pexels_video(
             if file.get("link"):
 
                 usable_files.append(file)
-
 
     if usable_files:
 
@@ -380,14 +377,13 @@ def search_pexels_video(
 
         return usable_files[0]["link"]
 
-
     raise RuntimeError(
         "Pexels returned no downloadable video."
     )
 
 
 # ============================================================
-# DOWNLOAD BACKGROUND VIDEO
+# DOWNLOAD PEXELS VIDEO
 # ============================================================
 
 def download_video(
@@ -400,7 +396,7 @@ def download_video(
         stream=True,
         timeout=120,
         headers={
-            "User-Agent": "FacelessAI/2.0"
+            "User-Agent": "FacelessAI/3.0"
         }
     ) as response:
 
@@ -408,7 +404,10 @@ def download_video(
 
         content_type = (
             response.headers
-            .get("content-type", "")
+            .get(
+                "content-type",
+                ""
+            )
             .lower()
         )
 
@@ -429,7 +428,6 @@ def download_video(
                 if chunk:
                     file.write(chunk)
 
-
     if (
         not output_path.exists()
         or output_path.stat().st_size < 10000
@@ -441,12 +439,10 @@ def download_video(
 
 
 # ============================================================
-# FORMAT VERTICAL CLIP
+# FORMAT VIDEO TO 9:16
 # ============================================================
 
-def format_vertical_clip(
-    clip
-):
+def format_vertical_clip(clip):
 
     scale = max(
         1080 / clip.w,
@@ -468,7 +464,7 @@ def format_vertical_clip(
 
 
 # ============================================================
-# PREPARE VIDEO
+# PREPARE VIDEO CLIP
 # ============================================================
 
 def prepare_clip(
@@ -491,11 +487,7 @@ def prepare_clip(
             "Downloaded video has no valid duration."
         )
 
-
-    # --------------------------------------------------------
-    # Video is long enough
-    # --------------------------------------------------------
-
+    # Video already long enough
     if source.duration >= target_duration:
 
         clip = format_vertical_clip(
@@ -515,14 +507,11 @@ def prepare_clip(
 
         return clip
 
-
-    # --------------------------------------------------------
-    # Video is shorter: loop it
-    # --------------------------------------------------------
-
+    # Loop shorter video
     source.close()
 
     clips = []
+
     elapsed = 0.0
 
     while elapsed < target_duration:
@@ -558,7 +547,6 @@ def prepare_clip(
 
         elapsed += clip.duration
 
-
     return concatenate_videoclips(
         clips,
         method="compose"
@@ -576,12 +564,13 @@ def root():
         "success": True,
         "service": "FacelessAI API",
         "status": "running",
-        "version": "2.0.0"
+        "version": "3.0.0",
+        "model": GEMINI_MODEL
     }
 
 
 # ============================================================
-# HEALTH
+# HEALTH CHECK
 # ============================================================
 
 @app.get("/health")
@@ -590,7 +579,8 @@ def health():
     return {
         "success": True,
         "status": "healthy",
-        "version": "2.0.0"
+        "version": "3.0.0",
+        "model": GEMINI_MODEL
     }
 
 
@@ -607,11 +597,6 @@ async def generate_video(
         request.topic
     )
 
-
-    # --------------------------------------------------------
-    # Job paths
-    # --------------------------------------------------------
-
     job_id = uuid.uuid4().hex
 
     job_dir = (
@@ -624,7 +609,6 @@ async def generate_video(
         parents=True,
         exist_ok=True
     )
-
 
     audio_path = (
         job_dir
@@ -644,31 +628,27 @@ async def generate_video(
         f"{job_id}.mp4"
     )
 
-
     audio_clip = None
     video_clip = None
 
-
     try:
 
-        # ====================================================
-        # STEP 1 — GEMINI
-        # ====================================================
+        # ----------------------------------------------------
+        # 1. GENERATE SCRIPT
+        # ----------------------------------------------------
 
         script = generate_script(
             topic
         )
 
-
-        # ====================================================
-        # STEP 2 — VOICE
-        # ====================================================
+        # ----------------------------------------------------
+        # 2. GENERATE VOICE
+        # ----------------------------------------------------
 
         await generate_voice(
             script,
             audio_path
         )
-
 
         if (
             not audio_path.exists()
@@ -679,10 +659,9 @@ async def generate_video(
                 "Voice generation failed."
             )
 
-
-        # ====================================================
-        # STEP 3 — AUDIO DURATION
-        # ====================================================
+        # ----------------------------------------------------
+        # 3. READ AUDIO DURATION
+        # ----------------------------------------------------
 
         audio_clip = AudioFileClip(
             str(audio_path)
@@ -699,10 +678,9 @@ async def generate_video(
                 "Invalid audio duration."
             )
 
-
-        # ====================================================
-        # STEP 4 — PEXELS
-        # ====================================================
+        # ----------------------------------------------------
+        # 4. FIND BACKGROUND VIDEO
+        # ----------------------------------------------------
 
         queries = []
 
@@ -715,14 +693,14 @@ async def generate_video(
         queries.extend([
             "technology",
             "futuristic technology",
-            "abstract technology",
-            "business technology"
+            "artificial intelligence",
+            "business technology",
+            "digital technology"
         ])
 
-
         video_url = None
-        pexels_errors = []
 
+        pexels_errors = []
 
         for query in queries:
 
@@ -741,7 +719,6 @@ async def generate_video(
                     f"{query}: {exc}"
                 )
 
-
         if not video_url:
 
             raise RuntimeError(
@@ -752,39 +729,35 @@ async def generate_video(
                 )
             )
 
-
-        # ====================================================
-        # STEP 5 — DOWNLOAD
-        # ====================================================
+        # ----------------------------------------------------
+        # 5. DOWNLOAD VIDEO
+        # ----------------------------------------------------
 
         download_video(
             video_url,
             background_path
         )
 
-
-        # ====================================================
-        # STEP 6 — 9:16
-        # ====================================================
+        # ----------------------------------------------------
+        # 6. MAKE 9:16 VIDEO
+        # ----------------------------------------------------
 
         video_clip = prepare_clip(
             background_path,
             duration
         )
 
-
-        # ====================================================
-        # STEP 7 — AUDIO
-        # ====================================================
+        # ----------------------------------------------------
+        # 7. ADD VOICE
+        # ----------------------------------------------------
 
         video_clip = video_clip.with_audio(
             audio_clip
         )
 
-
-        # ====================================================
-        # STEP 8 — EXPORT
-        # ====================================================
+        # ----------------------------------------------------
+        # 8. EXPORT MP4
+        # ----------------------------------------------------
 
         video_clip.write_videofile(
             str(final_path),
@@ -796,10 +769,9 @@ async def generate_video(
             logger=None
         )
 
-
-        # ====================================================
-        # VERIFY
-        # ====================================================
+        # ----------------------------------------------------
+        # 9. VERIFY FILE
+        # ----------------------------------------------------
 
         if (
             not final_path.exists()
@@ -810,10 +782,9 @@ async def generate_video(
                 "Final video file was not created."
             )
 
-
-        # ====================================================
-        # SUCCESS
-        # ====================================================
+        # ----------------------------------------------------
+        # 10. SUCCESS
+        # ----------------------------------------------------
 
         return {
             "success": True,
@@ -824,36 +795,26 @@ async def generate_video(
             "script": script
         }
 
-
     except HTTPException:
 
         raise
 
-
     except Exception as exc:
 
-        # IMPORTANT:
-        # Return a normal JSON 500 response so the frontend
-        # can show the actual backend error.
         raise HTTPException(
             status_code=500,
             detail=str(exc)
         ) from exc
 
-
     finally:
 
-        # ----------------------------------------------------
         # Close MoviePy resources
-        # ----------------------------------------------------
-
         if video_clip is not None:
 
             try:
                 video_clip.close()
             except Exception:
                 pass
-
 
         if audio_clip is not None:
 
@@ -862,11 +823,7 @@ async def generate_video(
             except Exception:
                 pass
 
-
-        # ----------------------------------------------------
         # Remove temporary files
-        # ----------------------------------------------------
-
         try:
 
             shutil.rmtree(
@@ -875,5 +832,4 @@ async def generate_video(
             )
 
         except Exception:
-
             pass
