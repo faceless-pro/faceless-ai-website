@@ -1,6 +1,8 @@
 import os
 import uuid
 import shutil
+import time
+import random
 from pathlib import Path
 
 import requests
@@ -53,6 +55,7 @@ gemini_client = genai.Client(
 BASE_DIR = Path(__file__).resolve().parent
 
 OUTPUT_DIR = BASE_DIR / "output"
+
 OUTPUT_DIR.mkdir(
     parents=True,
     exist_ok=True
@@ -80,7 +83,9 @@ app.add_middleware(
 
 app.mount(
     "/static",
-    StaticFiles(directory=str(OUTPUT_DIR)),
+    StaticFiles(
+        directory=str(OUTPUT_DIR)
+    ),
     name="static"
 )
 
@@ -149,28 +154,71 @@ Requirements:
 - Return only the narration.
 """
 
-    try:
+    last_error = None
 
-        response = gemini_client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt,
-        )
+    # Retry temporary Gemini errors
+    for attempt in range(4):
 
-    except Exception as exc:
+        try:
 
-        raise RuntimeError(
-            f"Gemini API error: {exc}"
-        ) from exc
+            response = gemini_client.models.generate_content(
+                model="gemini-3.6-flash",
+                contents=prompt,
+            )
 
+            script = (
+                response.text or ""
+            ).strip()
 
-    script = (response.text or "").strip()
+            if not script:
 
-    if not script:
-        raise RuntimeError(
-            "Gemini returned an empty script."
-        )
+                raise RuntimeError(
+                    "Gemini returned an empty script."
+                )
 
-    return script
+            return script
+
+        except Exception as exc:
+
+            last_error = exc
+
+            error_text = str(exc)
+
+            # Temporary errors that are safe to retry
+            transient_error = any(
+                code in error_text
+                for code in [
+                    "503",
+                    "429",
+                    "500",
+                    "502",
+                    "504",
+                    "UNAVAILABLE",
+                    "RESOURCE_EXHAUSTED"
+                ]
+            )
+
+            # Do not retry permanent errors
+            if (
+                not transient_error
+                or attempt == 3
+            ):
+
+                raise RuntimeError(
+                    f"Gemini API error: {exc}"
+                ) from exc
+
+            # Exponential backoff + small random delay
+            delay = (
+                (2 ** attempt)
+                + random.uniform(0, 1)
+            )
+
+            time.sleep(delay)
+
+    raise RuntimeError(
+        f"Gemini API error: {last_error}"
+    )
 
 
 # ============================================================
@@ -202,7 +250,9 @@ def search_pexels_video(
     query: str
 ) -> str:
 
-    url = "https://api.pexels.com/videos/search"
+    url = (
+        "https://api.pexels.com/videos/search"
+    )
 
     headers = {
         "Authorization": PEXELS_API_KEY
@@ -230,6 +280,7 @@ def search_pexels_video(
     )
 
     if not videos:
+
         raise RuntimeError(
             f"No Pexels videos found for: {query}"
         )
@@ -260,8 +311,8 @@ def search_pexels_video(
                 and link
                 and height >= width
             ):
-                portrait_files.append(file)
 
+                portrait_files.append(file)
 
         if portrait_files:
 
@@ -269,8 +320,7 @@ def search_pexels_video(
                 key=lambda item:
                 abs(
                     (item.get("height") or 0)
-                    -
-                    1920
+                    - 1920
                 )
             )
 
@@ -352,12 +402,13 @@ def prepare_clip(
     target_duration: float
 ):
 
-    clip = VideoFileClip(
+    base_clip = VideoFileClip(
         str(input_path)
     )
 
-    if not clip.duration:
-        clip.close()
+    if not base_clip.duration:
+
+        base_clip.close()
 
         raise RuntimeError(
             "Downloaded video has no duration."
@@ -365,15 +416,15 @@ def prepare_clip(
 
 
     # --------------------------------------------------------
-    # Resize so the video completely covers 1080x1920
+    # Resize so video completely covers 1080x1920
     # --------------------------------------------------------
 
     scale = max(
-        1080 / clip.w,
-        1920 / clip.h
+        1080 / base_clip.w,
+        1920 / base_clip.h
     )
 
-    clip = clip.resized(
+    base_clip = base_clip.resized(
         scale
     )
 
@@ -382,72 +433,81 @@ def prepare_clip(
     # Center crop to 9:16
     # --------------------------------------------------------
 
-    clip = clip.cropped(
+    base_clip = base_clip.cropped(
         width=1080,
         height=1920,
-        x_center=clip.w / 2,
-        y_center=clip.h / 2
+        x_center=base_clip.w / 2,
+        y_center=base_clip.h / 2
     )
 
 
     # --------------------------------------------------------
-    # If video is shorter than audio, loop it
+    # Loop if video is shorter than narration
     # --------------------------------------------------------
 
-    if clip.duration < target_duration:
+    if base_clip.duration < target_duration:
 
-        original_duration = clip.duration
+        original_duration = base_clip.duration
 
-        repeat_count = int(
-            target_duration
-            /
-            original_duration
-        ) + 1
+        repeat_count = (
+            int(
+                target_duration
+                /
+                original_duration
+            )
+            + 1
+        )
 
         clips = []
 
         for _ in range(repeat_count):
 
-            clips.append(
-                VideoFileClip(
-                    str(input_path)
-                )
-                .resized(scale)
-                .cropped(
-                    width=1080,
-                    height=1920,
-                    x_center=1080 / 2,
-                    y_center=1920 / 2
-                )
+            loop_clip = VideoFileClip(
+                str(input_path)
             )
 
-        clip.close()
+            loop_clip = loop_clip.resized(
+                scale
+            )
+
+            loop_clip = loop_clip.cropped(
+                width=1080,
+                height=1920,
+                x_center=loop_clip.w / 2,
+                y_center=loop_clip.h / 2
+            )
+
+            clips.append(
+                loop_clip
+            )
+
+        base_clip.close()
 
         combined = concatenate_videoclips(
             clips,
             method="compose"
         )
 
-        clip = combined
+        base_clip = combined
 
 
     # --------------------------------------------------------
     # Cut exact duration
     # --------------------------------------------------------
 
-    if clip.duration > target_duration:
+    if base_clip.duration > target_duration:
 
-        final_clip = clip.subclipped(
+        final_clip = base_clip.subclipped(
             0,
             target_duration
         )
 
-        clip.close()
+        base_clip.close()
 
         return final_clip
 
 
-    return clip
+    return base_clip
 
 
 # ============================================================
@@ -584,9 +644,7 @@ async def generate_video(
             "abstract technology"
         ]
 
-
         video_url = None
-
         last_error = None
 
 
@@ -609,7 +667,8 @@ async def generate_video(
         if not video_url:
 
             raise RuntimeError(
-                f"Could not find a Pexels video. {last_error}"
+                "Could not find a Pexels video. "
+                f"{last_error}"
             )
 
 
