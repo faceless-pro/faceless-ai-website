@@ -870,17 +870,16 @@ async def generate_video(
         )
 
         video_clip.write_videofile(
-            str(final_path),
-            fps=24,
-            codec="libx264",
-            audio_codec="aac",
-            bitrate="1800k",
-            audio_bitrate="128k",
-            preset="ultrafast",
-            threads=2,
-            logger=None
-        )
-
+    str(final_path),
+    fps=20,
+    codec="libx264",
+    audio_codec="aac",
+    bitrate="1000k",
+    audio_bitrate="96k",
+    preset="ultrafast",
+    threads=1,
+    logger=None
+  )
         print(
             "STEP 12: MP4 export completed.",
             flush=True
