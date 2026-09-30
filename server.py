@@ -32,6 +32,12 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 
+# You can change this from Render Environment Variables.
+GEMINI_MODEL = os.getenv(
+    "GEMINI_MODEL",
+    "gemini-2.5-flash"
+)
+
 if not GEMINI_API_KEY:
     raise RuntimeError("GEMINI_API_KEY is missing")
 
@@ -55,8 +61,14 @@ gemini_client = genai.Client(
 BASE_DIR = Path(__file__).resolve().parent
 
 OUTPUT_DIR = BASE_DIR / "output"
+TEMP_DIR = BASE_DIR / "temp"
 
 OUTPUT_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+TEMP_DIR.mkdir(
     parents=True,
     exist_ok=True
 )
@@ -68,18 +80,32 @@ OUTPUT_DIR.mkdir(
 
 app = FastAPI(
     title="FacelessAI API",
-    version="1.0.0"
+    version="2.0.0"
 )
 
+
+# ============================================================
+# CORS
+# ============================================================
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=[
+        "https://faceless-ai-website.vercel.app"
+    ],
+    allow_credentials=False,
+    allow_methods=[
+        "GET",
+        "POST",
+        "OPTIONS"
+    ],
     allow_headers=["*"],
 )
 
+
+# ============================================================
+# STATIC VIDEO FILES
+# ============================================================
 
 app.mount(
     "/static",
@@ -99,7 +125,7 @@ class VideoRequest(BaseModel):
 
 
 # ============================================================
-# CLEAN TOPIC
+# TOPIC VALIDATION
 # ============================================================
 
 def validate_topic(topic: str) -> str:
@@ -128,7 +154,7 @@ def validate_topic(topic: str) -> str:
 
 
 # ============================================================
-# GEMINI SCRIPT
+# GEMINI SCRIPT GENERATION
 # ============================================================
 
 def generate_script(topic: str) -> str:
@@ -156,14 +182,13 @@ Requirements:
 
     last_error = None
 
-    # Retry temporary Gemini errors
     for attempt in range(4):
 
         try:
 
             response = gemini_client.models.generate_content(
-                model="gemini-3.6-flash",
-                contents=prompt,
+                model=GEMINI_MODEL,
+                contents=prompt
             )
 
             script = (
@@ -182,25 +207,24 @@ Requirements:
 
             last_error = exc
 
-            error_text = str(exc)
+            error_text = str(exc).upper()
 
-            # Temporary errors that are safe to retry
-            transient_error = any(
+            temporary_error = any(
                 code in error_text
                 for code in [
-                    "503",
                     "429",
                     "500",
                     "502",
+                    "503",
                     "504",
                     "UNAVAILABLE",
-                    "RESOURCE_EXHAUSTED"
+                    "RESOURCE_EXHAUSTED",
+                    "TIMEOUT"
                 ]
             )
 
-            # Do not retry permanent errors
             if (
-                not transient_error
+                not temporary_error
                 or attempt == 3
             ):
 
@@ -208,10 +232,9 @@ Requirements:
                     f"Gemini API error: {exc}"
                 ) from exc
 
-            # Exponential backoff + small random delay
             delay = (
                 (2 ** attempt)
-                + random.uniform(0, 1)
+                + random.uniform(0.5, 1.5)
             )
 
             time.sleep(delay)
@@ -243,30 +266,22 @@ async def generate_voice(
 
 
 # ============================================================
-# PEXELS VIDEO SEARCH
+# PEXELS SEARCH
 # ============================================================
 
 def search_pexels_video(
     query: str
 ) -> str:
 
-    url = (
-        "https://api.pexels.com/videos/search"
-    )
-
-    headers = {
-        "Authorization": PEXELS_API_KEY
-    }
-
-    params = {
-        "query": query,
-        "per_page": 10
-    }
-
     response = requests.get(
-        url,
-        headers=headers,
-        params=params,
+        "https://api.pexels.com/videos/search",
+        headers={
+            "Authorization": PEXELS_API_KEY
+        },
+        params={
+            "query": query,
+            "per_page": 15
+        },
         timeout=30
     )
 
@@ -290,16 +305,14 @@ def search_pexels_video(
     # Prefer portrait videos
     # --------------------------------------------------------
 
+    portrait_files = []
+
     for video in videos:
 
-        files = video.get(
+        for file in video.get(
             "video_files",
             []
-        )
-
-        portrait_files = []
-
-        for file in files:
+        ):
 
             width = file.get("width")
             height = file.get("height")
@@ -314,49 +327,58 @@ def search_pexels_video(
 
                 portrait_files.append(file)
 
-        if portrait_files:
 
-            portrait_files.sort(
-                key=lambda item:
-                abs(
+    if portrait_files:
+
+        portrait_files.sort(
+            key=lambda item: abs(
+                (
                     (item.get("height") or 0)
-                    - 1920
+                    /
+                    max(
+                        item.get("width") or 1,
+                        1
+                    )
                 )
+                -
+                (16 / 9)
             )
+        )
 
-            return portrait_files[0]["link"]
+        return portrait_files[0]["link"]
 
 
     # --------------------------------------------------------
-    # Fallback to any usable video
+    # Fallback to any video
     # --------------------------------------------------------
+
+    usable_files = []
 
     for video in videos:
 
-        files = video.get(
+        for file in video.get(
             "video_files",
             []
+        ):
+
+            if file.get("link"):
+
+                usable_files.append(file)
+
+
+    if usable_files:
+
+        usable_files.sort(
+            key=lambda item:
+            (
+                (item.get("width") or 0)
+                *
+                (item.get("height") or 0)
+            ),
+            reverse=True
         )
 
-        usable_files = [
-            file
-            for file in files
-            if file.get("link")
-        ]
-
-        if usable_files:
-
-            usable_files.sort(
-                key=lambda item:
-                (
-                    (item.get("width") or 0)
-                    *
-                    (item.get("height") or 0)
-                ),
-                reverse=True
-            )
-
-            return usable_files[0]["link"]
+        return usable_files[0]["link"]
 
 
     raise RuntimeError(
@@ -365,7 +387,7 @@ def search_pexels_video(
 
 
 # ============================================================
-# DOWNLOAD VIDEO
+# DOWNLOAD BACKGROUND VIDEO
 # ============================================================
 
 def download_video(
@@ -373,28 +395,80 @@ def download_video(
     output_path: Path
 ) -> None:
 
-    response = requests.get(
+    with requests.get(
         url,
         stream=True,
-        timeout=90
-    )
+        timeout=120,
+        headers={
+            "User-Agent": "FacelessAI/2.0"
+        }
+    ) as response:
 
-    response.raise_for_status()
+        response.raise_for_status()
 
-    with output_path.open(
-        "wb"
-    ) as file:
+        content_type = (
+            response.headers
+            .get("content-type", "")
+            .lower()
+        )
 
-        for chunk in response.iter_content(
-            chunk_size=1024 * 1024
-        ):
+        if "text/html" in content_type:
 
-            if chunk:
-                file.write(chunk)
+            raise RuntimeError(
+                "Pexels returned HTML instead of a video."
+            )
+
+        with output_path.open(
+            "wb"
+        ) as file:
+
+            for chunk in response.iter_content(
+                chunk_size=1024 * 1024
+            ):
+
+                if chunk:
+                    file.write(chunk)
+
+
+    if (
+        not output_path.exists()
+        or output_path.stat().st_size < 10000
+    ):
+
+        raise RuntimeError(
+            "Downloaded video is empty or invalid."
+        )
 
 
 # ============================================================
-# PREPARE VERTICAL VIDEO
+# FORMAT VERTICAL CLIP
+# ============================================================
+
+def format_vertical_clip(
+    clip
+):
+
+    scale = max(
+        1080 / clip.w,
+        1920 / clip.h
+    )
+
+    clip = clip.resized(
+        scale
+    )
+
+    clip = clip.cropped(
+        width=1080,
+        height=1920,
+        x_center=clip.w / 2,
+        y_center=clip.h / 2
+    )
+
+    return clip
+
+
+# ============================================================
+# PREPARE VIDEO
 # ============================================================
 
 def prepare_clip(
@@ -402,112 +476,93 @@ def prepare_clip(
     target_duration: float
 ):
 
-    base_clip = VideoFileClip(
+    source = VideoFileClip(
         str(input_path)
     )
 
-    if not base_clip.duration:
+    if (
+        not source.duration
+        or source.duration <= 0
+    ):
 
-        base_clip.close()
+        source.close()
 
         raise RuntimeError(
-            "Downloaded video has no duration."
+            "Downloaded video has no valid duration."
         )
 
 
     # --------------------------------------------------------
-    # Resize so video completely covers 1080x1920
+    # Video is long enough
     # --------------------------------------------------------
 
-    scale = max(
-        1080 / base_clip.w,
-        1920 / base_clip.h
-    )
+    if source.duration >= target_duration:
 
-    base_clip = base_clip.resized(
-        scale
-    )
+        clip = format_vertical_clip(
+            source
+        )
 
+        if clip.duration > target_duration:
 
-    # --------------------------------------------------------
-    # Center crop to 9:16
-    # --------------------------------------------------------
-
-    base_clip = base_clip.cropped(
-        width=1080,
-        height=1920,
-        x_center=base_clip.w / 2,
-        y_center=base_clip.h / 2
-    )
-
-
-    # --------------------------------------------------------
-    # Loop if video is shorter than narration
-    # --------------------------------------------------------
-
-    if base_clip.duration < target_duration:
-
-        original_duration = base_clip.duration
-
-        repeat_count = (
-            int(
+            final_clip = clip.subclipped(
+                0,
                 target_duration
-                /
-                original_duration
-            )
-            + 1
-        )
-
-        clips = []
-
-        for _ in range(repeat_count):
-
-            loop_clip = VideoFileClip(
-                str(input_path)
             )
 
-            loop_clip = loop_clip.resized(
-                scale
-            )
+            clip.close()
 
-            loop_clip = loop_clip.cropped(
-                width=1080,
-                height=1920,
-                x_center=loop_clip.w / 2,
-                y_center=loop_clip.h / 2
-            )
+            return final_clip
 
-            clips.append(
-                loop_clip
-            )
-
-        base_clip.close()
-
-        combined = concatenate_videoclips(
-            clips,
-            method="compose"
-        )
-
-        base_clip = combined
+        return clip
 
 
     # --------------------------------------------------------
-    # Cut exact duration
+    # Video is shorter: loop it
     # --------------------------------------------------------
 
-    if base_clip.duration > target_duration:
+    source.close()
 
-        final_clip = base_clip.subclipped(
-            0,
+    clips = []
+    elapsed = 0.0
+
+    while elapsed < target_duration:
+
+        clip = VideoFileClip(
+            str(input_path)
+        )
+
+        clip = format_vertical_clip(
+            clip
+        )
+
+        remaining = (
             target_duration
+            -
+            elapsed
         )
 
-        base_clip.close()
+        if clip.duration > remaining:
 
-        return final_clip
+            shortened = clip.subclipped(
+                0,
+                remaining
+            )
+
+            clip.close()
+
+            clip = shortened
+
+        clips.append(
+            clip
+        )
+
+        elapsed += clip.duration
 
 
-    return base_clip
+    return concatenate_videoclips(
+        clips,
+        method="compose"
+    )
 
 
 # ============================================================
@@ -520,7 +575,8 @@ def root():
     return {
         "success": True,
         "service": "FacelessAI API",
-        "status": "running"
+        "status": "running",
+        "version": "2.0.0"
     }
 
 
@@ -533,7 +589,8 @@ def health():
 
     return {
         "success": True,
-        "status": "healthy"
+        "status": "healthy",
+        "version": "2.0.0"
     }
 
 
@@ -551,10 +608,14 @@ async def generate_video(
     )
 
 
+    # --------------------------------------------------------
+    # Job paths
+    # --------------------------------------------------------
+
     job_id = uuid.uuid4().hex
 
     job_dir = (
-        OUTPUT_DIR
+        TEMP_DIR
         /
         f"job_{job_id}"
     )
@@ -591,7 +652,7 @@ async def generate_video(
     try:
 
         # ====================================================
-        # STEP 1 — GEMINI SCRIPT
+        # STEP 1 — GEMINI
         # ====================================================
 
         script = generate_script(
@@ -600,7 +661,7 @@ async def generate_video(
 
 
         # ====================================================
-        # STEP 2 — AI VOICE
+        # STEP 2 — VOICE
         # ====================================================
 
         await generate_voice(
@@ -609,7 +670,10 @@ async def generate_video(
         )
 
 
-        if not audio_path.exists():
+        if (
+            not audio_path.exists()
+            or audio_path.stat().st_size == 0
+        ):
 
             raise RuntimeError(
                 "Voice generation failed."
@@ -626,7 +690,10 @@ async def generate_video(
 
         duration = audio_clip.duration
 
-        if not duration or duration <= 0:
+        if (
+            not duration
+            or duration <= 0
+        ):
 
             raise RuntimeError(
                 "Invalid audio duration."
@@ -634,18 +701,27 @@ async def generate_video(
 
 
         # ====================================================
-        # STEP 4 — PEXELS SEARCH
+        # STEP 4 — PEXELS
         # ====================================================
 
-        queries = [
-            topic,
+        queries = []
+
+        if len(topic) <= 80:
+
+            queries.append(
+                topic
+            )
+
+        queries.extend([
             "technology",
             "futuristic technology",
-            "abstract technology"
-        ]
+            "abstract technology",
+            "business technology"
+        ])
+
 
         video_url = None
-        last_error = None
+        pexels_errors = []
 
 
         for query in queries:
@@ -661,14 +737,19 @@ async def generate_video(
 
             except Exception as exc:
 
-                last_error = exc
+                pexels_errors.append(
+                    f"{query}: {exc}"
+                )
 
 
         if not video_url:
 
             raise RuntimeError(
-                "Could not find a Pexels video. "
-                f"{last_error}"
+                "Could not find a usable Pexels video. "
+                +
+                " | ".join(
+                    pexels_errors[-2:]
+                )
             )
 
 
@@ -682,15 +763,8 @@ async def generate_video(
         )
 
 
-        if not background_path.exists():
-
-            raise RuntimeError(
-                "Background video download failed."
-            )
-
-
         # ====================================================
-        # STEP 6 — MAKE 9:16
+        # STEP 6 — 9:16
         # ====================================================
 
         video_clip = prepare_clip(
@@ -700,7 +774,7 @@ async def generate_video(
 
 
         # ====================================================
-        # STEP 7 — ADD AUDIO
+        # STEP 7 — AUDIO
         # ====================================================
 
         video_clip = video_clip.with_audio(
@@ -717,14 +791,14 @@ async def generate_video(
             fps=30,
             codec="libx264",
             audio_codec="aac",
-            preset="medium",
+            preset="veryfast",
             threads=2,
             logger=None
         )
 
 
         # ====================================================
-        # VERIFY OUTPUT
+        # VERIFY
         # ====================================================
 
         if (
@@ -738,7 +812,7 @@ async def generate_video(
 
 
         # ====================================================
-        # RESPONSE
+        # SUCCESS
         # ====================================================
 
         return {
@@ -758,10 +832,13 @@ async def generate_video(
 
     except Exception as exc:
 
+        # IMPORTANT:
+        # Return a normal JSON 500 response so the frontend
+        # can show the actual backend error.
         raise HTTPException(
             status_code=500,
             detail=str(exc)
-        )
+        ) from exc
 
 
     finally:
@@ -787,17 +864,15 @@ async def generate_video(
 
 
         # ----------------------------------------------------
-        # Delete temporary job folder
+        # Remove temporary files
         # ----------------------------------------------------
 
         try:
 
-            if job_dir.exists():
-
-                shutil.rmtree(
-                    job_dir,
-                    ignore_errors=True
-                )
+            shutil.rmtree(
+                job_dir,
+                ignore_errors=True
+            )
 
         except Exception:
 
