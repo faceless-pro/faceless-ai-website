@@ -101,5 +101,4 @@ async def generate_video(req: VideoRequest):
         raise HTTPException(status_co
                             de=500, detail=str(e))
 
-
-
+      
