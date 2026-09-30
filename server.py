@@ -906,7 +906,17 @@ async def generate_video(
         )
 
         # ====================================================
-        # 10. SUCCESS RESPONSE
+        # 10. PRINT ACTUAL VIDEO URL
+        # ====================================================
+
+        print(
+            "VIDEO URL:",
+            f"https://faceless-ai-website.onrender.com/static/{final_path.name}",
+            flush=True
+        )
+
+        # ====================================================
+        # 11. SUCCESS RESPONSE
         # ====================================================
 
         print(
@@ -944,15 +954,23 @@ async def generate_video(
 
         raise HTTPException(
             status_code=500,
-                        detail=str(exc)
+            detail=str(exc)
         ) from exc
+
+    # ========================================================
+    # CLEANUP
+    # ========================================================
 
     finally:
 
         if video_clip is not None:
+
             try:
+
                 video_clip.close()
+
             except Exception as exc:
+
                 print(
                     "Video cleanup warning: "
                     f"{exc}",
@@ -960,9 +978,13 @@ async def generate_video(
                 )
 
         if audio_clip is not None:
+
             try:
+
                 audio_clip.close()
+
             except Exception as exc:
+
                 print(
                     "Audio cleanup warning: "
                     f"{exc}",
@@ -970,13 +992,16 @@ async def generate_video(
                 )
 
         try:
+
             shutil.rmtree(
                 job_dir,
                 ignore_errors=True
             )
+
         except Exception as exc:
+
             print(
                 "Cleanup warning: "
                 f"{exc}",
                 flush=True
-)
+            )
