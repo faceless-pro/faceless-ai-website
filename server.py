@@ -74,7 +74,7 @@ TEMP_DIR.mkdir(
 
 app = FastAPI(
     title="FacelessAI API",
-    version="4.2.0"
+    version="4.2.1"
 )
 
 
@@ -148,7 +148,7 @@ def validate_topic(topic: str) -> str:
 
 
 # ============================================================
-# GEMINI ERROR CHECK
+# GEMINI TEMPORARY ERROR CHECK
 # ============================================================
 
 def is_temporary_gemini_error(
@@ -559,10 +559,6 @@ def prepare_clip(
             "Downloaded video has no valid duration."
         )
 
-    # --------------------------------------------------------
-    # Source video is already long enough
-    # --------------------------------------------------------
-
     if source.duration >= target_duration:
 
         clip = format_vertical_clip(
@@ -581,11 +577,6 @@ def prepare_clip(
             return final_clip
 
         return clip
-
-    # --------------------------------------------------------
-    # Source video is shorter than narration
-    # Repeat it
-    # --------------------------------------------------------
 
     source.close()
 
@@ -641,7 +632,7 @@ def root():
         "success": True,
         "service": "FacelessAI API",
         "status": "running",
-        "version": "4.2.0",
+        "version": "4.2.1",
         "primary_model": PRIMARY_MODEL,
         "fallback_model": FALLBACK_MODEL
     }
@@ -657,7 +648,7 @@ def health():
     return {
         "success": True,
         "status": "healthy",
-        "version": "4.2.0",
+        "version": "4.2.1",
         "primary_model": PRIMARY_MODEL,
         "fallback_model": FALLBACK_MODEL
     }
@@ -932,8 +923,16 @@ async def generate_video(
             "script": script
         }
 
-        except HTTPException:
+    # ========================================================
+    # HTTP ERRORS
+    # ========================================================
+
+    except HTTPException:
         raise
+
+    # ========================================================
+    # GENERATION ERRORS
+    # ========================================================
 
     except Exception as exc:
 
@@ -945,7 +944,7 @@ async def generate_video(
 
         raise HTTPException(
             status_code=500,
-            detail=str(exc)
+                        detail=str(exc)
         ) from exc
 
     finally:
@@ -970,7 +969,14 @@ async def generate_video(
                     flush=True
                 )
 
-        shutil.rmtree(
-            job_dir,
-            ignore_errors=True
-        )
+        try:
+            shutil.rmtree(
+                job_dir,
+                ignore_errors=True
+            )
+        except Exception as exc:
+            print(
+                "Cleanup warning: "
+                f"{exc}",
+                flush=True
+)
