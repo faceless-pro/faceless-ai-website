@@ -41,10 +41,12 @@ def index():
 @app.post("/generate-video")
 async def generate_video(req: VideoRequest):
     try:
-        prompt = f"Write a compelling 30-second video script about '{req.topic}'. Output ONLY plain text script without formatting or scene instructions."
+        topic_text = req.topic
+        prompt = "Write a compelling 30-second video script about " + topic_text + ". Output ONLY plain text script without formatting or scene instructions."
+        
         response = client.models.generate_content(
             model='gemini-2.0-flash',
-            contents=prompt,
+            contents=prompt
         )
         script_text = response.text.strip()
 
@@ -53,7 +55,7 @@ async def generate_video(req: VideoRequest):
         await communicate.save(audio_path)
 
         headers = {"Authorization": PEXELS_KEY}
-        pexels_url = f"https://api.pexels.com/videos/search?query={req.topic}&per_page=1&orientation=portrait"
+        pexels_url = "https://api.pexels.com/videos/search?query=" + topic_text + "&per_page=1&orientation=portrait"
 
         pexels_res = requests.get(pexels_url, headers=headers, timeout=15).json()
 
