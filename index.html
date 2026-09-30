@@ -1,432 +1,1053 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FacelessAI - 1-Click Viral Video Generator</title>
-    <style>
-        /* ================== GLOBAL & FONTS ================== */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050505">
 
-        html {
-            scroll-behavior: smooth;
-            scroll-padding-top: 70px;
-            overflow-x: hidden;
-        }
+<title>FacelessAI - AI Short Video Generator</title>
 
-        body {
-            background-color: #050505;
-            color: #ffffff;
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-            position: relative;
-            -webkit-font-smoothing: antialiased;
-        }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-        /* ================== AMBIENT GLOW ================== */
-        .bg-glow {
-            position: absolute;
-            width: 45vw;
-            height: 45vw;
-            min-width: 350px;
-            min-height: 350px;
-            background: radial-gradient(circle, rgba(255, 0, 255, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
-            top: -10%;
-            left: -10%;
-            z-index: -1;
-            filter: blur(60px);
-        }
-        .bg-glow-2 {
-            position: absolute;
-            width: 45vw;
-            height: 45vw;
-            min-width: 350px;
-            min-height: 350px;
-            background: radial-gradient(circle, rgba(0, 255, 204, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
-            bottom: -10%;
-            right: -10%;
-            z-index: -1;
-            filter: blur(60px);
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        h1, h2, h3, .price { font-family: 'Orbitron', sans-serif; }
+html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
 
-        /* ================== GLASSMORPHISM ================== */
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-        }
+body {
+    background: #050505;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
 
-        /* ================== NAVBAR ================== */
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 8%;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 999;
-            transition: all 0.4s ease;
-        }
-        nav.scrolled {
-            background: rgba(5, 5, 5, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .logo { font-size: 1.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0,255,204,0.6); cursor: pointer; }
-        .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-links button {
-            background: transparent; border: none; color: #a1a1aa; font-family: 'Inter', sans-serif;
-            font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.3s;
-        }
-        .nav-links button:hover { color: #fff; }
-        .btn-signup {
-            background: rgba(0, 255, 204, 0.1) !important;
-            border: 1px solid #00ffcc !important;
-            color: #00ffcc !important;
-            padding: 8px 22px;
-            border-radius: 6px;
-        }
-        .btn-signup:hover { background: #00ffcc !important; color: #000 !important; box-shadow: 0 0 20px rgba(0, 255, 204, 0.5); }
+button,
+input,
+select {
+    font-family: inherit;
+}
 
-        /* ================== HERO SECTION (GAP FIX) ================== */
-        .hero {
-            min-height: auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 95px 20px 25px;
-        }
-        .hero h1 {
-            font-size: clamp(2.2rem, 4.5vw, 4rem);
-            line-height: 1.15;
-            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 12px;
-            animation: fadeInDown 1s ease-out;
-        }
-        .neon-text { 
-            color: #00ffcc; 
-            -webkit-text-fill-color: #00ffcc; 
-            text-shadow: 0 0 25px rgba(0, 255, 204, 0.4); 
-        }
-        .hero p {
-            color: #a1a1aa; font-size: clamp(0.95rem, 1.5vw, 1.15rem); max-width: 700px; margin-bottom: 20px; line-height: 1.5; animation: fadeInUp 1s ease-out 0.3s backwards;
-        }
+button {
+    cursor: pointer;
+}
 
-        /* ================== INTERACTIVE GENERATOR BOX ================== */
-        .dashboard-mockup {
-            width: 100%; 
-            max-width: 950px; 
-            margin-top: 5px;
-            padding: 2px; border-radius: 16px;
-            background: linear-gradient(135deg, rgba(255,0,255,0.4), rgba(0,255,204,0.4));
-            animation: fadeInUp 1s ease-out 0.6s backwards;
-        }
-        .dashboard-inner {
-            background: #09090b; width: 100%; border-radius: 14px; padding: 22px 25px;
-            text-align: left;
-        }
-        .mac-dots { display: flex; gap: 8px; margin-bottom: 15px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .dot.r { background: #ff5f56; } .dot.y { background: #ffbd2e; } .dot.g { background: #27c93f; }
-        
-        .input-group label {
-            display: block; color: #00ffcc; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; margin-bottom: 8px; letter-spacing: 1px;
-        }
+h1,
+h2,
+h3,
+.logo,
+.price {
+    font-family: 'Orbitron', sans-serif;
+}
 
-        .generator-form-row {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        .generator-form-row input {
-            flex: 1;
-            padding: 14px 18px; 
-            background: #121216; 
-            border: 1px solid #27272a;
-            color: #fff; 
-            border-radius: 8px; 
-            font-size: 1rem; 
-            outline: none; 
-            transition: 0.3s;
-        }
-        .generator-form-row input:focus { border-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.25); }
+/* ================= BACKGROUND ================= */
 
-        .btn-generate {
-            white-space: nowrap;
-            background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
-            color: #000; 
-            font-size: 0.95rem; 
-            font-weight: 800; 
-            padding: 14px 26px;
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            transition: all 0.3s ease;
-        }
-        .btn-generate:hover { opacity: 0.95; transform: translateY(-2px); box-shadow: 0 0 25px rgba(0, 255, 204, 0.5); }
+.bg-glow {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    top: -180px;
+    left: -150px;
+    background: radial-gradient(
+        circle,
+        rgba(255, 0, 255, .14),
+        transparent 70%
+    );
+    filter: blur(50px);
+    pointer-events: none;
+    z-index: -1;
+}
 
-        #statusText {
-            margin-top: 12px; color: #a1a1aa; font-size: 0.9rem; text-align: center; font-style: italic; display: none;
-        }
+.bg-glow-2 {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    right: -180px;
+    bottom: -200px;
+    background: radial-gradient(
+        circle,
+        rgba(0, 255, 204, .12),
+        transparent 70%
+    );
+    filter: blur(50px);
+    pointer-events: none;
+    z-index: -1;
+}
 
-        #videoContainer {
-            margin-top: 20px; text-align: center; display: none;
-        }
-        #outputVideo {
-            width: 100%; max-width: 400px; height: auto; border-radius: 12px; border: 1px solid #27272a; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
+/* ================= NAVBAR ================= */
 
-        .btn-download {
-            display: inline-block;
-            margin-top: 15px;
-            background: linear-gradient(90deg, #00ffcc, #ff00ff);
-            color: #000;
-            font-weight: 800;
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
-            transition: 0.3s;
-        }
-        .btn-download:hover { transform: scale(1.04); box-shadow: 0 0 25px rgba(255, 0, 255, 0.5); }
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 14px 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    transition: .3s;
+}
 
-        /* ================== PRICING SECTION ================== */
-        .pricing-section {
-            padding: 30px 20px 40px;
-            text-align: center;
-            position: relative;
-            z-index: 10;
-        }
-        .pricing-section h2 { font-size: clamp(1.8rem, 3.5vw, 2.5rem); margin-bottom: 5px; }
-        .pricing-card {
-            max-width: 450px; 
-            margin: 20px auto; 
-            padding: 35px 30px;
-            position: relative; overflow: hidden;
-            border-color: rgba(255, 0, 255, 0.4);
-            transition: all 0.4s ease;
-        }
-        .pricing-card:hover { border-color: #ff00ff; box-shadow: 0 15px 40px rgba(255, 0, 255, 0.18); transform: translateY(-5px); }
-        .price { font-size: 3.8rem; font-weight: 900; margin: 10px 0; color: #fff; line-height: 1; }
-        .price span { font-size: 1.3rem; color: #a1a1aa; font-family: 'Inter', sans-serif; font-weight: 400; }
-        .psychology { color: #00ffcc; font-size: 0.9rem; margin-bottom: 25px; font-style: italic; opacity: 0.9; }
-        
-        .feature-list { list-style: none; text-align: left; margin-bottom: 30px; }
-        .feature-list li { margin-bottom: 14px; font-size: 0.98rem; color: #e4e4e7; display: flex; align-items: flex-start; gap: 10px; }
-        .feature-list li::before { content: "✓"; color: #ff00ff; font-weight: 900; font-size: 1.1rem; line-height: 1.2; text-shadow: 0 0 8px rgba(255,0,255,0.5); }
+nav.scrolled {
+    background: rgba(5,5,5,.88);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
 
-        .btn-subscribe {
-            display: inline-block;
-            width: 100%;
-            background: linear-gradient(90deg, #ff00ff 0%, #00ffcc 100%);
-            color: #000;
-            padding: 14px 28px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 800;
-            font-size: 1rem;
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
-            transition: all 0.3s ease;
-        }
-        .btn-subscribe:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.6);
-        }
+.logo {
+    font-size: 1.45rem;
+    font-weight: 900;
+    text-shadow: 0 0 18px rgba(0,255,204,.5);
+}
 
-        /* ================== CONTACT US SECTION ================== */
-        .contact-section {
-            text-align: center;
-            padding: 25px 20px;
-            margin-top: 10px;
-            border-top: 1px solid rgba(255,255,255,0.08);
-        }
+.logo span {
+    color: #00ffcc;
+}
 
-        /* ================== ANIMATIONS ================== */
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.nav-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
 
-        /* ================== RESPONSIVE DESIGN ================== */
-        @media (max-width: 768px) {
-            .nav-links button:first-child { display: none; }
-            .generator-form-row { flex-direction: column; }
-            .btn-generate { width: 100%; }
-            .pricing-card { padding: 30px 20px; }
-            .price { font-size: 3.2rem; }
-            .hero { padding-top: 85px; }
-        }
-    </style>
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-weight: 600;
+    padding: 8px 12px;
+}
+
+.nav-btn:hover {
+    color: white;
+}
+
+.signup-btn {
+    color: #00ffcc;
+    border: 1px solid #00ffcc;
+    border-radius: 7px;
+    background: rgba(0,255,204,.06);
+}
+
+/* ================= HERO ================= */
+
+.hero {
+    padding: 105px 18px 35px;
+    text-align: center;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    border: 1px solid rgba(0,255,204,.25);
+    border-radius: 100px;
+    background: rgba(0,255,204,.05);
+    color: #00ffcc;
+    font-size: .78rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.hero h1 {
+    max-width: 950px;
+    margin: auto;
+    font-size: clamp(2.2rem, 6vw, 4.5rem);
+    line-height: 1.08;
+}
+
+.hero h1 span {
+    color: #00ffcc;
+    text-shadow: 0 0 30px rgba(0,255,204,.35);
+}
+
+.hero-subtitle {
+    max-width: 720px;
+    margin: 18px auto 25px;
+    color: #999;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* ================= GENERATOR ================= */
+
+.generator {
+    width: 100%;
+    max-width: 1050px;
+    margin: 25px auto 0;
+    padding: 2px;
+    border-radius: 18px;
+    background: linear-gradient(
+        135deg,
+        rgba(255,0,255,.55),
+        rgba(0,255,204,.55)
+    );
+}
+
+.generator-inner {
+    background: #09090b;
+    border-radius: 16px;
+    padding: 25px;
+    text-align: left;
+}
+
+.window-dots {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 22px;
+}
+
+.window-dots i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+}
+
+.red { background: #ff5f56; }
+.yellow { background: #ffbd2e; }
+.green { background: #27c93f; }
+
+.generator-label {
+    color: #00ffcc;
+    font-family: 'Orbitron', sans-serif;
+    font-size: .76rem;
+    letter-spacing: 1px;
+    margin-bottom: 9px;
+    display: block;
+}
+
+.topic-row {
+    display: flex;
+    gap: 10px;
+}
+
+.topic-input {
+    flex: 1;
+    min-width: 0;
+    padding: 16px;
+    border-radius: 9px;
+    border: 1px solid #29292f;
+    background: #121216;
+    color: white;
+    outline: none;
+    font-size: 1rem;
+}
+
+.topic-input:focus {
+    border-color: #00ffcc;
+    box-shadow: 0 0 18px rgba(0,255,204,.12);
+}
+
+.generate-btn {
+    border: none;
+    border-radius: 9px;
+    padding: 0 24px;
+    background: linear-gradient(90deg,#ff00ff,#00ffcc);
+    color: #000;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    letter-spacing: .5px;
+}
+
+.generate-btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+/* ================= OPTIONS ================= */
+
+.options {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.option-box label {
+    display: block;
+    color: #777;
+    font-size: .72rem;
+    margin-bottom: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.option-box select {
+    width: 100%;
+    padding: 11px 10px;
+    background: #111116;
+    color: white;
+    border: 1px solid #29292f;
+    border-radius: 8px;
+    outline: none;
+}
+
+.option-box select:focus {
+    border-color: #00ffcc;
+}
+
+/* ================= QUICK IDEAS ================= */
+
+.quick-title {
+    margin-top: 22px;
+    color: #888;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.idea-list {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 9px;
+}
+
+.idea {
+    border: 1px solid #29292f;
+    background: #101014;
+    color: #ccc;
+    padding: 8px 11px;
+    border-radius: 7px;
+    font-size: .78rem;
+    transition: .2s;
+}
+
+.idea:hover {
+    color: #00ffcc;
+    border-color: #00ffcc;
+}
+
+/* ================= STATUS ================= */
+
+.status {
+    display: none;
+    margin-top: 18px;
+    padding: 13px;
+    border-radius: 9px;
+    background: rgba(0,255,204,.04);
+    border: 1px solid rgba(0,255,204,.1);
+    text-align: center;
+    color: #aaa;
+    font-size: .88rem;
+}
+
+.progress-steps {
+    display: none;
+    margin-top: 12px;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.step {
+    font-size: .7rem;
+    color: #555;
+    border: 1px solid #222;
+    border-radius: 50px;
+    padding: 6px 9px;
+}
+
+.step.active {
+    color: #00ffcc;
+    border-color: rgba(0,255,204,.4);
+}
+
+/* ================= RESULT ================= */
+
+.result {
+    display: none;
+    margin-top: 22px;
+    text-align: center;
+}
+
+.result h3 {
+    color: #00ffcc;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+}
+
+#outputVideo {
+    width: 100%;
+    max-width: 380px;
+    max-height: 650px;
+    border-radius: 12px;
+    background: #000;
+    border: 1px solid #29292f;
+}
+
+.result-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+.action-btn {
+    display: inline-block;
+    padding: 11px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: .85rem;
+    border: none;
+}
+
+.download {
+    background: linear-gradient(90deg,#00ffcc,#ff00ff);
+    color: #000;
+}
+
+.regenerate {
+    background: #151519;
+    color: #00ffcc;
+    border: 1px solid #00ffcc;
+}
+
+/* ================= SCRIPT ================= */
+
+.script-box {
+    display: none;
+    margin: 18px auto 0;
+    max-width: 700px;
+    text-align: left;
+    padding: 16px;
+    border-radius: 10px;
+    background: #0d0d11;
+    border: 1px solid #222;
+}
+
+.script-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 9px;
+}
+
+.script-header strong {
+    color: #00ffcc;
+    font-size: .82rem;
+}
+
+.copy-btn {
+    background: transparent;
+    border: 1px solid #333;
+    color: #aaa;
+    padding: 5px 9px;
+    border-radius: 5px;
+    font-size: .72rem;
+}
+
+.script-text {
+    color: #aaa;
+    line-height: 1.6;
+    font-size: .84rem;
+}
+
+/* ================= TRUST STRIP ================= */
+
+.trust {
+    max-width: 900px;
+    margin: 30px auto 0;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    color: #777;
+    font-size: .78rem;
+}
+
+.trust strong {
+    color: #ddd;
+}
+
+/* ================= FEATURES ================= */
+
+.features {
+    max-width: 1050px;
+    margin: 35px auto 60px;
+    padding: 0 18px;
+}
+
+.section-heading {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.section-heading h2 {
+    font-size: clamp(1.6rem,4vw,2.4rem);
+}
+
+.section-heading p {
+    color: #777;
+    margin-top: 8px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 12px;
+}
+
+.feature-card {
+    padding: 22px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid #1d1d22;
+    border-radius: 13px;
+}
+
+.feature-icon {
+    font-size: 1.6rem;
+    margin-bottom: 12px;
+}
+
+.feature-card h3 {
+    font-size: .95rem;
+    margin-bottom: 8px;
+}
+
+.feature-card p {
+    color: #777;
+    font-size: .82rem;
+    line-height: 1.5;
+}
+
+/* ================= PRICING ================= */
+
+.pricing {
+    padding: 45px 18px;
+    text-align: center;
+}
+
+.pricing h2 {
+    font-size: clamp(1.7rem,4vw,2.5rem);
+}
+
+.pricing h2 span {
+    color: #ff00ff;
+}
+
+.pricing-card {
+    max-width: 450px;
+    margin: 25px auto;
+    padding: 32px 25px;
+    border: 1px solid rgba(255,0,255,.35);
+    border-radius: 16px;
+    background: rgba(255,255,255,.025);
+}
+
+.creator-label {
+    color: #00ffcc;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.price {
+    font-size: 3.8rem;
+    margin: 12px 0;
+}
+
+.price span {
+    font-family: 'Inter',sans-serif;
+    font-size: 1.1rem;
+    color: #888;
+    font-weight: 400;
+}
+
+.price-sub {
+    color: #00ffcc;
+    font-size: .82rem;
+    line-height: 1.5;
+    margin-bottom: 22px;
+}
+
+.features-list {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 25px;
+}
+
+.features-list li {
+    margin: 12px 0;
+    color: #ccc;
+    font-size: .88rem;
+}
+
+.features-list li::before {
+    content: "✓";
+    color: #ff00ff;
+    font-weight: 900;
+    margin-right: 9px;
+}
+
+.subscribe {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    background: linear-gradient(90deg,#ff00ff,#00ffcc);
+    color: #000;
+    text-decoration: none;
+    font-family: 'Orbitron',sans-serif;
+    font-weight: 900;
+}
+
+/* ================= CONTACT ================= */
+
+.contact {
+    border-top: 1px solid #17171b;
+    padding: 30px 18px 45px;
+    text-align: center;
+}
+
+.contact p {
+    color: #777;
+    font-size: .85rem;
+    margin: 8px 0;
+}
+
+.contact a {
+    color: #00ffcc;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:800px) {
+
+    .options {
+        grid-template-columns: repeat(2,1fr);
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topic-row {
+        flex-direction: column;
+    }
+
+    .generate-btn {
+        padding: 14px;
+    }
+}
+
+@media(max-width:480px) {
+
+    nav {
+        padding: 12px 15px;
+    }
+
+    .nav-btn:first-child {
+        display: none;
+    }
+
+    .hero {
+        padding-top: 90px;
+    }
+
+    .hero h1 {
+        font-size: 2.25rem;
+    }
+
+    .generator-inner {
+        padding: 18px 13px;
+    }
+
+    .options {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .idea {
+        font-size: .7rem;
+    }
+
+    .trust {
+        gap: 14px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-    <div class="bg-glow"></div>
-    <div class="bg-glow-2"></div>
+<div class="bg-glow"></div>
+<div class="bg-glow-2"></div>
 
-    <!-- NAVBAR -->
-    <nav id="navbar">
-        <div class="logo">FacelessAI</div>
-        <div class="nav-links">
-            <button>Login</button>
-            <button class="btn-signup">Sign Up</button>
-        </div>
-    </nav>
-    
-     <!-- HERO SECTION -->
-    <div class="hero">
-        <h1>
-            Generate Viral Videos in 
-            <br>
-            <span class="neon-text">1-Click</span>
-        </h1>
-        <p>
-            No camera. No mic. No editing skills required. 
-            Type a prompt below and let our AI generate your viral Short instantly.
-        </p>
+<!-- ================= NAV ================= -->
 
-        <!-- LIVE GENERATOR INTERACTIVE BOX -->
-        <div class="dashboard-mockup glass">
-            <div class="dashboard-inner">
-                <div class="mac-dots">
-                    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+<nav id="navbar">
+
+    <div class="logo">
+        Faceless<span>AI</span>
+    </div>
+
+    <div class="nav-right">
+
+        <button
+            class="nav-btn"
+            type="button"
+            onclick="document.getElementById('pricing').scrollIntoView()"
+        >
+            Pricing
+        </button>
+
+        <button
+            class="nav-btn signup-btn"
+            type="button"
+            onclick="document.getElementById('generator').scrollIntoView()"
+        >
+            Start Creating
+        </button>
+
+    </div>
+
+</nav>
+
+
+<!-- ================= HERO ================= -->
+
+<section class="hero">
+
+    <div class="badge">
+        ⚡ AI SHORT-FORM VIDEO ENGINE
+    </div>
+
+    <h1>
+        Turn Any Idea Into
+        <br>
+        <span>A Viral Short</span>
+    </h1>
+
+    <p class="hero-subtitle">
+        No camera. No mic. No editor.
+        Choose your audience, style and platform —
+        FacelessAI creates the script, voice and vertical video.
+    </p>
+
+
+    <!-- ================= GENERATOR ================= -->
+
+    <div
+        class="generator"
+        id="generator"
+    >
+
+        <div class="generator-inner">
+
+            <div class="window-dots">
+                <i class="red"></i>
+                <i class="yellow"></i>
+                <i class="green"></i>
+            </div>
+
+
+            <label class="generator-label">
+                WHAT DO YOU WANT TO CREATE?
+            </label>
+
+
+            <div class="topic-row">
+
+                <input
+                    id="topicInput"
+                    class="topic-input"
+                    type="text"
+                    maxlength="500"
+                    placeholder="e.g. 3 AI tools that can save you hours every week"
+                >
+
+                <button
+                    id="generateButton"
+                    class="generate-btn"
+                    type="button"
+                    onclick="generateVideo()"
+                >
+                    Generate Video 🚀
+                </button>
+
+            </div>
+
+
+            <!-- OPTIONS -->
+
+            <div class="options">
+
+                <div class="option-box">
+
+                    <label>Audience</label>
+
+                    <select id="audienceSelect">
+
+                        <option value="Global">
+                            🌎 Global
+                        </option>
+
+                        <option value="UK">
+                            🇬🇧 UK
+                        </option>
+
+                        <option value="US">
+                            🇺🇸 US
+                        </option>
+
+                    </select>
+
                 </div>
-                
-                <div class="input-group">
-                    <label>ENTER YOUR VIDEO TOPIC / PROMPT</label>
-                    <div class="generator-form-row">
-                        <input type="text" id="topicInput" placeholder="e.g., Deep secrets of outer space...">
-                        <button class="btn-generate" onclick="generateVideo()">Generate AI Video 🚀</button>
-                    </div>
-                </div>
-                
-                <p id="statusText"></p>
 
-                <div id="videoContainer">
-                    <h3 style="color: #00ffcc; font-size: 1.05rem; margin-bottom: 10px;">Your Video is Ready!</h3>
-                    <video id="outputVideo" controls></video>
-                    <br>
-                    <a id="downloadBtn" download="faceless_ai_video.mp4" target="_blank" class="btn-download">
-                        Download Video 📥
+
+                <div class="option-box">
+
+                    <label>Platform</label>
+
+                    <select id="platformSelect">
+
+                        <option value="YouTube Shorts">
+                            YouTube Shorts
+                        </option>
+
+                        <option value="TikTok">
+                            TikTok
+                        </option>
+
+                        <option value="Instagram Reels">
+                            Instagram Reels
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="option-box">
+
+                    <label>Style</label>
+
+                    <select id="styleSelect">
+
+                        <option value="Viral">
+                            🔥 Viral
+                        </option>
+
+                        <option value="Educational">
+                            🧠 Educational
+                        </option>
+
+                        <option value="Storytelling">
+                            📖 Storytelling
+                        </option>
+
+                        <option value="Business">
+                            💰 Business
+                        </option>
+
+                        <option value="Facts">
+                            🤯 Facts
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="option-box">
+
+                    <label>Hook</label>
+
+                    <select id="hookSelect">
+
+                        <option value="Curiosity hook">
+                            Curiosity
+                        </option>
+
+                        <option value="Bold statement">
+                            Bold Statement
+                        </option>
+
+                        <option value="Question hook">
+                            Question
+                        </option>
+
+                        <option value="Unexpected fact">
+                            Unexpected Fact
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- QUICK IDEAS -->
+
+            <div class="quick-title">
+                TRENDING CREATOR IDEAS
+            </div>
+
+            <div class="idea-list">
+
+                <button
+                    class="idea"
+                    onclick="setIdea('3 AI tools that can save you hours every week')"
+                >
+                    AI Tools
+                </button>
+
+                <button
+                    class="idea"
+                    onclick="setIdea('The business trend nobody is talking about')"
+                >
+                    Business Trend
+                </button>
+
+                <button
+                    class="idea"
+                    onclick="setIdea('5 psychology facts that explain everyday behaviour')"
+                >
+                    Psychology
+                </button>
+
+                <button
+                    class="idea"
+                    onclick="setIdea('The future of money and technology')"
+                >
+                    Future Tech
+                </button>
+
+                <button
+                    class="idea"
+                    onclick="setIdea('3 unbelievable facts you probably never learned at school')"
+                >
+                    Facts
+                </button>
+
+                <button
+                    class="idea"
+                    onclick="setIdea('How successful people use AI differently')"
+                >
+                    Productivity
+                </button>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div
+                id="statusText"
+                class="status"
+            ></div>
+
+
+            <!-- PROGRESS -->
+
+            <div
+                id="progressSteps"
+                class="progress-steps"
+            >
+
+                <span
+                    id="step1"
+                    class="step"
+                >
+                    1. Script
+                </span>
+
+                <span
+                    id="step2"
+                    class="step"
+                >
+                    2. Voice
+                </span>
+
+                <span
+                    id="step3"
+                    class="step"
+                >
+                    3. Visuals
+                </span>
+
+                <span
+                    id="step4"
+                    class="step"
+                >
+                    4. Render
+                </span>
+
+            </div>
+
+
+            <!-- RESULT -->
+
+            <div
+                id="videoContainer"
+                class="result"
+            >
+
+                <h3>
+                    Your Short Is Ready ⚡
+                </h3>
+
+                <video
+                    id="outputVideo"
+                    controls
+                    playsinline
+                ></video>
+
+
+                <div class="result-buttons">
+
+                    <a
+                        id="downloadBtn"
+                        class="action-btn download"
+                        download="faceless_ai_video.mp4"
+                        target="_blank"
+                    >
+                        Download Video
                     </a>
+
+                    <button
+                        class="action-btn regenerate"
+                        type="button"
+                        onclick="generateVideo()"
+                    >
+                        Regenerate
+                    </button>
+
                 </div>
+
             </div>
-        </div>
-    </div>  
 
-    <!-- PRICING SECTION -->
-    <div class="pricing-section" id="pricing">
-        <h2>Simple Pricing.<br><span style="color: #ff00ff;">Infinite Scale.</span></h2>
-        
-        <div class="pricing-card glass">
-            <h3 style="color: #00ffcc; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Creator Pro</h3>
-            <div class="price">$9<span>/mo</span></div>
-            <p class="psychology">Get 150 Credits for the price of 1 Coffee<br>Save $500/mo on hiring editors.</p>
-            
-            <ul class="feature-list">
-                <li>150 AI Generation Credits / Month</li>
-                <li>Unused Credits Roll Over to Next Month</li>
-                <li>Ultra-Realistic Human AI Voices</li>
-                <li>HD Vertical Stock Clips</li>
-                <li>Auto Captions & Subtitles Included</li>
-                <li>Full Commercial Rights Included</li>
-            </ul>
 
-            <!-- Dodo Payments Checkout Button -->
-            <div style="text-align: center;">
-                <a href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1" target="_blank" class="btn-subscribe">
-                    Subscribe Now
-                </a>
-            </div>
-        </div>
-    </div>
+            <!-- SCRIPT -->
 
-    <!-- CONTACT US SECTION -->
-    <div class="contact-section">
-        <h2 style="font-size: 20px; margin-bottom: 8px;">Contact Us</h2>
-        <p style="font-size: 14px; margin-bottom: 12px; color: #a1a1aa;">For any queries or support, feel free to reach out:</p>
-        <a href="mailto:jashofficial.support@gmail.com" style="color: #00ffcc; text-decoration: none; font-size: 16px; font-weight: bold;">
-            jashofficial.support@gmail.com
-        </a>
-    </div>
+            <div
+                id="scriptBox"
+                class="script-box"
+            >
 
-    <script>
-        // Solid Navbar Scroll Effect
-        window.addEventListener('scroll', () => {
-            const nav = document.getElementById('navbar');
-            if (window.scrollY > 20) {
-                nav.classList.add('scrolled');
-            } else {
-                nav.classList.remove('scrolled');
-            }
-        });
+                <div class="script-header">
 
-        // LIVE VIDEO GENERATOR FUNCTION CONNECTED TO RENDER BACKEND
-        async function generateVideo() {
-            const topic = document.getElementById('topicInput').value.trim();
-            const statusText = document.getElementById('statusText');
-            const videoContainer = document.getElementById('videoContainer');
-            const outputVideo = document.getElementById('outputVideo');
-            const downloadBtn = document.getElementById('downloadBtn');
+                    <strong>
+                        AI SCRIPT
+                    </strong>
 
-            if (!topic) {
-                alert('Please enter a topic first!');
-                return;
-            }
+                    <button
+                        class="copy-btn"
+                        type="button"
+ 
 
-            // UI Loading State
-            statusText.style.display = 'block';
-            statusText.innerText = '✨ AI is writing script, voicing, and rendering your video... Please wait (~20s)';
-            videoContainer.style.display = 'none';
 
-            try {
-                const response = await fetch('https://faceless-ai-website.onrender.com/generate-video', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ topic: topic })
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.status === 'success') {
-                    const videoUrl = 'https://faceless-ai-website.onrender.com' + data.video_url;
-                    statusText.innerText = '🎉 Video Generated Successfully!';
-                    outputVideo.src = videoUrl;
-                    downloadBtn.href = videoUrl;
-                    videoContainer.style.display = 'block';
-                    outputVideo.load();
-                } else {
-                    statusText.innerText = '❌ Error: ' + (data.detail || 'Failed to generate video.');
-                }
-            } catch (error) {
-                statusText.innerText = '❌ Connection Error! Make sure your Render backend is running.';
-                console.error(error);
-            }
-        }
-    </script>
-</body>
-    </html>
-    
+   
