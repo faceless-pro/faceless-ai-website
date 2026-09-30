@@ -43,7 +43,7 @@ async def generate_video(req: VideoRequest):
     try:
         prompt = f"Write a compelling 30-second video script about '{req.topic}'. Output ONLY plain text script without formatting or scene instructions."
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-1.5-flash',
             contents=prompt,
         )
         script_text = response.text.strip()
