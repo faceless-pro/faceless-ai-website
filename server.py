@@ -15,11 +15,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from google import genai
-from moviepy import (
-    VideoFileClip,
-    AudioFileClip,
-    concatenate_videoclips,
-)
+from moviepy import VideoFileClip, AudioFileClip
+
 
 # ============================================================
 # ENVIRONMENT
@@ -50,6 +47,7 @@ gemini_client = genai.Client(
     api_key=GEMINI_API_KEY
 )
 
+
 # ============================================================
 # DIRECTORIES
 # ============================================================
@@ -59,8 +57,16 @@ BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output"
 TEMP_DIR = BASE_DIR / "temp"
 
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-TEMP_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+TEMP_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
 
 # ============================================================
 # FASTAPI
@@ -68,8 +74,9 @@ TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
     title="FacelessAI API",
-    version="4.0.0"
+    version="4.2.0"
 )
+
 
 # ============================================================
 # CORS
@@ -89,6 +96,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # ============================================================
 # STATIC FILES
 # ============================================================
@@ -101,6 +109,7 @@ app.mount(
     name="static"
 )
 
+
 # ============================================================
 # REQUEST MODEL
 # ============================================================
@@ -110,7 +119,7 @@ class VideoRequest(BaseModel):
 
 
 # ============================================================
-# VALIDATE TOPIC
+# TOPIC VALIDATION
 # ============================================================
 
 def validate_topic(topic: str) -> str:
@@ -139,10 +148,12 @@ def validate_topic(topic: str) -> str:
 
 
 # ============================================================
-# CHECK TEMPORARY GEMINI ERROR
+# GEMINI ERROR CHECK
 # ============================================================
 
-def is_temporary_gemini_error(error: Exception) -> bool:
+def is_temporary_gemini_error(
+    error: Exception
+) -> bool:
 
     text = str(error).upper()
 
@@ -214,13 +225,18 @@ Requirements:
             try:
 
                 print(
-                    f"Gemini: {model} | attempt {attempt + 1}/3",
+                    f"Gemini: {model} | attempt "
+                    f"{attempt + 1}/3",
                     flush=True
                 )
 
-                response = gemini_client.models.generate_content(
-                    model=model,
-                    contents=prompt
+                response = (
+                    gemini_client
+                    .models
+                    .generate_content(
+                        model=model,
+                        contents=prompt
+                    )
                 )
 
                 script = (
@@ -233,7 +249,7 @@ Requirements:
                     )
 
                 print(
-                    f"STEP 2: Gemini completed. "
+                    "STEP 2: Gemini completed. "
                     f"Script length: {len(script)}",
                     flush=True
                 )
@@ -243,7 +259,7 @@ Requirements:
             except Exception as exc:
 
                 print(
-                    f"Gemini error: "
+                    "Gemini error: "
                     f"{type(exc).__name__}: {exc}",
                     flush=True
                 )
@@ -259,19 +275,22 @@ Requirements:
 
                     delay = (
                         (2 ** attempt)
-                        + random.uniform(0.5, 1.5)
+                        + random.uniform(
+                            0.5,
+                            1.5
+                        )
                     )
 
                     print(
-                        f"Retrying Gemini in {delay:.1f}s...",
+                        f"Retrying Gemini in "
+                        f"{delay:.1f}s...",
                         flush=True
                     )
 
                     time.sleep(delay)
 
     raise RuntimeError(
-        "Gemini could not generate the script after "
-        "trying the available models. "
+        "Gemini could not generate the script. "
         + " | ".join(errors[-4:])
     )
 
@@ -300,6 +319,14 @@ async def generate_voice(
     await communicator.save(
         str(output_path)
     )
+
+    if (
+        not output_path.exists()
+        or output_path.stat().st_size == 0
+    ):
+        raise RuntimeError(
+            "Edge TTS did not create an audio file."
+        )
 
     print(
         "STEP 4: Edge TTS completed.",
@@ -401,8 +428,7 @@ def search_pexels_video(
     if usable_files:
 
         usable_files.sort(
-            key=lambda item:
-            (
+            key=lambda item: (
                 (item.get("width") or 0)
                 *
                 (item.get("height") or 0)
@@ -436,7 +462,7 @@ def download_video(
         stream=True,
         timeout=120,
         headers={
-            "User-Agent": "FacelessAI/4.0"
+            "User-Agent": "FacelessAI/4.2"
         }
     ) as response:
 
@@ -482,13 +508,10 @@ def download_video(
 
 
 # ============================================================
-# CONVERT TO 9:16
+# FORMAT VIDEO TO 9:16
 # ============================================================
 
 def format_vertical_clip(clip):
-
-    # Render at 720x1280 instead of 1080x1920
-    # to reduce Render CPU/RAM usage.
 
     scale = max(
         720 / clip.w,
@@ -508,7 +531,7 @@ def format_vertical_clip(clip):
 
 
 # ============================================================
-# PREPARE CLIP
+# PREPARE VIDEO CLIP
 # ============================================================
 
 def prepare_clip(
@@ -536,6 +559,10 @@ def prepare_clip(
             "Downloaded video has no valid duration."
         )
 
+    # --------------------------------------------------------
+    # Source video is already long enough
+    # --------------------------------------------------------
+
     if source.duration >= target_duration:
 
         clip = format_vertical_clip(
@@ -554,6 +581,11 @@ def prepare_clip(
             return final_clip
 
         return clip
+
+    # --------------------------------------------------------
+    # Source video is shorter than narration
+    # Repeat it
+    # --------------------------------------------------------
 
     source.close()
 
@@ -590,6 +622,8 @@ def prepare_clip(
 
         elapsed += clip.duration
 
+    from moviepy import concatenate_videoclips
+
     return concatenate_videoclips(
         clips,
         method="compose"
@@ -607,7 +641,7 @@ def root():
         "success": True,
         "service": "FacelessAI API",
         "status": "running",
-        "version": "4.0.0",
+        "version": "4.2.0",
         "primary_model": PRIMARY_MODEL,
         "fallback_model": FALLBACK_MODEL
     }
@@ -623,7 +657,7 @@ def health():
     return {
         "success": True,
         "status": "healthy",
-        "version": "4.0.0",
+        "version": "4.2.0",
         "primary_model": PRIMARY_MODEL,
         "fallback_model": FALLBACK_MODEL
     }
@@ -690,7 +724,7 @@ async def generate_video(
     try:
 
         # ====================================================
-        # 1. SCRIPT
+        # 1. GENERATE SCRIPT
         # ====================================================
 
         script = generate_script(
@@ -698,7 +732,7 @@ async def generate_video(
         )
 
         # ====================================================
-        # 2. VOICE
+        # 2. GENERATE VOICE
         # ====================================================
 
         await generate_voice(
@@ -706,17 +740,8 @@ async def generate_video(
             audio_path
         )
 
-        if (
-            not audio_path.exists()
-            or audio_path.stat().st_size == 0
-        ):
-
-            raise RuntimeError(
-                "Voice generation failed."
-            )
-
         # ====================================================
-        # 3. AUDIO
+        # 3. LOAD AUDIO
         # ====================================================
 
         print(
@@ -746,7 +771,7 @@ async def generate_video(
         )
 
         # ====================================================
-        # 4. PEXELS SEARCH
+        # 4. SEARCH PEXELS
         # ====================================================
 
         print(
@@ -784,7 +809,7 @@ async def generate_video(
             except Exception as exc:
 
                 print(
-                    f"Pexels error: "
+                    "Pexels error: "
                     f"{type(exc).__name__}: {exc}",
                     flush=True
                 )
@@ -809,7 +834,7 @@ async def generate_video(
         )
 
         # ====================================================
-        # 5. DOWNLOAD
+        # 5. DOWNLOAD BACKGROUND
         # ====================================================
 
         download_video(
@@ -818,7 +843,7 @@ async def generate_video(
         )
 
         # ====================================================
-        # 6. FORMAT
+        # 6. PREPARE VIDEO
         # ====================================================
 
         video_clip = prepare_clip(
@@ -832,7 +857,7 @@ async def generate_video(
         )
 
         # ====================================================
-        # 7. AUDIO
+        # 7. ATTACH AUDIO
         # ====================================================
 
         print(
@@ -845,7 +870,7 @@ async def generate_video(
         )
 
         # ====================================================
-        # 8. EXPORT
+        # 8. EXPORT MP4
         # ====================================================
 
         print(
@@ -858,7 +883,7 @@ async def generate_video(
             fps=24,
             codec="libx264",
             audio_codec="aac",
-            bitrate="2000k",
+            bitrate="1800k",
             audio_bitrate="128k",
             preset="ultrafast",
             threads=2,
@@ -871,16 +896,17 @@ async def generate_video(
         )
 
         # ====================================================
-        # 9. VERIFY
+        # 9. VERIFY FILE
         # ====================================================
 
         if (
             not final_path.exists()
-            or final_path.stat().st_size == 0
+            or final_path.stat().st_size < 10000
         ):
 
             raise RuntimeError(
-                "Final video file was not created."
+                "Final video file was not created "
+                "or is invalid."
             )
 
         print(
@@ -889,7 +915,7 @@ async def generate_video(
         )
 
         # ====================================================
-        # 10. RESPONSE
+        # 10. SUCCESS RESPONSE
         # ====================================================
 
         print(
@@ -906,13 +932,13 @@ async def generate_video(
             "script": script
         }
 
-    except HTTPException:
+        except HTTPException:
         raise
 
     except Exception as exc:
 
         print(
-            f"GENERATION ERROR: "
+            "GENERATION ERROR: "
             f"{type(exc).__name__}: {exc}",
             flush=True
         )
@@ -925,24 +951,26 @@ async def generate_video(
     finally:
 
         if video_clip is not None:
-
             try:
                 video_clip.close()
-
             except Exception as exc:
-
                 print(
-                    f"Video cleanup warning: {exc}",
+                    "Video cleanup warning: "
+                    f"{exc}",
                     flush=True
                 )
 
         if audio_clip is not None:
-
             try:
                 audio_clip.close()
-
             except Exception as exc:
-
                 print(
-                    f"Audio cleanup warning: {exc}",
-             
+                    "Audio cleanup warning: "
+                    f"{exc}",
+                    flush=True
+                )
+
+        shutil.rmtree(
+            job_dir,
+            ignore_errors=True
+        )
