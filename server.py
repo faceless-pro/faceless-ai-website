@@ -43,7 +43,7 @@ async def generate_video(req: VideoRequest):
     try:
         prompt = f"Write a compelling 30-second video script about '{req.topic}'. Output ONLY plain text script without formatting or scene instructions."
         response = client.models.generate_content(
-            model='gemini-3.8-flash',
+            model='gemini-2.0-flash',
             contents=prompt,
         )
         script_text = response.text.strip()
@@ -72,7 +72,7 @@ async def generate_video(req: VideoRequest):
         video_clip = VideoFileClip(video_path)
 
         if video_clip.duration > audio_clip.duration:
-            video_clip = video_clip.subclipped(0, audio_clip.duration)
+            video_clip = video_clip.subclip(0, audio_clip.duration)
 
         if hasattr(video_clip, "with_audio"):
             final_clip = video_clip.with_audio(audio_clip)
