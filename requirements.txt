@@ -5,6 +5,7 @@ pydantic
 python-dotenv
 edge-tts
 google-genai
-moviepy
+moviepy==1.0.3
 imageio-ffmpeg
+
 
