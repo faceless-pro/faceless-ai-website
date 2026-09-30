@@ -487,16 +487,19 @@ def download_video(
 
 def format_vertical_clip(clip):
 
+    # Render at 720x1280 instead of 1080x1920
+    # to reduce Render CPU/RAM usage.
+
     scale = max(
-        1080 / clip.w,
-        1920 / clip.h
+        720 / clip.w,
+        1280 / clip.h
     )
 
     clip = clip.resized(scale)
 
     clip = clip.cropped(
-        width=1080,
-        height=1920,
+        width=720,
+        height=1280,
         x_center=clip.w / 2,
         y_center=clip.h / 2
     )
@@ -686,12 +689,18 @@ async def generate_video(
 
     try:
 
+        # ====================================================
         # 1. SCRIPT
+        # ====================================================
+
         script = generate_script(
             topic
         )
 
+        # ====================================================
         # 2. VOICE
+        # ====================================================
+
         await generate_voice(
             script,
             audio_path
@@ -706,7 +715,10 @@ async def generate_video(
                 "Voice generation failed."
             )
 
+        # ====================================================
         # 3. AUDIO
+        # ====================================================
+
         print(
             "STEP 5: Loading audio...",
             flush=True
@@ -733,7 +745,10 @@ async def generate_video(
             flush=True
         )
 
+        # ====================================================
         # 4. PEXELS SEARCH
+        # ====================================================
+
         print(
             "STEP 6: Starting Pexels search...",
             flush=True
@@ -793,13 +808,19 @@ async def generate_video(
             flush=True
         )
 
+        # ====================================================
         # 5. DOWNLOAD
+        # ====================================================
+
         download_video(
             video_url,
             background_path
         )
 
+        # ====================================================
         # 6. FORMAT
+        # ====================================================
+
         video_clip = prepare_clip(
             background_path,
             duration
@@ -810,7 +831,10 @@ async def generate_video(
             flush=True
         )
 
+        # ====================================================
         # 7. AUDIO
+        # ====================================================
+
         print(
             "STEP 10: Attaching audio...",
             flush=True
@@ -820,7 +844,10 @@ async def generate_video(
             audio_clip
         )
 
+        # ====================================================
         # 8. EXPORT
+        # ====================================================
+
         print(
             "STEP 11: Starting MP4 export...",
             flush=True
@@ -828,10 +855,12 @@ async def generate_video(
 
         video_clip.write_videofile(
             str(final_path),
-            fps=30,
+            fps=24,
             codec="libx264",
             audio_codec="aac",
-            preset="veryfast",
+            bitrate="2000k",
+            audio_bitrate="128k",
+            preset="ultrafast",
             threads=2,
             logger=None
         )
@@ -841,7 +870,10 @@ async def generate_video(
             flush=True
         )
 
+        # ====================================================
         # 9. VERIFY
+        # ====================================================
+
         if (
             not final_path.exists()
             or final_path.stat().st_size == 0
@@ -856,7 +888,10 @@ async def generate_video(
             flush=True
         )
 
+        # ====================================================
         # 10. RESPONSE
+        # ====================================================
+
         print(
             "SUCCESS: Sending response to frontend.",
             flush=True
@@ -893,7 +928,9 @@ async def generate_video(
 
             try:
                 video_clip.close()
+
             except Exception as exc:
+
                 print(
                     f"Video cleanup warning: {exc}",
                     flush=True
@@ -903,22 +940,9 @@ async def generate_video(
 
             try:
                 audio_clip.close()
+
             except Exception as exc:
+
                 print(
                     f"Audio cleanup warning: {exc}",
-                    flush=True
-                )
-
-        try:
-
-            shutil.rmtree(
-                job_dir,
-                ignore_errors=True
-            )
-
-        except Exception as exc:
-
-            print(
-                f"Cleanup warning: {exc}",
-                flush=True
-    )
+             
