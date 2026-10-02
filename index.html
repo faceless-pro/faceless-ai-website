@@ -1,1931 +1,988 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="theme-color" content="#07070b">
-<meta name="description" content="FacelessAI Growth Copilot turns one idea into offers, sales copy, emails, ads, social content and complete marketing campaigns.">
-<title>FacelessAI — Your AI Growth Copilot</title>
-
-<style>
-:root{
-  --bg:#07070b;
-  --bg2:#0b0b11;
-  --panel:rgba(255,255,255,.045);
-  --panel2:rgba(255,255,255,.065);
-  --line:rgba(255,255,255,.09);
-  --text:#f7f7fb;
-  --muted:#9b9ba8;
-  --purple:#8b5cf6;
-  --violet:#a855f7;
-  --cyan:#22d3ee;
-  --green:#34d399;
-  --red:#fb7185;
-  --radius:22px;
-  --shadow:0 25px 80px rgba(0,0,0,.45);
-}
-
-*{box-sizing:border-box;margin:0;padding:0}
-
-html{scroll-behavior:smooth}
-
-body{
-  background:
-    radial-gradient(circle at 50% -10%,rgba(139,92,246,.19),transparent 35%),
-    radial-gradient(circle at 90% 35%,rgba(34,211,238,.08),transparent 25%),
-    var(--bg);
-  color:var(--text);
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  line-height:1.5;
-  overflow-x:hidden;
-}
-
-body:before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  opacity:.025;
-  background-image:
-    linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px);
-  background-size:45px 45px;
-  mask-image:linear-gradient(to bottom,black,transparent 75%);
-}
-
-a{text-decoration:none;color:inherit}
-
-button,input,textarea,select{font:inherit}
-
-button{cursor:pointer}
-
-.container{
-  width:min(1160px,calc(100% - 36px));
-  margin:auto;
-}
-
-nav{
-  height:76px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  position:relative;
-  z-index:20;
-}
-
-.logo{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-size:19px;
-  font-weight:800;
-  letter-spacing:-.5px;
-}
-
-.logo-mark{
-  width:35px;
-  height:35px;
-  display:grid;
-  place-items:center;
-  border-radius:11px;
-  background:linear-gradient(135deg,var(--purple),var(--cyan));
-  box-shadow:0 0 30px rgba(139,92,246,.35);
-  color:white;
-  font-weight:900;
-}
-
-.nav-links{
-  display:flex;
-  align-items:center;
-  gap:28px;
-  color:#b4b4c0;
-  font-size:14px;
-}
-
-.nav-links a:hover{color:white}
-
-.nav-cta{
-  padding:11px 17px;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:11px;
-  background:rgba(255,255,255,.05);
-}
-
-.hero{
-  min-height:760px;
-  display:grid;
-  grid-template-columns:1.03fr .97fr;
-  gap:60px;
-  align-items:center;
-  padding:70px 0 100px;
-}
-
-.eyebrow{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:7px 11px;
-  border:1px solid rgba(139,92,246,.25);
-  border-radius:999px;
-  color:#c8b5ff;
-  background:rgba(139,92,246,.08);
-  font-size:12px;
-  font-weight:700;
-}
-
-.dot{
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:#a78bfa;
-  box-shadow:0 0 12px #8b5cf6;
-}
-
-.hero h1{
-  margin-top:22px;
-  max-width:720px;
-  font-size:clamp(48px,6vw,78px);
-  line-height:.98;
-  letter-spacing:-4px;
-}
-
-.gradient{
-  background:linear-gradient(100deg,#fff 15%,#bda5ff 48%,#67e8f9 100%);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-}
-
-.hero-copy{
-  max-width:620px;
-  margin-top:25px;
-  font-size:18px;
-  color:#a9a9b5;
-  line-height:1.7;
-}
-
-.hero-actions{
-  display:flex;
-  gap:12px;
-  margin-top:32px;
-  flex-wrap:wrap;
-}
-
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:9px;
-  min-height:48px;
-  padding:0 19px;
-  border-radius:13px;
-  border:1px solid var(--line);
-  font-size:14px;
-  font-weight:750;
-  transition:.2s ease;
-}
-
-.btn:hover{
-  transform:translateY(-2px);
-}
-
-.btn-primary{
-  color:white;
-  border:0;
-  background:linear-gradient(100deg,#7c3aed,#8b5cf6 55%,#06b6d4);
-  box-shadow:0 12px 35px rgba(124,58,237,.25);
-}
-
-.btn-secondary{
-  background:rgba(255,255,255,.045);
-  color:#dddde7;
-}
-
-.trust{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-top:25px;
-  color:#777784;
-  font-size:12px;
-}
-
-.trust span{
-  width:6px;
-  height:6px;
-  background:#34d399;
-  border-radius:50%;
-  box-shadow:0 0 10px #34d399;
-}
-
-/* HERO APP */
-.app-window{
-  border:1px solid rgba(255,255,255,.11);
-  border-radius:25px;
-  background:
-    linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
-  box-shadow:var(--shadow),0 0 100px rgba(139,92,246,.12);
-  overflow:hidden;
-  backdrop-filter:blur(25px);
-}
-
-.window-top{
-  height:49px;
-  display:flex;
-  align-items:center;
-  gap:7px;
-  padding:0 17px;
-  border-bottom:1px solid var(--line);
-}
-
-.window-dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:#444451;
-}
-
-.window-title{
-  margin-left:8px;
-  color:#777783;
-  font-size:11px;
-}
-
-.app-body{padding:20px}
-
-.app-label{
-  color:#9b9ba8;
-  font-size:11px;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
-
-.fake-input{
-  margin-top:9px;
-  min-height:86px;
-  padding:14px;
-  border-radius:14px;
-  background:#09090e;
-  border:1px solid rgba(255,255,255,.09);
-  color:#d9d9e2;
-  font-size:13px;
-}
-
-.fake-input strong{color:white}
-
-.ai-output{
-  margin-top:15px;
-  padding:15px;
-  border-radius:15px;
-  border:1px solid rgba(139,92,246,.2);
-  background:linear-gradient(135deg,rgba(139,92,246,.09),rgba(34,211,238,.04));
-}
-
-.output-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:13px;
-}
-
-.output-title{
-  font-size:13px;
-  font-weight:800;
-}
-
-.live{
-  font-size:10px;
-  color:#6ee7b7;
-}
-
-.output-row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:9px;
-}
-
-.mini-card{
-  padding:12px;
-  border-radius:12px;
-  background:rgba(0,0,0,.22);
-  border:1px solid rgba(255,255,255,.06);
-}
-
-.mini-card span{
-  display:block;
-  color:#777784;
-  font-size:9px;
-  text-transform:uppercase;
-  letter-spacing:.8px;
-}
-
-.mini-card b{
-  display:block;
-  margin-top:5px;
-  font-size:12px;
-}
-
-section{padding:105px 0}
-
-.section-head{
-  max-width:680px;
-  margin-bottom:45px;
-}
-
-.section-head h2{
-  margin-top:14px;
-  font-size:clamp(34px,4vw,55px);
-  line-height:1.05;
-  letter-spacing:-2.5px;
-}
-
-.section-head p{
-  margin-top:16px;
-  color:var(--muted);
-  font-size:16px;
-}
-
-.tools-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:14px;
-}
-
-.tool-card{
-  min-height:220px;
-  padding:25px;
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
-  transition:.25s ease;
-}
-
-.tool-card:hover{
-  transform:translateY(-5px);
-  border-color:rgba(139,92,246,.3);
-  box-shadow:0 20px 55px rgba(0,0,0,.25);
-}
-
-.tool-icon{
-  width:42px;
-  height:42px;
-  display:grid;
-  place-items:center;
-  border-radius:13px;
-  background:rgba(139,92,246,.12);
-  border:1px solid rgba(139,92,246,.18);
-  font-size:18px;
-}
-
-.tool-card h3{
-  margin-top:21px;
-  font-size:17px;
-}
-
-.tool-card p{
-  margin-top:9px;
-  color:#858591;
-  font-size:13px;
-  line-height:1.65;
-}
-
-.workflow{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:18px;
-}
-
-.step{
-  position:relative;
-  padding:27px;
-  border:1px solid var(--line);
-  border-radius:22px;
-  background:rgba(255,255,255,.025);
-}
-
-.step-num{
-  color:#a78bfa;
-  font-size:12px;
-  font-weight:800;
-}
-
-.step h3{
-  margin-top:14px;
-  font-size:21px;
-}
-
-.step p{
-  margin-top:9px;
-  color:#888893;
-  font-size:14px;
-  line-height:1.65;
-}
-
-.demo{
-  padding-top:40px;
-}
-
-.studio{
-  border:1px solid rgba(255,255,255,.11);
-  border-radius:27px;
-  background:#0b0b11;
-  overflow:hidden;
-  box-shadow:var(--shadow);
-}
-
-.studio-head{
-  padding:18px 21px;
-  border-bottom:1px solid var(--line);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.studio-head strong{font-size:14px}
-
-.status-pill{
-  color:#8ef0c2;
-  background:rgba(52,211,153,.08);
-  border:1px solid rgba(52,211,153,.16);
-  padding:6px 9px;
-  border-radius:999px;
-  font-size:10px;
-}
-
-.studio-grid{
-  display:grid;
-  grid-template-columns:310px 1fr;
-  min-height:500px;
-}
-
-.sidebar{
-  padding:20px;
-  border-right:1px solid var(--line);
-}
-
-.side-title{
-  color:#777783;
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:1px;
-  font-weight:800;
-}
-
-.tool-select{
-  margin-top:11px;
-  display:grid;
-  gap:7px;
-}
-
-.tool-option{
-  padding:11px 12px;
-  border-radius:11px;
-  color:#9999a5;
-  border:1px solid transparent;
-  cursor:pointer;
-  font-size:12px;
-}
-
-.tool-option.active{
-  color:#eeeef5;
-  background:rgba(139,92,246,.1);
-  border-color:rgba(139,92,246,.22);
-}
-
-.workspace{
-  padding:24px;
-}
-
-.workspace h3{
-  font-size:22px;
-}
-
-.workspace-sub{
-  margin-top:6px;
-  color:#858591;
-  font-size:13px;
-}
-
-textarea{
-  width:100%;
-  min-height:145px;
-  resize:vertical;
-  margin-top:20px;
-  padding:16px;
-  border-radius:15px;
-  background:#08080d;
-  color:#eee;
-  border:1px solid rgba(255,255,255,.1);
-  outline:none;
-}
-
-textarea:focus{
-  border-color:rgba(139,92,246,.6);
-  box-shadow:0 0 0 3px rgba(139,92,246,.08);
-}
-
-.workspace-actions{
-  margin-top:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-}
-
-.char{
-  color:#666672;
-  font-size:11px;
-}
-
-.generate{
-  border:0;
-  padding:13px 18px;
-  border-radius:12px;
-  color:white;
-  font-weight:800;
-  background:linear-gradient(100deg,#7c3aed,#06b6d4);
-}
-
-.generate:disabled{
-  opacity:.55;
-  cursor:not-allowed;
-}
-
-.output-box{
-  margin-top:20px;
-  min-height:150px;
-  padding:17px;
-  border-radius:15px;
-  border:1px dashed rgba(255,255,255,.1);
-  color:#92929e;
-  font-size:13px;
-  white-space:pre-wrap;
-}
-
-.output-box.ready{
-  border-style:solid;
-  color:#dddde5;
-  background:rgba(255,255,255,.025);
-}
-
-.pricing-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px;
-  max-width:850px;
-  margin:auto;
-}
-
-.price-card{
-  position:relative;
-  padding:32px;
-  border:1px solid var(--line);
-  border-radius:25px;
-  background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.018));
-}
-
-.price-card.pro{
-  border-color:rgba(139,92,246,.45);
-  box-shadow:0 0 70px rgba(139,92,246,.11);
-}
-
-.popular{
-  position:absolute;
-  top:18px;
-  right:18px;
-  padding:5px 9px;
-  border-radius:999px;
-  background:rgba(139,92,246,.13);
-  color:#c4b5fd;
-  border:1px solid rgba(139,92,246,.25);
-  font-size:9px;
-  font-weight:800;
-  text-transform:uppercase;
-}
-
-.price-name{
-  color:#9b9ba7;
-  font-size:12px;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
-
-.price{
-  margin-top:12px;
-  font-size:46px;
-  font-weight:850;
-  letter-spacing:-2px;
-}
-
-.price small{
-  color:#777783;
-  font-size:13px;
-  letter-spacing:0;
-}
-
-.price-desc{
-  min-height:44px;
-  margin-top:10px;
-  color:#888893;
-  font-size:13px;
-}
-
-.features{
-  list-style:none;
-  margin:24px 0;
-  display:grid;
-  gap:11px;
-}
-
-.features li{
-  color:#bdbdc8;
-  font-size:13px;
-}
-
-.features li:before{
-  content:"✓";
-  margin-right:9px;
-  color:#6ee7b7;
-}
-
-.price-btn{
-  width:100%;
-}
-
-.faq{
-  max-width:800px;
-  margin:auto;
-}
-
-.faq-item{
-  border-bottom:1px solid var(--line);
-}
-
-.faq-q{
-  width:100%;
-  padding:20px 0;
-  display:flex;
-  justify-content:space-between;
-  background:none;
-  border:0;
-  color:#e7e7ed;
-  text-align:left;
-  font-weight:700;
-  font-size:15px;
-}
-
-.faq-q span{
-  color:#777783;
-  transition:.2s;
-}
-
-.faq-a{
-  max-height:0;
-  overflow:hidden;
-  color:#858591;
-  font-size:13px;
-  line-height:1.7;
-  transition:.3s ease;
-}
-
-.faq-item.open .faq-a{
-  max-height:180px;
-  padding-bottom:19px;
-}
-
-.faq-item.open .faq-q span{
-  transform:rotate(45deg);
-}
-
-.final-cta{
-  text-align:center;
-  padding:120px 20px;
-  border:1px solid var(--line);
-  border-radius:30px;
-  background:
-    radial-gradient(circle at 50% 0%,rgba(139,92,246,.15),transparent 50%),
-    rgba(255,255,255,.025);
-}
-
-.final-cta h2{
-  font-size:clamp(35px,5vw,62px);
-  letter-spacing:-3px;
-  line-height:1;
-}
-
-.final-cta p{
-  max-width:560px;
-  margin:17px auto 28px;
-  color:#8e8e9a;
-}
-
-footer{
-  padding:35px 0 50px;
-  color:#666672;
-  font-size:12px;
-  display:flex;
-  justify-content:space-between;
-  gap:20px;
-}
-
-@media(max-width:900px){
-  .hero{
-    grid-template-columns:1fr;
-    padding-top:50px;
-  }
-
-  .hero h1{font-size:56px}
-
-  .tools-grid,
-  .workflow{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .studio-grid{
-    grid-template-columns:1fr;
-  }
-
-  .sidebar{
-    border-right:0;
-    border-bottom:1px solid var(--line);
-  }
-
-  .nav-links{display:none}
-}
-
-@media(max-width:620px){
-  .container{
-    width:min(100% - 24px,1160px);
-  }
-
-  section{padding:75px 0}
-
-  .hero{
-    min-height:auto;
-    padding:35px 0 75px;
-  }
-
-  .hero h1{
-    font-size:45px;
-    letter-spacing:-2.5px;
-  }
-
-  .hero-copy{font-size:16px}
-
-  .tools-grid,
-  .workflow,
-  .pricing-grid{
-    grid-template-columns:1fr;
-  }
-
-  .output-row{
-    grid-template-columns:1fr;
-  }
-
-  .workspace-actions{
-    align-items:stretch;
-    flex-direction:column;
-  }
-
-  .generate{width:100%}
-
-  footer{
-    flex-direction:column;
-  }
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07070a" />
+  <meta name="description" content="FacelessAI Growth Copilot — turn one idea into offers, landing pages, outreach, ads and content." />
+  <meta property="og:title" content="FacelessAI Growth Copilot" />
+  <meta property="og:description" content="Turn ideas into growth." />
+  <title>FacelessAI — Growth Copilot</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+    :root{
+      --bg:#07070a;
+      --bg2:#0b0b10;
+      --card:rgba(17,17,24,.78);
+      --card2:#111118;
+      --line:rgba(255,255,255,.09);
+      --line2:rgba(255,255,255,.15);
+      --text:#f7f7fb;
+      --muted:#9c9ca9;
+      --purple:#9b6cff;
+      --purple2:#6d42ff;
+      --cyan:#5ee7ff;
+      --green:#54e6a3;
+      --danger:#ff6b7d;
+      --shadow:0 24px 80px rgba(0,0,0,.42);
+      --radius:22px;
+      --max:1180px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at 15% -5%, rgba(121,72,255,.18), transparent 30%),
+        radial-gradient(circle at 90% 10%, rgba(0,215,255,.09), transparent 24%),
+        var(--bg);
+      color:var(--text);
+      font-family:"DM Sans",system-ui,sans-serif;
+      line-height:1.55;
+      overflow-x:hidden;
+    }
+    body:before{
+      content:"";
+      position:fixed;inset:0;pointer-events:none;z-index:-1;
+      background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+                       linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+      background-size:64px 64px;
+      mask-image:linear-gradient(to bottom,black,transparent 70%);
+    }
+    a{text-decoration:none;color:inherit}
+    button,input,textarea{font:inherit}
+    button{cursor:pointer}
+    .container{width:min(var(--max),calc(100% - 36px));margin:auto}
+
+    .nav{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter:blur(18px);
+      background:rgba(7,7,10,.74);
+      border-bottom:1px solid var(--line);
+    }
+    .nav-inner{
+      height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px;
+    }
+    .logo{display:flex;align-items:center;gap:10px;font-family:"Space Grotesk";font-weight:700;font-size:20px}
+    .logo-mark{
+      width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--purple),var(--cyan));
+      color:#08080b;font-weight:900;box-shadow:0 0 30px rgba(145,91,255,.32);
+    }
+    .nav-links{display:flex;gap:26px;color:#aaaab7;font-size:14px}
+    .nav-links a:hover{color:#fff}
+    .nav-actions{display:flex;align-items:center;gap:10px}
+    .mobile-menu{display:none}
+
+    .btn{
+      border:1px solid var(--line2);border-radius:12px;padding:11px 16px;
+      color:#fff;background:rgba(255,255,255,.04);transition:.2s;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      font-weight:700;font-size:14px;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.07)}
+    .btn-primary{
+      border:0;background:linear-gradient(135deg,#a16cff,#7041ff);box-shadow:0 12px 34px rgba(112,65,255,.28);
+    }
+    .btn-primary:hover{box-shadow:0 16px 42px rgba(112,65,255,.38)}
+    .btn-cyan{border:0;background:linear-gradient(135deg,#66eaff,#6f7dff);color:#07070a}
+    .btn-danger{border-color:rgba(255,107,125,.28);color:#ff9aa7}
+    .btn-sm{padding:8px 11px;font-size:12px;border-radius:9px}
+
+    .hero{padding:92px 0 70px;text-align:center}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
+      padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.035);
+      color:#c9c9d4;font-size:12px;font-weight:700;
+    }
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+    h1,h2,h3{font-family:"Space Grotesk";line-height:1.08;margin:0}
+    .hero h1{
+      max-width:850px;margin:22px auto 18px;font-size:clamp(44px,7vw,82px);
+      letter-spacing:-3.5px;
+    }
+    .gradient-text{background:linear-gradient(90deg,#fff 0%,#b79bff 50%,#72e9ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero p{max-width:690px;margin:0 auto;color:var(--muted);font-size:18px}
+    .hero-actions{display:flex;justify-content:center;gap:12px;margin:30px 0 42px;flex-wrap:wrap}
+    .hero-proof{display:flex;justify-content:center;gap:26px;flex-wrap:wrap;color:#858592;font-size:12px}
+    .hero-proof span:before{content:"✓";color:var(--green);margin-right:6px}
+
+    .product-preview{
+      margin:20px auto 0;max-width:1060px;border:1px solid var(--line2);border-radius:24px;
+      background:linear-gradient(180deg,rgba(22,22,31,.9),rgba(10,10,14,.95));
+      box-shadow:var(--shadow);overflow:hidden;text-align:left;
+    }
+    .window-bar{height:42px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:7px}
+    .window-bar i{width:8px;height:8px;border-radius:50%;background:#4b4b56}
+    .preview-body{padding:24px;display:grid;grid-template-columns:210px 1fr;gap:20px}
+    .preview-side{border-right:1px solid var(--line);padding-right:18px}
+    .mini-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#777783;margin:8px 0}
+    .mini-item{padding:10px;border-radius:10px;color:#92929e;font-size:12px;margin:3px 0}
+    .mini-item.active{background:rgba(144,96,255,.13);color:#e6dcff;border:1px solid rgba(144,96,255,.18)}
+    .preview-main .mini-kicker{color:#a88cff;font-size:11px;font-weight:700}
+    .preview-main h3{font-size:28px;margin:8px 0 10px}
+    .preview-main p{color:#777784;font-size:12px;margin:0 0 18px}
+    .fake-output{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .fake-card{border:1px solid var(--line);padding:13px;border-radius:13px;background:rgba(255,255,255,.025)}
+    .fake-card strong{font-size:12px}
+    .fake-card div{height:5px;background:rgba(255,255,255,.08);border-radius:4px;margin-top:9px}
+    .fake-card div:nth-child(3){width:70%}
+
+    .section{padding:80px 0}
+    .section-head{text-align:center;max-width:700px;margin:0 auto 42px}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:1.5px;color:#a88cff;text-transform:uppercase}
+    .section-head h2{font-size:clamp(32px,5vw,52px);margin:12px 0}
+    .section-head p{color:var(--muted);margin:0}
+
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .feature{
+      border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.018));
+      border-radius:18px;padding:22px;min-height:185px;transition:.2s;
+    }
+    .feature:hover{transform:translateY(-3px);border-color:var(--line2)}
+    .feature-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:rgba(145,92,255,.12);color:#b89aff;margin-bottom:18px}
+    .feature h3{font-size:18px;margin-bottom:7px}
+    .feature p{font-size:13px;color:var(--muted);margin:0}
+
+    .studio-shell{
+      border:1px solid var(--line2);border-radius:24px;background:rgba(12,12,17,.86);
+      box-shadow:var(--shadow);overflow:hidden;
+    }
+    .studio-top{
+      padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;
+    }
+    .studio-title{font-family:"Space Grotesk";font-weight:700}
+    .plan-badge{font-size:11px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.06);color:#aaa}
+    .studio-layout{display:grid;grid-template-columns:245px 1fr;min-height:610px}
+    .workflow-nav{padding:18px;border-right:1px solid var(--line)}
+    .workflow{
+      width:100%;text-align:left;border:1px solid transparent;background:transparent;color:#90909d;
+      border-radius:12px;padding:12px;margin:3px 0;display:flex;gap:10px;align-items:center;
+    }
+    .workflow:hover{background:rgba(255,255,255,.035);color:#fff}
+    .workflow.active{background:linear-gradient(90deg,rgba(143,89,255,.15),rgba(143,89,255,.04));border-color:rgba(143,89,255,.2);color:#fff}
+    .workflow-icon{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.05);display:grid;place-items:center;font-size:12px}
+    .workflow-text strong{display:block;font-size:13px}
+    .workflow-text small{display:block;color:#6e6e7a;font-size:10px;margin-top:2px}
+    .studio-main{padding:28px}
+    .mode-title{font-size:30px;margin-bottom:7px}
+    .mode-desc{color:var(--muted);font-size:13px;margin:0 0 22px}
+    .quick-prompts{display:flex;gap:7px;overflow:auto;padding-bottom:8px;margin-bottom:10px}
+    .quick{
+      white-space:nowrap;border:1px solid var(--line);background:rgba(255,255,255,.025);color:#aaaabb;
+      border-radius:999px;padding:7px 10px;font-size:11px;
+    }
+    .quick:hover{color:#fff;border-color:var(--line2)}
+    .prompt-wrap{position:relative}
+    textarea{
+      width:100%;min-height:175px;resize:vertical;color:#eee;background:#09090d;border:1px solid var(--line2);
+      border-radius:16px;padding:16px;outline:none;transition:.2s;
+    }
+    textarea:focus{border-color:rgba(150,103,255,.65);box-shadow:0 0 0 4px rgba(150,103,255,.08)}
+    .prompt-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:8px;color:#686875;font-size:11px}
+    .generate-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+    .generate-row .btn-primary{min-width:160px}
+    .result-area{margin-top:24px}
+    .result-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+    .result-head h3{font-size:17px}
+    .result-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .result-card{
+      border:1px solid var(--line2);background:#0b0b10;border-radius:16px;padding:20px;
+      min-height:130px;
+    }
+    .result-content{font-size:14px;color:#dddde6}
+    .result-content h4{font-family:"Space Grotesk";font-size:18px;color:#fff;margin:20px 0 8px}
+    .result-content h4:first-child{margin-top:0}
+    .result-content p{margin:8px 0;color:#c7c7d1}
+    .result-content ul{margin:8px 0 14px;padding-left:20px}
+    .result-content li{margin:5px 0}
+    .result-content strong{color:#fff}
+    .empty-result{color:#6f6f7b;text-align:center;padding:45px 15px}
+    .loading{
+      display:flex;align-items:center;gap:10px;color:#aaa;padding:30px 5px;
+    }
+    .spinner{width:18px;height:18px;border:2px solid #363640;border-top-color:#a277ff;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
+    .price-card{position:relative;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.025);padding:25px}
+    .price-card.featured{border-color:rgba(157,105,255,.55);box-shadow:0 0 55px rgba(113,65,255,.12)}
+    .popular{position:absolute;right:17px;top:17px;background:rgba(157,105,255,.15);border:1px solid rgba(157,105,255,.25);color:#c9b6ff;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:800}
+    .price-name{font-family:"Space Grotesk";font-size:19px}
+    .price{font-family:"Space Grotesk";font-size:43px;margin:16px 0 3px}
+    .price span{font-size:13px;color:#777783;font-family:"DM Sans"}
+    .price-desc{color:var(--muted);font-size:12px;min-height:40px}
+    .price-list{list-style:none;padding:0;margin:22px 0}
+    .price-list li{font-size:12px;color:#c6c6d0;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .price-list li:before{content:"✓";color:var(--green);margin-right:8px}
+    .price-card .btn{width:100%}
+
+    .faq{max-width:800px;margin:auto}
+    .faq-item{border-bottom:1px solid var(--line)}
+    .faq-q{width:100%;padding:18px 0;background:none;border:0;color:#eee;display:flex;justify-content:space-between;text-align:left;font-weight:700}
+    .faq-q span{color:#888}
+    .faq-a{display:none;color:#8f8f9c;font-size:13px;padding:0 30px 18px 0}
+    .faq-item.open .faq-a{display:block}
+
+    .contact-card{
+      text-align:center;padding:50px 25px;border:1px solid var(--line);border-radius:24px;
+      background:radial-gradient(circle at 50% 0%,rgba(132,77,255,.14),transparent 55%),rgba(255,255,255,.02)
+    }
+    .contact-card h2{font-size:42px;margin:12px 0}
+    .contact-card p{max-width:600px;margin:0 auto 24px;color:var(--muted)}
+    .contact-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+
+    footer{border-top:1px solid var(--line);padding:28px 0;color:#696975;font-size:12px}
+    .footer-inner{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
+    .footer-links{display:flex;gap:18px}
+    .footer-links a:hover{color:#fff}
+
+    .toast{
+      position:fixed;right:18px;bottom:18px;z-index:100;transform:translateY(20px);opacity:0;pointer-events:none;
+      background:#17171f;border:1px solid var(--line2);box-shadow:var(--shadow);padding:12px 15px;border-radius:12px;font-size:12px;transition:.25s;
+    }
+    .toast.show{transform:translateY(0);opacity:1}
+
+    .modal{
+      position:fixed;inset:0;z-index:90;display:none;place-items:center;padding:20px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);
+    }
+    .modal.show{display:grid}
+    .modal-box{width:min(520px,100%);border:1px solid var(--line2);border-radius:20px;background:#101017;box-shadow:var(--shadow);padding:25px}
+    .modal-box h3{font-size:25px}
+    .modal-box p{color:var(--muted);font-size:13px}
+    .modal-actions{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap}
+
+    .history-list{display:grid;gap:9px;margin-top:14px}
+    .history-item{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .history-item strong{font-size:12px}
+    .history-item small{display:block;color:#70707c;margin-top:3px}
+
+    @media(max-width:900px){
+      .nav-links{display:none}
+      .mobile-menu{display:inline-flex}
+      .features,.pricing{grid-template-columns:1fr}
+      .studio-layout{grid-template-columns:1fr}
+      .workflow-nav{border-right:0;border-bottom:1px solid var(--line);display:flex;overflow:auto;gap:5px;padding:12px}
+      .workflow{min-width:155px;margin:0}
+      .workflow-text small{display:none}
+      .preview-body{grid-template-columns:1fr}
+      .preview-side{display:none}
+    }
+    @media(max-width:620px){
+      .container{width:min(100% - 24px,var(--max))}
+      .nav-inner{height:64px}
+      .nav-actions .btn-secondary{display:none}
+      .hero{padding:65px 0 45px}
+      .hero h1{font-size:46px;letter-spacing:-2.5px}
+      .hero p{font-size:15px}
+      .section{padding:60px 0}
+      .studio-main{padding:18px}
+      .studio-top{padding:15px}
+      .mode-title{font-size:26px}
+      .fake-output{grid-template-columns:1fr}
+      .contact-card h2{font-size:34px}
+      .price{font-size:38px}
+    }
+  </style>
 </head>
 
 <body>
+  <div id="toast" class="toast"></div>
 
-<header>
-  <div class="container">
-    <nav>
+  <header class="nav">
+    <div class="container nav-inner">
       <a class="logo" href="#">
         <span class="logo-mark">F</span>
-        FacelessAI
+        <span>Faceless<span style="color:#a786ff">AI</span></span>
       </a>
 
-      <div class="nav-links">
-        <a href="#tools">AI Tools</a>
+      <nav class="nav-links">
         <a href="#studio">Studio</a>
+        <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
-      </div>
+        <a href="#contact">Contact</a>
+      </nav>
 
-      <a class="nav-cta" href="#studio">Open Copilot →</a>
-    </nav>
-  </div>
-</header>
-
-<main>
-
-<section class="hero">
-  <div class="container" style="display:contents">
-
-    <div>
-      <div class="eyebrow">
-        <span class="dot"></span>
-        AI GROWTH COPILOT
-      </div>
-
-      <h1>
-        One idea.
-        <span class="gradient">An entire marketing engine.</span>
-      </h1>
-
-      <p class="hero-copy">
-        FacelessAI turns your product, service, or idea into
-        offers, sales copy, emails, ads, social content and
-        launch campaigns — in seconds.
-      </p>
-
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="#studio">
-          Create your first campaign ⚡
-        </a>
-
-        <a class="btn btn-secondary" href="#tools">
-          Explore AI tools
-        </a>
-      </div>
-
-      <div class="trust">
-        <span></span>
-        Built for creators, founders, freelancers and growing businesses
+      <div class="nav-actions">
+        <a class="btn btn-secondary" href="#pricing">Pricing</a>
+        <a class="btn btn-primary" href="#studio">Open Studio →</a>
+        <button class="btn btn-sm mobile-menu" onclick="document.getElementById('studio').scrollIntoView({behavior:'smooth'})">Studio</button>
       </div>
     </div>
+  </header>
 
-    <div class="app-window">
-      <div class="window-top">
-        <span class="window-dot"></span>
-        <span class="window-dot"></span>
-        <span class="window-dot"></span>
-        <span class="window-title">facelessai / growth-copilot</span>
-      </div>
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="pill"><span class="dot"></span> AI-powered growth workspace</div>
+        <h1>One idea.<br><span class="gradient-text">An entire marketing engine.</span></h1>
+        <p>FacelessAI turns a rough idea into offers, landing-page copy, outreach, ads and content you can actually use.</p>
 
-      <div class="app-body">
-
-        <div class="app-label">Your idea</div>
-
-        <div class="fake-input">
-          <strong>“I sell website design to local dentists.”</strong>
-          <br><br>
-          Build me an offer that makes the value obvious.
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#studio">Create your first asset ⚡</a>
+          <a class="btn" href="#features">See how it works</a>
         </div>
 
-        <div class="ai-output">
+        <div class="hero-proof">
+          <span>6 growth workflows</span>
+          <span>Copy-ready outputs</span>
+          <span>Built for creators & businesses</span>
+        </div>
 
-          <div class="output-head">
-            <div class="output-title">AI Growth Brief</div>
-            <div class="live">● READY</div>
+        <div class="product-preview">
+          <div class="window-bar"><i></i><i></i><i></i></div>
+          <div class="preview-body">
+            <div class="preview-side">
+              <div class="mini-label">Growth Studio</div>
+              <div class="mini-item active">✦ Offer Builder</div>
+              <div class="mini-item">▣ Landing Page</div>
+              <div class="mini-item">✉ Cold Email</div>
+              <div class="mini-item">↗ Sales DM</div>
+              <div class="mini-item">◈ Ad Campaign</div>
+              <div class="mini-item">✦ Content Pack</div>
+            </div>
+            <div class="preview-main">
+              <div class="mini-kicker">OFFER BUILDER</div>
+              <h3>Turn your idea into an offer people understand.</h3>
+              <p>Describe what you sell. FacelessAI structures the positioning, promise, benefits and CTA.</p>
+              <div class="fake-output">
+                <div class="fake-card"><strong>Positioning</strong><div></div><div></div></div>
+                <div class="fake-card"><strong>Benefits</strong><div></div><div></div></div>
+                <div class="fake-card"><strong>CTA</strong><div></div><div></div></div>
+              </div>
+            </div>
           </div>
-
-          <div class="output-row">
-
-            <div class="mini-card">
-              <span>Offer</span>
-              <b>7-Day Dental Website Sprint</b>
-            </div>
-
-            <div class="mini-card">
-              <span>Positioning</span>
-              <b>More booked appointments</b>
-            </div>
-
-            <div class="mini-card">
-              <span>Hook</span>
-              <b>Your website should sell while you sleep.</b>
-            </div>
-
-            <div class="mini-card">
-              <span>CTA</span>
-              <b>Get Your Free Website Audit</b>
-            </div>
-
-          </div>
-
         </div>
       </div>
-    </div>
+    </section>
 
-  </div>
-</section>
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">Built around the work</div>
+          <h2>From blank page to usable growth assets.</h2>
+          <p>No complicated marketing dashboard. Pick a workflow, describe your idea and get a structured result.</p>
+        </div>
 
-
-<section id="tools">
-  <div class="container">
-
-    <div class="section-head">
-      <div class="eyebrow">ONE COPILOT · MANY WORKFLOWS</div>
-      <h2>Everything you need to turn attention into action.</h2>
-      <p>
-        Stop jumping between five different AI tools.
-        Start with one idea and build the entire campaign from one workspace.
-      </p>
-    </div>
-
-    <div class="tools-grid">
-
-      <div class="tool-card">
-        <div class="tool-icon">✦</div>
-        <h3>Offer Builder</h3>
-        <p>
-          Turn what you sell into a clear, compelling offer
-          your target customer can understand immediately.
-        </p>
+        <div class="features">
+          <article class="feature">
+            <div class="feature-icon">✦</div>
+            <h3>One idea, multiple assets</h3>
+            <p>Turn the same business idea into offers, landing copy, outreach, ads and content without starting from zero.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon">⌁</div>
+            <h3>Copy-ready output</h3>
+            <p>Results are structured into sections so you can copy, edit, save or download them quickly.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon">◈</div>
+            <h3>Built for real businesses</h3>
+            <p>Useful for creators, freelancers, agencies, founders and small businesses—not just generic brainstorming.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon">↗</div>
+            <h3>Campaign thinking</h3>
+            <p>Pro is designed around connected marketing work instead of isolated AI answers.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon">⌘</div>
+            <h3>Fast workflow</h3>
+            <p>Quick prompts, clean states and one-click actions keep the process simple on mobile and desktop.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon">✓</div>
+            <h3>No fake proof</h3>
+            <p>FacelessAI does not pretend to have customers, revenue numbers or guaranteed results it cannot verify.</p>
+          </article>
+        </div>
       </div>
+    </section>
 
-      <div class="tool-card">
-        <div class="tool-icon">↗</div>
-        <h3>Sales Copy</h3>
-        <p>
-          Generate headlines, benefits, CTAs, product copy
-          and persuasive landing-page sections.
-        </p>
-      </div>
+    <section class="section" id="studio">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">Growth Studio</div>
+          <h2>Your marketing workspace.</h2>
+          <p>Choose a workflow and give the Copilot enough context to create something useful.</p>
+        </div>
 
-      <div class="tool-card">
-        <div class="tool-icon">◎</div>
-        <h3>Cold Outreach</h3>
-        <p>
-          Create personalized cold emails and DMs designed
-          to start conversations without sounding robotic.
-        </p>
-      </div>
-
-      <div class="tool-card">
-        <div class="tool-icon">⌁</div>
-        <h3>Ad Creative</h3>
-        <p>
-          Generate multiple hooks, angles and ad variations
-          for testing across your campaigns.
-        </p>
-      </div>
-
-      <div class="tool-card">
-        <div class="tool-icon">#</div>
-        <h3>Content Engine</h3>
-        <p>
-          Turn one idea into social posts, threads,
-          captions and content angles.
-        </p>
-      </div>
-
-      <div class="tool-card">
-        <div class="tool-icon">⚡</div>
-        <h3>Campaign Builder</h3>
-        <p>
-          Connect the pieces into a complete campaign
-          instead of generating disconnected AI outputs.
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-<section id="how">
-  <div class="container">
-
-    <div class="section-head">
-      <div class="eyebrow">HOW IT WORKS</div>
-      <h2>From blank page to campaign in three moves.</h2>
-    </div>
-
-    <div class="workflow">
-
-      <div class="step">
-        <div class="step-num">01 — INPUT</div>
-        <h3>Tell us what you sell.</h3>
-        <p>
-          Describe your product, service, audience or idea
-          in plain English. No complicated setup.
-        </p>
-      </div>
-
-      <div class="step">
-        <div class="step-num">02 — BUILD</div>
-        <h3>Let AI connect the dots.</h3>
-        <p>
-          FacelessAI transforms the raw idea into positioning,
-          messaging and ready-to-use marketing assets.
-        </p>
-      </div>
-
-      <div class="step">
-        <div class="step-num">03 — LAUNCH</div>
-        <h3>Copy. Publish. Iterate.</h3>
-        <p>
-          Take the output directly into your website,
-          outreach, ads or social channels.
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-<section id="studio" class="demo">
-  <div class="container">
-
-    <div class="section-head">
-      <div class="eyebrow">LIVE AI WORKSPACE</div>
-      <h2>Meet your new growth desk.</h2>
-      <p>
-        Pick a workflow, describe what you're working on,
-        and let FacelessAI build the first version.
-      </p>
-    </div>
-
-    <div class="studio">
-
-      <div class="studio-head">
-        <strong>FacelessAI Studio</strong>
-        <span class="status-pill">AI ENGINE READY</span>
-      </div>
-
-      <div class="studio-grid">
-
-        <aside class="sidebar">
-
-          <div class="side-title">Workflows</div>
-
-          <div class="tool-select">
-
-            <div class="tool-option active" data-mode="offer">
-              ✦ Offer Builder
+        <div class="studio-shell">
+          <div class="studio-top">
+            <div>
+              <div class="studio-title">FacelessAI Growth Copilot</div>
+              <span class="plan-badge" id="planBadge">Free preview</span>
             </div>
-
-            <div class="tool-option" data-mode="landing">
-              ◇ Landing Page
-            </div>
-
-            <div class="tool-option" data-mode="email">
-              ↗ Cold Email
-            </div>
-
-            <div class="tool-option" data-mode="dm">
-              @ Sales DM
-            </div>
-
-            <div class="tool-option" data-mode="ads">
-              ◉ Ad Campaign
-            </div>
-
-            <div class="tool-option" data-mode="content">
-              # Content Pack
-            </div>
-
+            <button class="btn btn-sm" onclick="showHistory()">History</button>
           </div>
 
-        </aside>
-
-        <div class="workspace">
-
-
-<h3 id="workspaceTitle">
-Build a stronger offer
-</h3>
-
-
-<p class="workspace-sub" id="workspaceSub">
-Tell the AI what you sell and who you sell it to.
-</p>
-
-
-<textarea
-id="promptInput"
-maxlength="2000"
-placeholder="Example: I run a $500 website design service for dentists in the United States. I want more qualified leads..."
-></textarea>
-
-
-<div class="workspace-actions">
-
-<span class="char">
-<span id="charCount">0</span>/2000
-</span>
-
-
-<button
-id="generateBtn"
-class="generate"
-type="button"
->
-Generate with AI ⚡
-</button>
-
-</div>
-
-
-<div id="outputBox" class="output-box">
-Your generated result will appear here.
-</div>
-
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- PRICING -->
-
-<section id="pricing">
-
-<div class="container">
-
-
-<div
-class="section-head"
-style="margin-left:auto;margin-right:auto;text-align:center"
->
-
-<div class="eyebrow">
-SIMPLE PRICING
-</div>
-
-<h2>
-Start small. Grow when you need more.
-</h2>
-
-<p>
-Choose the workflow that fits where you are today.
-</p>
-
-</div>
-
-
-<div class="pricing-grid">
-
-
-<!-- $9 -->
-
-<div class="price-card">
-
-<div class="price-name">
-Starter
-</div>
-
-<div class="price">
-$9<small>/month</small>
-</div>
-
-<p class="price-desc">
-For creators, freelancers and small businesses
-building their marketing engine.
-</p>
-
-
-<ul class="features">
-
-<li>
-AI Offer Builder
-</li>
-
-<li>
-Sales copy generation
-</li>
-
-<li>
-Cold email & DM creation
-</li>
-
-<li>
-Ad hooks & creative angles
-</li>
-
-<li>
-Social content generation
-</li>
-
-<li>
-Landing page copy
-</li>
-
-</ul>
-
-
-<a
-class="btn btn-secondary price-btn"
-href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1"
-target="_blank"
-rel="noopener noreferrer"
->
-Get Starter →
-</a>
-
-</div>
-
-
-<!-- $29 -->
-
-<div class="price-card pro">
-
-<div class="popular">
-PRO
-</div>
-
-<div class="price-name">
-Pro
-</div>
-
-<div class="price">
-$29<small>/month</small>
-</div>
-
-<p class="price-desc">
-For serious builders who want a deeper AI-powered
-marketing workflow.
-</p>
-
-
-<ul class="features">
-
-<li>
-Everything in Starter
-</li>
-
-<li>
-Advanced campaign workflows
-</li>
-
-<li>
-More powerful generation modes
-</li>
-
-<li>
-Multi-channel campaign creation
-</li>
-
-<li>
-Advanced positioning workflows
-</li>
-
-<li>
-Priority product features
-</li>
-
-</ul>
-
-
-<a
-class="btn btn-primary price-btn"
-href="https://checkout.dodopayments.com/buy/pdt_0Nor4IRUyNeuBzfuxt6wI?quantity=1"
-target="_blank"
-rel="noopener noreferrer"
->
-Go Pro →
-</a>
-
-</div>
-
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- FAQ -->
-
-<section id="faq">
-
-<div class="container">
-
-
-<div
-class="section-head"
-style="margin-left:auto;margin-right:auto;text-align:center"
->
-
-<div class="eyebrow">
-FAQ
-</div>
-
-<h2>
-Questions, answered.
-</h2>
-
-</div>
-
-
-<div class="faq">
-
-
-<div class="faq-item">
-
-<button class="faq-q" type="button">
-
-What is FacelessAI?
-
-<span>+</span>
-
-</button>
-
-<div class="faq-a">
-
-FacelessAI is an AI growth copilot that helps you
-turn a product, service or idea into practical
-marketing assets and campaigns.
-
-</div>
-
-</div>
-
-
-<div class="faq-item">
-
-<button class="faq-q" type="button">
-
-Who is it for?
-
-<span>+</span>
-
-</button>
-
-<div class="faq-a">
-
-It is designed for creators, freelancers, founders,
-agencies and small businesses that need marketing
-output without building everything from scratch.
-
-</div>
-
-</div>
-
-
-<div class="faq-item">
-
-<button class="faq-q" type="button">
-
-Do I need marketing experience?
-
-<span>+</span>
-
-</button>
-
-<div class="faq-a">
-
-No. The workflows are designed to work from a plain-language
-description of what you sell and who you want to reach.
-
-</div>
-
-</div>
-
-
-<div class="faq-item">
-
-<button class="faq-q" type="button">
-
-Can I cancel my subscription?
-
-<span>+</span>
-
-</button>
-
-<div class="faq-a">
-
-Yes. Your subscription is handled through the checkout
-provider and can be managed according to the subscription
-terms shown during checkout.
-
-</div>
-
-</div>
-
-
-<div class="faq-item">
-
-<button class="faq-q" type="button">
-
-Is FacelessAI an agency?
-
-<span>+</span>
-
-</button>
-
-<div class="faq-a">
-
-No. FacelessAI is software. It gives you AI-powered
-workflows so you can create marketing assets yourself.
-
-</div>
-
-</div>
-
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- FINAL CTA -->
-
-<section>
-
-<div class="container">
-
-<div class="final-cta">
-
-<h2>
-
-Your next campaign
-<span class="gradient">
-starts here.
-</span>
-
-</h2>
-
-<p>
-
-Give FacelessAI one idea. See how much marketing
-you can build from it.
-
-</p>
-
-<a
-class="btn btn-primary"
-href="#studio"
->
-Open the AI Copilot ⚡
-</a>
-
-</div>
-
-</div>
-
-</section>
-
-
-</main>
-
-
-<footer>
-
-<div class="container" style="display:flex;justify-content:space-between;gap:20px;width:100%">
-
-<div>
-© 2026 FacelessAI. All rights reserved.
-</div>
-
-<div>
-AI-powered growth workflows.
-</div>
-
-</div>
-
-</footer>
-
+          <div class="studio-layout">
+            <aside class="workflow-nav" id="workflowNav"></aside>
+
+            <section class="studio-main">
+              <h2 class="mode-title" id="modeTitle">Offer Builder</h2>
+              <p class="mode-desc" id="modeDesc">Create a clear, specific offer around your product or service.</p>
+
+              <div class="quick-prompts" id="quickPrompts"></div>
+
+              <div class="prompt-wrap">
+                <textarea id="prompt" maxlength="2000" placeholder="Example: I run a dental clinic in Delhi. We offer general dentistry and cosmetic treatments. We want more local patients and our website needs better positioning."></textarea>
+              </div>
+
+              <div class="prompt-bottom">
+                <span>Tip: include your audience, offer, problem and desired outcome.</span>
+                <span id="counter">0 / 2000</span>
+              </div>
+
+              <div class="generate-row">
+                <button class="btn btn-primary" id="generateBtn" onclick="generateAsset()">Generate with AI ⚡</button>
+                <button class="btn" onclick="useExample()">Use example</button>
+                <button class="btn" onclick="clearPrompt()">Clear</button>
+              </div>
+
+              <div class="result-area">
+                <div class="result-head">
+                  <h3 id="resultTitle">Your result</h3>
+                  <div class="result-actions" id="resultActions" style="display:none">
+                    <button class="btn btn-sm" onclick="copyAll()">Copy all</button>
+                    <button class="btn btn-sm" onclick="saveResult()">Save</button>
+                    <button class="btn btn-sm" onclick="downloadResult()">Download</button>
+                    <button class="btn btn-sm" onclick="shareResult()">Share</button>
+                    <button class="btn btn-sm" onclick="generateAsset()">Regenerate</button>
+                  </div>
+                </div>
+                <div class="result-card" id="resultCard">
+                  <div class="empty-result">Your finished marketing asset will appear here.</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">Simple pricing</div>
+          <h2>Start small. Upgrade when you need more.</h2>
+          <p>Clear differences between plans. No fake guarantees, fake customer counts or hidden “magic” claims.</p>
+        </div>
+
+        <div class="pricing">
+          <article class="price-card">
+            <div class="price-name">Free</div>
+            <div class="price">$0 <span>/ forever</span></div>
+            <div class="price-desc">Try the core workflows and see whether FacelessAI fits your process.</div>
+            <ul class="price-list">
+              <li>Limited AI generations</li>
+              <li>All 6 core workflows</li>
+              <li>Copy results</li>
+              <li>Basic download</li>
+              <li>Mobile-friendly Studio</li>
+            </ul>
+            <a class="btn" href="#studio">Try free</a>
+          </article>
+
+          <article class="price-card featured">
+            <div class="popular">MOST POPULAR</div>
+            <div class="price-name">Starter</div>
+            <div class="price">$9 <span>/ month</span></div>
+            <div class="price-desc">For creators, freelancers and small businesses doing marketing regularly.</div>
+            <ul class="price-list">
+              <li>Higher monthly generation allowance</li>
+              <li>All 6 core workflows</li>
+              <li>Save & history</li>
+              <li>Copy, download & share</li>
+              <li>Regenerate workflows</li>
+              <li>Deeper marketing outputs</li>
+            </ul>
+            <a class="btn btn-primary" href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1">Get Starter →</a>
+          </article>
+
+          <article class="price-card">
+            <div class="price-name">Pro</div>
+            <div class="price">$29 <span>/ month</span></div>
+            <div class="price-desc">For people who want to turn one brief into a coordinated marketing campaign.</div>
+            <ul class="price-list">
+              <li>Higher monthly generation allowance</li>
+              <li>Everything in Starter</li>
+              <li>Campaign Builder</li>
+              <li>Multi-asset campaign generation</li>
+              <li>Advanced content depth</li>
+              <li>Brand/voice workflow controls</li>
+            </ul>
+            <a class="btn btn-cyan" href="https://checkout.dodopayments.com/buy/pdt_0Nor4IRUyNeuBzfuxt6wI?quantity=1">Get Pro →</a>
+          </article>
+        </div>
+
+        <p style="text-align:center;color:#666673;font-size:11px;margin-top:18px">
+          Generation allowances and secure subscription enforcement are controlled by the backend. This frontend does not treat a checkout click as proof of payment.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">How it works</div>
+          <h2>Three steps. Less blank-page work.</h2>
+        </div>
+        <div class="features">
+          <article class="feature">
+            <div class="feature-icon">01</div>
+            <h3>Describe the idea</h3>
+            <p>Tell FacelessAI what you sell, who it is for and what you want to achieve.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon">02</div>
+            <h3>Choose a workflow</h3>
+            <p>Pick the exact marketing asset you need instead of asking an AI to “do everything.”</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon">03</div>
+            <h3>Use the output</h3>
+            <p>Copy, save, download, share or regenerate the result and move on to execution.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">FAQ</div>
+          <h2>Questions, answered.</h2>
+        </div>
+
+        <div class="faq">
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">What does FacelessAI generate?<span>+</span></button>
+            <div class="faq-a">The current Growth Copilot includes Offer Builder, Landing Page Copy, Cold Email, Sales DM, Ad Campaign and Content Pack workflows.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">Can I use the generated copy directly?<span>+</span></button>
+            <div class="faq-a">The outputs are designed to be copy-ready, but you should review and personalize them for your business before publishing or sending.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">Does FacelessAI guarantee sales or viral results?<span>+</span></button>
+            <div class="faq-a">No. AI can help create and organize marketing assets, but business outcomes depend on your offer, audience, execution, market and many other factors.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">Where can I get support?<span>+</span></button>
+            <div class="faq-a">Email <a style="color:#b99cff" href="mailto:jashofficial.support@gmail.com">jashofficial.support@gmail.com</a> for product, subscription or payment support.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">What is the difference between Starter and Pro?<span>+</span></button>
+            <div class="faq-a">Starter is built for regular individual marketing workflows. Pro adds deeper campaign-oriented functionality, including the Campaign Builder experience.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="container">
+        <div class="contact-card">
+          <div class="eyebrow">Need help?</div>
+          <h2>Let's talk.</h2>
+          <p>Have aquestion about FacelessAI, your subscription, payment, or need support? Send us an email and we'll get back to you.</p>
+          <div class="contact-actions">
+            <a class="btn btn-primary" href="mailto:jashofficial.support@gmail.com">Contact Support →</a>
+            <a class="btn" href="mailto:jashofficial.support@gmail.com">jashofficial.support@gmail.com</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>© 2026 FacelessAI. Growth tools for modern businesses.</div>
+      <div class="footer-links">
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a href="#contact">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal" id="historyModal" onclick="if(event.target===this)closeHistory()">
+    <div class="modal-box">
+      <div style="display:flex;justify-content:space-between;gap:15px;align-items:center">
+        <h3>Saved history</h3>
+        <button class="btn btn-sm" onclick="closeHistory()">Close</button>
+      </div>
+      <p>Saved results are stored on this device in your browser.</p>
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </div>
 
 <script>
+const BACKEND_URL = "https://faceless-ai-website.onrender.com";
 
-"use strict";
-
-
-/* =========================================
-   BACKEND
-========================================= */
-
-const BACKEND_URL =
-"https://faceless-ai-website.onrender.com";
-
-
-/* =========================================
-   MODES
-========================================= */
-
-let currentMode = "offer";
-
-
-const modes = {
-
-offer:{
-title:"Build a stronger offer",
-sub:"Tell the AI what you sell and who you sell it to.",
-placeholder:
-"Example: I run a $500 website design service for dentists in the United States. I want more qualified leads..."
-},
-
-landing:{
-title:"Build landing-page copy",
-sub:"Give AI your product and target customer.",
-placeholder:
-"Example: SaaS that helps freelancers automatically create client proposals..."
-},
-
-email:{
-title:"Write a cold email",
-sub:"Describe your offer and ideal customer.",
-placeholder:
-"Example: I sell bookkeeping services to US e-commerce businesses doing $1M+ revenue..."
-},
-
-dm:{
-title:"Create a sales DM",
-sub:"Describe who you're contacting and what you offer.",
-placeholder:
-"Example: I want to DM gym owners and offer them a website redesign..."
-},
-
-ads:{
-title:"Build an ad campaign",
-sub:"Give AI your product, audience and desired outcome.",
-placeholder:
-"Example: A $29 productivity app for university students who struggle to organize assignments..."
-},
-
-content:{
-title:"Create a content pack",
-sub:"Give AI one topic and let it create multiple content angles.",
-placeholder:
-"Example: My business teaches beginners how to use AI for freelancing..."
-}
-
+const workflows = {
+  offer: {
+    name:"Offer Builder",
+    short:"Build a stronger offer",
+    desc:"Create a clear, specific offer around your product or service.",
+    icon:"✦",
+    example:"I run a dental clinic in Delhi. We offer general dentistry and cosmetic treatments. We want more local patients and need a clearer offer."
+  },
+  landing: {
+    name:"Landing Page",
+    short:"Write conversion-focused copy",
+    desc:"Create structured landing-page copy for a product, service or campaign.",
+    icon:"▣",
+    example:"We build fast websites for local dentists in India. Our goal is to turn more website visitors into appointment enquiries."
+  },
+  email: {
+    name:"Cold Email",
+    short:"Start B2B conversations",
+    desc:"Create concise, natural cold outreach with useful follow-ups.",
+    icon:"✉",
+    example:"I sell website redesign services to independent dental clinics. I want to contact clinic owners who have outdated websites."
+  },
+  dm: {
+    name:"Sales DM",
+    short:"Write natural outreach",
+    desc:"Create a conversational sales DM sequence that does not feel spammy.",
+    icon:"↗",
+    example:"I offer short-form video editing for coaches and consultants. I want to start conversations on Instagram."
+  },
+  ads: {
+    name:"Ad Campaign",
+    short:"Create campaign angles",
+    desc:"Develop hooks, copy, CTAs, audiences and creative concepts for ads.",
+    icon:"◈",
+    example:"We sell an online bookkeeping service for small businesses. We want to test Meta ads aimed at founders who hate doing their own books."
+  },
+  content: {
+    name:"Content Pack",
+    short:"Build a content engine",
+    desc:"Turn one topic into hooks, posts, insights, CTAs and a 7-day outline.",
+    icon:"✦",
+    example:"My business teaches freelancers how to find their first 5 clients. I want a week of useful LinkedIn and Instagram content."
+  }
 };
 
+let currentMode = "offer";
+let currentResult = "";
+let currentResultMeta = {};
+let generating = false;
+let campaignMode = false;
 
-/* =========================================
-   ELEMENTS
-========================================= */
+const workflowNav = document.getElementById("workflowNav");
+const promptEl = document.getElementById("prompt");
+const counterEl = document.getElementById("counter");
+const resultCard = document.getElementById("resultCard");
+const resultActions = document.getElementById("resultActions");
 
-const promptInput =
-document.getElementById("promptInput");
-
-const charCount =
-document.getElementById("charCount");
-
-const outputBox =
-document.getElementById("outputBox");
-
-const generateBtn =
-document.getElementById("generateBtn");
-
-const workspaceTitle =
-document.getElementById("workspaceTitle");
-
-const workspaceSub =
-document.getElementById("workspaceSub");
-
-
-/* =========================================
-   CHARACTER COUNT
-========================================= */
-
-promptInput.addEventListener(
-"input",
-function(){
-
-charCount.textContent =
-String(promptInput.value.length);
-
-});
-
-
-/* =========================================
-   WORKFLOW SWITCHING
-========================================= */
-
-document.querySelectorAll(".tool-option").forEach(
-function(option){
-
-option.addEventListener(
-"click",
-function(){
-
-document
-.querySelectorAll(".tool-option")
-.forEach(function(item){
-
-item.classList.remove("active");
-
-});
-
-
-option.classList.add("active");
-
-
-currentMode =
-option.dataset.mode;
-
-
-const config =
-modes[currentMode];
-
-
-workspaceTitle.textContent =
-config.title;
-
-workspaceSub.textContent =
-config.sub;
-
-promptInput.placeholder =
-config.placeholder;
-
-
-outputBox.className =
-"output-box";
-
-outputBox.textContent =
-"Your generated result will appear here.";
-
-});
-
-});
-
-
-/* =========================================
-   GENERATE
-========================================= */
-
-async function generateAI(){
-
-const prompt =
-promptInput.value.trim();
-
-
-if(!prompt){
-
-outputBox.className =
-"output-box ready";
-
-outputBox.textContent =
-"Tell FacelessAI what you're working on first.";
-
-promptInput.focus();
-
-return;
-
+function escapeHtml(value){
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
+function renderResult(text){
+  const lines = text.split(/\r?\n/);
+  let html = "";
+  let inList = false;
 
-if(prompt.length < 10){
+  function closeList(){
+    if(inList){ html += "</ul>"; inList=false; }
+  }
 
-outputBox.className =
-"output-box ready";
+  for(let raw of lines){
+    const line = raw.trim();
+    if(!line){ closeList(); continue; }
 
-outputBox.textContent =
-"Give the AI a little more context so it can create a useful result.";
+    if(/^#{1,4}\s+/.test(line)){
+      closeList();
+      const title = line.replace(/^#{1,4}\s+/,"");
+      html += "<h4>"+inlineFormat(title)+"</h4>";
+      continue;
+    }
 
-promptInput.focus();
+    if(/^\d+[\.\)]\s+/.test(line)){
+      if(!inList){ html += "<ul>"; inList=true; }
+      html += "<li>"+inlineFormat(line.replace(/^\d+[\.\)]\s+/,""))+"</li>";
+      continue;
+    }
 
-return;
+    if(/^[-*•]\s+/.test(line)){
+      if(!inList){ html += "<ul>"; inList=true; }
+      html += "<li>"+inlineFormat(line.replace(/^[-*•]\s+/,""))+"</li>";
+      continue;
+    }
 
+    closeList();
+    html += "<p>"+inlineFormat(line)+"</p>";
+  }
+
+  closeList();
+  return html || "<p>No result returned.</p>";
 }
 
-
-generateBtn.disabled = true;
-
-generateBtn.textContent =
-"AI is thinking...";
-
-
-outputBox.className =
-"output-box";
-
-outputBox.textContent =
-"Building your marketing asset...\n\n" +
-"Analyzing your offer...\n" +
-"Understanding your audience...\n" +
-"Creating the first draft...";
-
-
-try{
-
-
-const response =
-await fetch(
-BACKEND_URL + "/generate",
-{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-mode:currentMode,
-
-prompt:prompt
-
-})
-
-});
-
-
-const raw =
-await response.text();
-
-
-let data;
-
-
-try{
-
-data =
-JSON.parse(raw);
-
-}catch(error){
-
-throw new Error(
-"The AI server returned an invalid response."
-);
-
+function inlineFormat(text){
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+    .replace(/`(.+?)`/g,"<strong>$1</strong>");
 }
 
-
-if(!response.ok){
-
-throw new Error(
-
-data.detail ||
-data.message ||
-"The AI request failed."
-
-);
-
+function buildNav(){
+  workflowNav.innerHTML = Object.entries(workflows).map(([key,w]) => `
+    <button class="workflow ${key===currentMode?"active":""}" onclick="selectMode('${key}')">
+      <span class="workflow-icon">${w.icon}</span>
+      <span class="workflow-text"><strong>${w.name}</strong><small>${w.short}</small></span>
+    </button>
+  `).join("");
 }
 
-
-const result =
-data.result ||
-data.output ||
-data.text;
-
-
-if(!result){
-
-throw new Error(
-"The AI completed the request but returned no result."
-);
-
+function buildQuickPrompts(){
+  const w = workflows[currentMode];
+  const ideas = {
+    offer:["SaaS product","Local service","Freelance offer"],
+    landing:["Landing page","Product launch","Service business"],
+    email:["B2B outreach","Agency prospecting","Local business"],
+    dm:["Instagram outreach","Founder outreach","Freelancer pitch"],
+    ads:["Meta campaign","Lead generation","Product launch"],
+    content:["7-day content","Founder brand","Educational content"]
+  };
+  document.getElementById("quickPrompts").innerHTML = ideas[currentMode].map(x =>
+    `<button class="quick" onclick="quickFill('${x}')">${x}</button>`
+  ).join("");
 }
 
-
-outputBox.className =
-"output-box ready";
-
-outputBox.textContent =
-result;
-
-
-}catch(error){
-
-
-outputBox.className =
-"output-box reeady";
-
-outputBox.textContent =
-"Something went wrong.\n\n" +
-(
-error.message ||
-"Please try again."
-);
-
-
-}finally{
-
-
-generateBtn.disabled =
-false;
-
-generateBtn.textContent =
-"Generate with AI ⚡";
-
-
+function selectMode(mode){
+  if(!workflows[mode]) return;
+  currentMode = mode;
+  campaignMode = false;
+  document.getElementById("modeTitle").textContent = workflows[mode].name;
+  document.getElementById("modeDesc").textContent = workflows[mode].desc;
+  promptEl.placeholder = workflows[mode].example;
+  buildNav();
+  buildQuickPrompts();
 }
 
+function quickFill(type){
+  const examples = {
+    "SaaS product":"I am building an AI SaaS for creators that turns one idea into marketing assets. I want a clear offer for creators and small businesses.",
+    "Local service":"I run a local service business and want a stronger offer that explains our value clearly and gives customers a reason to contact us.",
+    "Freelance offer":"I am a freelancer offering website and marketing services to small businesses. I want a specific package that is easy to sell.",
+    "Landing page":"We offer a service that helps small businesses improve their online presence and generate more enquiries. Create persuasive landing page copy.",
+    "Product launch":"We are launching a new software product for creators. We need landing copy that explains the problem, solution and CTA clearly.",
+    "Service business":"We provide a professional service to small businesses and want a landing page that turns visitors into enquiries.",
+    "B2B outreach":"I sell a service to business owners. Create a short cold email that starts a conversation without sounding spammy.",
+    "Agency prospecting":"I run a marketing agency and want to reach businesses that may need better websites and content.",
+    "Local business":"I provide marketing services to local businesses and want a natural outreach email.",
+    "Instagram outreach":"I sell a service to creators and want to start conversations through Instagram DMs without being pushy.",
+    "Founder outreach":"I help founders improve their marketing. Create a conversational DM sequence.",
+    "Freelancer pitch":"I am a freelancer looking for clients and want a natural DM sequence.",
+    "Meta campaign":"Create a Meta ad campaign for a service business that wants more qualified enquiries.",
+    "Lead generation":"We want to generate leads for a B2B service using paid social advertising.",
+    "Product launch":"We are launching a software product and need several ad angles.",
+    "7-day content":"Create a practical 7-day content plan around my business and audience.",
+    "Founder brand":"Create content ideas that help a founder build authority around their expertise.",
+    "Educational content":"Create educational content ideas that teach the audience something useful and lead naturally to the offer."
+  };
+  promptEl.value = examples[type] || workflows[currentMode].example;
+  updateCounter();
+  promptEl.focus();
 }
 
-
-/* =========================================
-   GENERATE BUTTON
-========================================= */
-
-generateBtn.addEventListener(
-"click",
-generateAI
-);
-
-
-/* =========================================
-   FAQ
-========================================= */
-
-document.querySelectorAll(".faq-q").forEach(
-function(button){
-
-button.addEventListener(
-"click",
-function(){
-
-const item =
-button.closest(".faq-item");
-
-if(item){
-
-item.classList.toggle("open");
-
+function useExample(){
+  promptEl.value = workflows[currentMode].example;
+  updateCounter();
+  promptEl.focus();
 }
 
-});
-
-});
-
-
-/* =========================================
-   CTRL + ENTER
-========================================= */
-
-promptInput.addEventListener(
-"keydown",
-function(event){
-
-if(
-(event.ctrlKey || event.metaKey) &&
-event.key === "Enter"
-){
-
-event.preventDefault();
-
-generateAI();
-
+function clearPrompt(){
+  promptEl.value = "";
+  updateCounter();
+  promptEl.focus();
 }
 
-});
+function updateCounter(){
+  counterEl.textContent = `${promptEl.value.length} / 2000`;
+}
+promptEl.addEventListener("input",updateCounter);
 
+function showToast(message){
+  const t = document.getElementById("toast");
+  t.textContent = message;
+  t.classList.add("show");
+  clearTimeout(window.__toast);
+  window.__toast = setTimeout(()=>t.classList.remove("show"),2400);
+}
+
+async function generateAsset(){
+  if(generating) return;
+
+  const prompt = promptEl.value.trim();
+  if(prompt.length < 10){
+    showToast("Add a little more detail first.");
+    promptEl.focus();
+    return;
+  }
+
+  generating = true;
+  const btn = document.getElementById("generateBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Creating...';
+  resultActions.style.display = "none";
+  resultCard.innerHTML = '<div class="loading"><span class="spinner"></span><span>FacelessAI is structuring your marketing asset...</span></div>';
+
+  try{
+    const response = await fetch(BACKEND_URL + "/generate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({mode:currentMode,prompt})
+    });
+
+    let data = {};
+    try{ data = await response.json(); }catch(_){}
+
+    if(!response.ok){
+      throw new Error(data.detail || "The AI could not generate the result right now.");
+    }
+
+    const result = data.result || data.output || data.text;
+    if(!result) throw new Error("The AI returned an empty result.");
+
+    currentResult = String(result);
+    currentResultMeta = {mode:currentMode,prompt,createdAt:new Date().toISOString()};
+    resultCard.innerHTML = '<div class="result-content">'+renderResult(currentResult)+'</div>';
+    resultActions.style.display = "flex";
+    document.getElementById("resultTitle").textContent = workflows[currentMode].name + " result";
+    addHistory(currentResultMeta,currentResult);
+    showToast("Done — your marketing asset is ready.");
+  }catch(error){
+    resultCard.innerHTML = `
+      <div class="empty-result">
+        <div style="font-size:24px;margin-bottom:8px">Something went wrong</div>
+        <div style="max-width:520px;margin:auto">${escapeHtml(error.message || "Please try again.")}</div>
+        <button class="btn btn-sm" style="margin-top:15px" onclick="generateAsset()">Try again</button>
+      </div>`;
+    showToast(error.message || "Generation failed.");
+  }finally{
+    generating = false;
+    btn.disabled = false;
+    btn.innerHTML = "Generate with AI ⚡";
+  }
+}
+
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast("Copied to clipboard.");
+  }catch(_){
+    const ta=document.createElement("textarea");
+    ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();
+    showToast("Copied to clipboard.");
+  }
+}
+
+function copyAll(){
+  if(currentResult) copyText(currentResult);
+}
+
+function saveResult(){
+  if(!currentResult){showToast("Generate a result first.");return;}
+  const saved = JSON.parse(localStorage.getItem("facelessai_saved") || "[]");
+  saved.unshift({...currentResultMeta,result:currentResult});
+  localStorage.setItem("facelessai_saved",JSON.stringify(saved.slice(0,30)));
+  showToast("Saved on this device.");
+}
+
+function addHistory(meta,result){
+  const history = JSON.parse(localStorage.getItem("facelessai_history") || "[]");
+  history.unshift({...meta,result});
+  localStorage.setItem("facelessai_history",JSON.stringify(history.slice(0,30)));
+}
+
+function getHistory(){
+  return JSON.parse(localStorage.getItem("facelessai_history") || "[]");
+}
+
+function showHistory(){
+  const list=document.getElementById("historyList");
+  const history=getHistory();
+  if(!history.length){
+    list.innerHTML='<div class="empty-result">No generated assets yet.</div>';
+  }else{
+    list.innerHTML=history.map((item,i)=>`
+      <div class="history-item">
+        <div>
+          <strong>${escapeHtml(workflows[item.mode]?.name || item.mode)}</strong>
+          <small>${new Date(item.createdAt).toLocaleString()}</small>
+        </div>
+        <button class="btn btn-sm" onclick="loadHistory(${i})">Open</button>
+      </div>
+    `).join("");
+  }
+  document.getElementById("historyModal").classList.add("show");
+}
+
+function loadHistory(index){
+  const item=getHistory()[index];
+  if(!item) return;
+  currentMode=item.mode;
+  selectMode(item.mode);
+  promptEl.value=item.prompt || "";
+  currentResult=item.result || "";
+  currentResultMeta=item;
+  updateCounter();
+  resultCard.innerHTML='<div class="result-content">'+renderResult(currentResult)+'</div>';
+  resultActions.style.display="flex";
+  document.getElementById("resultTitle").textContent=workflows[currentMode].name+" result";
+  closeHistory();
+  document.getElementById("studio").scrollIntoView({behavior:"smooth"});
+}
+
+function closeHistory(){
+  document.getElementById("historyModal").classList.remove("show");
+}
+
+function downloadResult(){
+  if(!currentResult){showToast("Generate a result first.");return;}
+  const blob=new Blob([currentResult],{type:"text/markdown;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`facelessai-${currentMode}-${Date.now()}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Download started.");
+}
+
+async function shareResult(){
+  if(!currentResult){showToast("Generate a result first.");return;}
+  if(navigator.share){
+    try{
+      await navigator.share({title:"FacelessAI marketing asset",text:currentResult});
+    }catch(_){}
+  }else{
+    await copyText(currentResult);
+    showToast("Sharing isn't supported here, so the result was copied.");
+  }
+}
+
+function toggleFaq(btn){
+  const item=btn.parentElement;
+  const open=item.classList.toggle("open");
+  btn.querySelector("span").textContent=open?"−":"+";
+}
+
+buildNav();
+buildQuickPrompts();
+updateCounter();
 </script>
-
 </body>
-</html   
-  
-  <!-- CONTACT US -->
-
-<section id="contact">
-
-  <div class="container">
-
-    <div class="final-cta">
-
-      <div class="eyebrow">
-        NEED HELP?
-      </div>
-
-      <h2 style="margin-top:18px;">
-        Let's talk.
-      </h2>
-
-      <p>
-        Have a question about FacelessAI, your subscription,
-        payment, or need support? Send us an email and we'll
-        get back to you.
-      </p>
-
-      <div style="
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        gap:12px;
-        flex-wrap:wrap;
-      ">
-
-        <a
-          class="btn btn-primary"
-          href="mailto:jashofficial.support@gmail.com"
-        >
-          Contact Support →
-        </a>
-
-        <a
-          class="btn btn-secondary"
-          href="mailto:jashofficial.support@gmail.com"
-        >
-          jashofficial.support@gmail.com
-        </a>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-
-  
+</html>
