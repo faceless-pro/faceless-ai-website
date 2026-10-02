@@ -479,7 +479,7 @@
             <div class="price">$0 <span>/ forever</span></div>
             <div class="price-desc">Try the core workflows and see whether FacelessAI fits your process.</div>
             <ul class="price-list">
-              <li>Limited AI generations</li>
+              <li>3 AI generations / month</li>
               <li>All 6 core workflows</li>
               <li>Copy results</li>
               <li>Basic download</li>
@@ -494,7 +494,7 @@
             <div class="price">$9 <span>/ month</span></div>
             <div class="price-desc">For creators, freelancers and small businesses doing marketing regularly.</div>
             <ul class="price-list">
-              <li>Higher monthly generation allowance</li>
+              <li>100 AI generations / month</li>
               <li>All 6 core workflows</li>
               <li>Save & history</li>
               <li>Copy, download & share</li>
@@ -509,7 +509,7 @@
             <div class="price">$29 <span>/ month</span></div>
             <div class="price-desc">For people who want to turn one brief into a coordinated marketing campaign.</div>
             <ul class="price-list">
-              <li>Higher monthly generation allowance</li>
+              <li>500 AI generations / month</li>
               <li>Everything in Starter</li>
               <li>Campaign Builder</li>
               <li>Multi-asset campaign generation</li>
@@ -667,7 +667,14 @@ const workflows = {
     icon:"✦",
     example:"My business teaches freelancers how to find their first 5 clients. I want a week of useful LinkedIn and Instagram content."
   }
-};
+   campaign: {
+  name:"Campaign Builder",
+  short:"Build a complete campaign",
+  desc:"Turn one marketing goal into a coordinated campaign with multiple assets.",
+  icon:"◈",
+  example:"We are launching a new SaaS product for creators. Build a complete campaign with an offer, landing-page copy, emails, social content and ad angles."
+}
+
 
 let currentMode = "offer";
 let currentResult = "";
