@@ -1,113 +1,1876 @@
-<!doctype html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#07070b">
+<meta name="description" content="FacelessAI Growth Copilot turns one idea into offers, sales copy, emails, ads, social content and complete marketing campaigns.">
+<title>FacelessAI — Your AI Growth Copilot</title>
 
-<html lang="en-GB">  
-<head>  
-<meta charset="utf-8">  
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">  
-<meta name="theme-color" content="#07070b">  
-<meta name="description" content="FacelessAI turns ideas into short-form videos for YouTube Shorts, TikTok and Instagram Reels.">  
-<meta property="og:title" content="FacelessAI — Turn ideas into short videos">  
-<meta property="og:description" content="Create short-form videos with an AI-powered creator workflow.">  
-<meta property="og:type" content="website">  
-<meta name="twitter:card" content="summary_large_image">  
-<title>FacelessAI — Create Short Videos in One Click</title>  
-<style>  
-:root{--bg:#07070b;--panel:#101018;--line:rgba(255,255,255,.09);--text:#f7f7fb;--muted:#a7a7b8;--cyan:#55e8ff;--violet:#9b6cff;--pink:#ff5fd2;--green:#6ef2b2;--danger:#ff7373;--max:1240px}  
-*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{min-height:100vh;color:var(--text);background:radial-gradient(circle at 15% 10%,rgba(155,108,255,.14),transparent 30%),radial-gradient(circle at 85% 18%,rgba(85,232,255,.11),transparent 28%),linear-gradient(180deg,#07070b,#090910 48%,#07070b);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden;line-height:1.5}a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}button{cursor:pointer}.container{width:min(var(--max),calc(100% - 40px));margin:auto}.section{padding:105px 0}.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid rgba(85,232,255,.18);border-radius:999px;background:rgba(85,232,255,.06);color:#bdf6ff;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 16px var(--cyan)}.gradient{background:linear-gradient(100deg,var(--cyan),#fff 42%,var(--violet) 80%,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}.section-head{max-width:760px;margin-bottom:42px}.section-head h2{font-size:clamp(32px,4.2vw,58px);line-height:1.02;letter-spacing:-.045em;margin:15px 0}.section-head p{color:var(--muted);font-size:17px;max-width:650px}  
-.nav-wrap{position:sticky;top:0;z-index:50;padding:14px 0;background:rgba(7,7,11,.68);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.06)}nav{display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:11px;font-weight:900;letter-spacing:-.04em;font-size:20px}.brand-mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#050509;font-weight:1000;background:linear-gradient(135deg,var(--cyan),var(--violet));box-shadow:0 0 28px rgba(85,232,255,.2)}.nav-links{display:flex;gap:26px;color:#b9b9c7;font-size:14px;font-weight:700}.nav-links a:hover{color:#fff}.nav-actions{display:flex;gap:10px}.btn{border:1px solid var(--line);background:#15151e;color:#fff;border-radius:12px;padding:11px 16px;font-weight:800;transition:.2s}.btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.2)}.btn-primary{border:0;color:#05050a;background:linear-gradient(135deg,#72efff,#a77aff);box-shadow:0 12px 34px rgba(112,145,255,.22)}.mobile-menu{display:none}  
-.hero{padding:90px 0 55px}.hero-grid{display:grid;grid-template-columns:1.03fr .97fr;gap:55px;align-items:center}.hero h1{font-size:clamp(50px,6.4vw,88px);line-height:.94;letter-spacing:-.065em;margin:18px 0 24px}.hero p{color:#b4b4c2;font-size:19px;max-width:650px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin:30px 0 18px}.hero-note{font-size:12px;color:#777789}.hero-proof{display:flex;gap:22px;flex-wrap:wrap;margin-top:32px}.proof{display:flex;gap:9px;align-items:center;color:#bdbdca;font-size:13px}.check{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;background:rgba(110,242,178,.12);color:var(--green);font-size:12px}  
-.hero-visual{position:relative;min-height:570px;display:grid;place-items:center}.orb{position:absolute;width:390px;height:390px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(85,232,255,.35),transparent 35%),radial-gradient(circle,rgba(155,108,255,.2),transparent 67%);filter:blur(8px);animation:pulse 5s ease-in-out infinite}@keyframes pulse{50%{transform:scale(1.07);opacity:.8}}.phone{width:min(350px,82%);height:600px;border:1px solid rgba(255,255,255,.15);border-radius:36px;background:linear-gradient(180deg,#151521,#0b0b11);box-shadow:0 40px 100px rgba(0,0,0,.65),0 0 70px rgba(85,232,255,.08);padding:12px;position:relative;z-index:2;transform:rotate(3deg)}.phone-screen{height:100%;border-radius:28px;background:#08080d;overflow:hidden;padding:18px}.phone-top{display:flex;justify-content:space-between;color:#77788a;font-size:10px}.mini-video{height:300px;border-radius:20px;margin-top:16px;position:relative;overflow:hidden;background:linear-gradient(145deg,#1b1738,#0b1b27 45%,#181020);display:flex;align-items:end;padding:18px}.mini-video:before{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-35px;top:20px;background:radial-gradient(circle,rgba(85,232,255,.75),transparent 65%);filter:blur(10px)}.mini-caption{position:relative;z-index:1;font-size:28px;line-height:.98;font-weight:950;letter-spacing:-.04em}.mini-card{margin-top:12px;border:1px solid var(--line);border-radius:15px;padding:12px;background:#101019}.mini-line{height:7px;border-radius:99px;background:#242432;margin:7px 0}.mini-line.short{width:55%}.floating-card{position:absolute;z-index:3;border:1px solid rgba(255,255,255,.12);background:rgba(16,16,24,.86);backdrop-filter:blur(15px);box-shadow:0 24px 80px rgba(0,0,0,.42);border-radius:16px;padding:13px 15px;font-size:12px;font-weight:800}.float-one{top:85px;right:0}.float-two{bottom:75px;left:0}.float-icon{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:9px;margin-right:7px;background:rgba(85,232,255,.1);color:var(--cyan)}  
-.marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;overflow:hidden;color:#7d7d8d}.marquee-track{display:flex;width:max-content;gap:34px;animation:marquee 25s linear infinite;font-size:12px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}@keyframes marquee{to{transform:translateX(-50%)}}  
-.studio{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;background:linear-gradient(145deg,rgba(155,108,255,.09),rgba(85,232,255,.04));border:1px solid rgba(255,255,255,.1);border-radius:30px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.42)}.studio-panel{background:rgba(8,8,13,.75);border:1px solid var(--line);border-radius:23px;padding:28px}.panel-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}.panel-title h3{font-size:20px}.live{font-size:11px;font-weight:900;color:var(--green);padding:6px 9px;border-radius:999px;background:rgba(110,242,178,.08);border:1px solid rgba(110,242,178,.13)}label{display:block;color:#c9c9d5;font-size:12px;font-weight:800;margin-bottom:8px}textarea{width:100%;min-height:130px;resize:vertical;border:1px solid rgba(255,255,255,.1);background:#0d0d14;color:#fff;border-radius:15px;padding:15px;outline:none}textarea:focus{border-color:rgba(85,232,255,.5);box-shadow:0 0 0 4px rgba(85,232,255,.05)}.counter{text-align:right;color:#666778;font-size:11px;margin-top:5px}.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}select{width:100%;border:1px solid rgba(255,255,255,.1);background:#0d0d14;color:#fff;border-radius:13px;padding:12px;outline:none}.quick{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}.chip{padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:#101019;color:#a8a8b8;font-size:11px;font-weight:700}.chip:hover{color:#fff;border-color:rgba(85,232,255,.3)}.generate{width:100%;margin-top:20px;padding:15px;border:0;border-radius:14px;font-weight:950;color:#050509;background:linear-gradient(100deg,var(--cyan),#b084ff);box-shadow:0 15px 45px rgba(112,145,255,.2)}.generate:disabled{opacity:.55;cursor:not-allowed}.status{display:none;margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:13px;background:#0c0c12}.status.show{display:block}.status-row{display:flex;align-items:center;gap:10px;font-size:12px;color:#bdbdca}.spinner{width:17px;height:17px;border-radius:50%;border:2px solid #30303c;border-top-color:var(--cyan);animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.progress{height:5px;background:#20202a;border-radius:99px;overflow:hidden;margin-top:11px}.progress>span{display:block;width:8%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));transition:width .35s}.result-placeholder{min-height:100%;border:1px dashed rgba(255,255,255,.11);border-radius:18px;display:flex;align-items:center;justify-content:center;text-align:center;padding:35px;color:#727282}.result-placeholder strong{display:block;color:#d0d0da;margin-bottom:7px}.result{display:none}.result.show{display:block}video{width:100%;border-radius:18px;background:#050507;max-height:520px;object-fit:contain}.result-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.script-box{margin-top:13px;border:1px solid var(--line);border-radius:15px;padding:13px;background:#0c0c12}.script-box h4{font-size:12px;margin-bottom:8px}.script-text{font-size:12px;line-height:1.65;color:#9e9eae;white-space:pre-wrap;max-height:180px;overflow:auto}.error{display:none;margin-top:13px;border:1px solid rgba(255,115,115,.25);background:rgba(255,115,115,.06);color:#ffb1b1;padding:12px;border-radius:13px;font-size:12px}.error.show{display:block}  
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{border:1px solid var(--line);background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.015));border-radius:20px;padding:24px;transition:.25s}.card:hover{transform:translateY(-5px);border-color:rgba(85,232,255,.2)}.icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(85,232,255,.13),rgba(155,108,255,.13));color:var(--cyan);font-weight:950;margin-bottom:18px}.card h3{font-size:18px;margin-bottom:8px}.card p{font-size:13px;color:var(--muted)}.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}.big-card{border:1px solid var(--line);background:#0d0d14;border-radius:24px;padding:28px}.big-card h3{font-size:28px;letter-spacing:-.04em;margin:12px 0}.big-card p{color:var(--muted)}.list{margin-top:22px;display:grid;gap:11px}.list-item{display:flex;gap:10px;color:#c4c4d0;font-size:13px}.list-item b{color:var(--cyan)}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.step{padding:22px;border:1px solid var(--line);border-radius:20px;background:#0c0c12}.num{font-size:12px;color:var(--cyan);font-weight:950}.step h3{margin:12px 0 6px;font-size:17px}.step p{font-size:12px;color:var(--muted)}  
-.pricing{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:850px}.price-card{border:1px solid var(--line);border-radius:25px;padding:28px;background:#0d0d14;position:relative}.price-card.featured{border-color:rgba(155,108,255,.45);box-shadow:0 0 50px rgba(155,108,255,.08)}.badge{position:absolute;right:18px;top:18px;background:linear-gradient(90deg,var(--cyan),var(--violet));color:#06060a;font-size:10px;font-weight:950;padding:6px 9px;border-radius:999px}.price-name{color:#aaaabb;font-size:13px;font-weight:800}.price{font-size:50px;font-weight:950;letter-spacing:-.06em;margin:8px 0}.price small{font-size:13px;color:#777789;letter-spacing:0}.price-card p{color:var(--muted);font-size:13px}.price-features{display:grid;gap:10px;margin:23px 0}.price-features div{font-size:13px;color:#c5c5d0}.price-features span{color:var(--green);margin-right:7px}.price-btn{width:100%;text-align:center;display:block}  
-.faq{max-width:850px}.faq-item{border-bottom:1px solid var(--line)}.faq-q{width:100%;padding:19px 0;background:none;border:0;color:#fff;text-align:left;display:flex;justify-content:space-between;gap:20px;font-weight:850}.faq-a{display:none;color:#9696a7;font-size:13px;padding:0 0 19px;max-width:750px}.faq-item.open .faq-a{display:block}.faq-item.open .faq-q span{transform:rotate(45deg)}.faq-q span{font-size:20px;color:#777789;transition:.2s}.final-cta{padding:75px 35px;border:1px solid rgba(155,108,255,.18);border-radius:30px;text-align:center;background:radial-gradient(circle at 50% 0,rgba(155,108,255,.17),transparent 45%),linear-gradient(145deg,#0d0d16,#0a0a0f)}.final-cta h2{font-size:clamp(35px,5vw,65px);letter-spacing:-.055em;line-height:1;margin-bottom:15px}.final-cta p{color:var(--muted);max-width:650px;margin:auto}.footer{padding:55px 0 28px;border-top:1px solid var(--line);margin-top:90px}.footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:30px}.footer h4{font-size:12px;color:#d8d8e2;margin-bottom:12px}.footer a,.footer p{font-size:12px;color:#777789;margin:7px 0;display:block}.footer a:hover{color:#fff}.copyright{border-top:1px solid var(--line);margin-top:35px;padding-top:20px;color:#606070;font-size:11px;display:flex;justify-content:space-between;gap:20px}  
-@media(max-width:950px){.nav-links{display:none}.mobile-menu{display:block}.hero-grid,.studio,.split{grid-template-columns:1fr}.hero{padding-top:65px}.hero-visual{min-height:530px}.cards{grid-template-columns:repeat(2,1fr)}.steps{grid-template-columns:repeat(2,1fr)}.footer-grid{grid-template-columns:repeat(2,1fr)}}  
-@media(max-width:680px){.container{width:min(100% - 24px,var(--max))}.section{padding:70px 0}.nav-wrap{padding:10px 0}.brand{font-size:18px}.nav-actions .btn:first-child{display:none}.hero{padding:55px 0 30px}.hero h1{font-size:clamp(44px,14vw,65px)}.hero p{font-size:16px}.hero-actions{display:grid;grid-template-columns:1fr}.hero-actions .btn{text-align:center}.hero-proof{display:grid;grid-template-columns:1fr;gap:9px}.hero-visual{min-height:490px}.phone{height:500px;width:285px}.mini-video{height:245px}.mini-caption{font-size:23px}.float-one{right:0;top:55px}.float-two{left:0;bottom:35px}.studio{padding:9px;border-radius:23px}.studio-panel{padding:19px}.options{grid-template-columns:1fr}.cards,.pricing{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.result-actions{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}.copyright{display:block}.copyright span{display:block;margin-top:7px}.final-cta{padding:48px 20px}}  
-</style>  
-</head>  
-<body>  
-<header class="nav-wrap"><div class="container"><nav>  
-<a href="#top" class="brand"><span class="brand-mark">F</span><span>Faceless<span class="gradient">AI</span></span></a>  
-<div class="nav-links"><a href="#studio">Create</a><a href="#features">Features</a><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div>  
-<div class="nav-actions"><a class="btn" href="#studio">Try free</a><a class="btn btn-primary" href="#pricing">Get started</a><button class="btn mobile-menu" onclick="scrollToId('studio')">Create</button></div>  
-</nav></div></header>  <main id="top">  
-<section class="hero"><div class="container hero-grid"><div>  
-<span class="eyebrow"><span class="dot"></span> AI short-form video studio</span>  
-<h1>Turn an idea into a <span class="gradient">scroll-stopping</span> short.</h1>  
-<p>FacelessAI helps creators turn a simple topic into a short-form video workflow for YouTube Shorts, TikTok and Instagram Reels — without starting from a blank timeline.</p>  
-<div class="hero-actions"><a href="#studio" class="btn btn-primary">Create your first video →</a><a href="#how" class="btn">See how it works</a></div>  
-<div class="hero-note">Built for creators, solo businesses, educators and content teams.</div>  
-<div class="hero-proof"><div class="proof"><span class="check">✓</span> Script-first workflow</div><div class="proof"><span class="check">✓</span> Vertical-video ready</div><div class="proof"><span class="check">✓</span> Simple creator experience</div></div>  
-</div>  
-<div class="hero-visual"><div class="orb"></div><div class="floating-card float-one"><span class="float-icon">✦</span>AI script generated</div><div class="floating-card float-two"><span class="float-icon">▶</span>9:16 creator format</div>  
-<div class="phone"><div class="phone-screen"><div class="phone-top"><span>FACELESSAI</span><span>● READY</span></div><div class="mini-video"><div class="mini-caption">3 AI tools you should know.</div></div><div class="mini-card"><div style="font-size:10px;color:#77788a">AI WORKFLOW</div><div class="mini-line"></div><div class="mini-line short"></div></div><div class="mini-card"><div style="display:flex;justify-content:space-between;font-size:10px;color:#77788a"><span>VOICE</span><span style="color:#6ef2b2">READY</span></div><div class="mini-line"></div></div></div></div>  
-</div></div></section>  <div class="marquee"><div class="marquee-track"><span>YOUTUBE SHORTS</span><span>•</span><span>TIKTOK</span><span>•</span><span>INSTAGRAM REELS</span><span>•</span><span>AI SCRIPTING</span><span>•</span><span>VOICEOVER</span><span>•</span><span>YOUTUBE SHORTS</span><span>•</span><span>TIKTOK</span><span>•</span><span>INSTAGRAM REELS</span><span>•</span><span>AI SCRIPTING</span><span>•</span><span>VOICEOVER</span></div></div>  <section id="studio" class="section"><div class="container"><div class="section-head"><span class="eyebrow"><span class="dot"></span> Creator studio</span><h2>Start with a topic. <span class="gradient">Build the short.</span></h2><p>Choose your audience, platform, style and hook. FacelessAI sends the finished request to your video-generation backend.</p></div>  
-<div class="studio">  
-<div class="studio-panel"><div class="panel-title"><h3>Create a video</h3><span class="live">● READY</span></div>  
-<label for="topicInput">What should the video be about?</label><textarea id="topicInput" maxlength="500" placeholder="Example: 3 AI tools that can save creators hours every week..."></textarea><div class="counter"><span id="charCount">0</span>/500</div>  
-<div class="options"><div><label for="audience">Audience</label><select id="audience"><option value="Global">Global</option><option value="United Kingdom">United Kingdom</option><option value="United States">United States</option></select></div><div><label for="platform">Platform</label><select id="platform"><option>YouTube Shorts</option><option>TikTok</option><option>Instagram Reels</option></select></div><div><label for="style">Content style</label><select id="style"><option>Viral</option><option>Educational</option><option>Storytelling</option><option>Business</option><option>Facts</option></select></div><div><label for="hook">Hook</label><select id="hook"><option>Curiosity</option><option>Bold Statement</option><option>Question</option><option>Unexpected Fact</option></select></div></div>  
-<div class="quick"><button class="chip" type="button" onclick="useIdea('3 AI tools creators should know')">AI tools</button><button class="chip" type="button" onclick="useIdea('A surprising fact about money')">Money fact</button><button class="chip" type="button" onclick="useIdea('The story behind a famous brand')">Brand story</button><button class="chip" type="button" onclick="useIdea('A productivity trick that actually helps')">Productivity</button></div>  
-<button id="generateBtn" class="generate" type="button" onclick="generateVideo()">Generate video ⚡</button>  
-<div id="status" class="status"><div class="status-row"><span class="spinner"></span><span id="statusText">Preparing your video...</span></div><div class="progress"><span id="progressBar"></span></div></div><div id="errorBox" class="error"></div>  
-</div>  
-<div class="studio-panel"><div class="panel-title"><h3>Your result</h3><span style="font-size:11px;color:#777789">MP4 output</span></div>  
-<div id="placeholder" class="result-placeholder"><div><div style="font-size:38px;margin-bottom:10px">✦</div><strong>Your generated video will appear here</strong><div>Enter a topic and press Generate video.</div></div></div>  
-<div id="result" class="result"><video id="videoPlayer" controls playsinline preload="metadata"></video><div class="result-actions"><button id="copyBtn" class="btn" type="button" onclick="copyScript()">Copy script</button><a id="downloadBtn" class="btn" href="#" download="facelessai-video.mp4">Download</a><button class="btn" type="button" onclick="regenerate()">Regenerate</button></div><div class="script-box"><h4>Generated script</h4><div id="scriptText" class="script-text"></div></div></div>  
-</div></div></div></section>  <section id="features" class="section"><div class="container"><div class="section-head"><span class="eyebrow"><span class="dot"></span> Why FacelessAI</span><h2>A creator workflow designed to remove the <span class="gradient">blank-page problem.</span></h2><p>Everything here is focused on getting from idea to short-form content with fewer manual steps.</p></div>  
-<div class="cards"><article class="card"><div class="icon">✦</div><h3>AI script generation</h3><p>Turn a rough topic into a structured short-form script through your connected AI backend.</p></article><article class="card"><div class="icon">9:16</div><h3>Vertical-first output</h3><p>Designed around the portrait format used by Shorts, TikTok and Reels.</p></article><article class="card"><div class="icon">◉</div><h3>AI voice workflow</h3><p>Your backend can synthesize narration and combine it with the generated video.</p></article><article class="card"><div class="icon">▶</div><h3>Stock-video layer</h3><p>Connects to your Pexels-powered backend for background footage where available.</p></article><article class="card"><div class="icon">⌁</div><h3>Fast creator controls</h3><p>Choose audience, platform, style and hook without navigating a complicated editor.</p></article><article class="card"><div class="icon">↗</div><h3>Built to scale</h3><p>A lightweight frontend on Vercel with your video API running separately on Render.</p></article></div></div></section>  <section id="how" class="section"><div class="container"><div class="section-head"><span class="eyebrow"><span class="dot"></span> How it works</span><h2>From idea to <span class="gradient">video.</span></h2><p>A simple product story that is easy for a first-time visitor to understand.</p></div><div class="steps"><article class="step"><div class="num">01 / INPUT</div><h3>Describe the idea</h3><p>Write a topic, story, fact, lesson or product idea.</p></article><article class="step"><div class="num">02 / DIRECT</div><h3>Set the direction</h3><p>Select audience, platform, style and hook.</p></article><article class="step"><div class="num">03 / GENERATE</div><h3>AI builds the workflow</h3><p>Your Render API generates the script, narration and video assets.</p></article><article class="step"><div class="num">04 / PUBLISH</div><h3>Review and export</h3><p>Watch the result, copy the script or download the MP4.</p></article></div></div></section>  <section class="section"><div class="container split"><div class="big-card"><span class="eyebrow">For creators</span><h3>More ideas. Less time staring at an empty editor.</h3><p>Use the workflow for educational clips, facts, storytelling, business content, commentary and other short-form formats.</p><div class="list"><div class="list-item"><b>✓</b><span>Turn one topic into a structured short.</span></div><div class="list-item"><b>✓</b><span>Adapt the direction for different platforms.</span></div><div class="list-item"><b>✓</b><span>Keep the creation experience simple.</span></div></div></div><div class="big-card"><span class="eyebrow">For businesses</span><h3>Build a repeatable content engine.</h3><p>Useful for founders, marketers, agencies, educators and small teams that need a consistent stream of short-form ideas.</p><div class="list"><div class="list-item"><b>✓</b><span>Product and service explainers.</span></div><div class="list-item"><b>✓</b><span>Educational and awareness content.</span></div><div class="list-item"><b>✓</b><span>Fast concept testing before production.</span></div></div></div></div></section>  <section id="pricing" class="section"><div class="container"><div class="section-head"><span class="eyebrow"><span class="dot"></span> Simple pricing</span><h2>Start free. <span class="gradient">Upgrade when you need more.</span></h2><p>Clear pricing without fake scarcity or misleading claims.</p></div>  
-<div class="pricing"><article class="price-card"><div class="price-name">Free</div><div class="price">£0 <small>/ to try</small></div><p>Explore the creator workflow before subscribing.</p><div class="price-features"><div><span>✓</span> Creator Studio access</div><div><span>✓</span> Topic and style controls</div><div><span>✓</span> Video generation subject to backend availability</div><div><span>✓</span> No card required to use the page</div></div><a class="btn price-btn" href="#studio">Try the studio</a></article>  
-<article class="price-card featured"><span class="badge">CREATOR</span><div class="price-name">Creator Pro</div><div class="price">$9 <small>/ month</small></div><p>For creators who want a larger monthly generation allowance.</p><div class="price-features"><div><span>✓</span> 150 monthly credits</div><div><span>✓</span> Creator-focused workflow</div><div><span>✓</span> Short-form content generation</div><div><span>✓</span> Checkout handled by Dodo Payments</div></div><a id="checkoutLink" class="btn btn-primary price-btn" href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1" target="_blank" rel="noopener noreferrer">Get Creator Pro →</a></article></div>  
-<p style="margin-top:15px;color:#646474;font-size:11px">Payment details, taxes and available payment methods are shown on the Dodo Payments checkout page.</p></div></section>  
-  <section id="faq" class="section"><div class="container"><div class="section-head"><span class="eyebrow"><span class="dot"></span> FAQ</span><h2>Questions, answered.</h2></div><div class="faq">  
-<div class="faq-item"><button class="faq-q" type="button" onclick="toggleFaq(this)">What does FacelessAI generate?<span>+</span></button><div class="faq-a">The current workflow sends your topic and selected settings to your Render backend. Your backend generates the script, voice and video using the services configured there.</div></div>  
-<div class="faq-item"><button class="faq-q" type="button" onclick="toggleFaq(this)">Which platforms is it designed for?<span>+</span></button><div class="faq-a">The product is designed around vertical short-form formats for YouTube Shorts, TikTok and Instagram Reels.</div></div>  
-<div class="faq-item"><button class="faq-q" type="button" onclick="toggleFaq(this)">Does the website itself run the Python backend?<span>+</span></button><div class="faq-a">No. The frontend is hosted on Vercel and calls the FastAPI video-generation backend hosted on Render.</div></div>  
-<div class="faq-item"><button class="faq-q" type="button" onclick="toggleFaq(this)">Are captions currently generated?<span>+</span></button><div class="faq-a">Not by this frontend. Captions should only be advertised after they are implemented in the backend pipeline.</div></div>  
-<div class="faq-item"><button class="faq-q" type="button" onclick="toggleFaq(this)">Where do payments happen?<span>+</span></button><div class="faq-a">The Creator Pro button opens the configured Dodo Payments checkout in a new tab. Dodo handles the payment page.</div></div>  
-</div></div></section>  <section class="section" style="padding-top:30px"><div class="container"><div class="final-cta"><span class="eyebrow">Ready when you are</span><h2>Stop starting from <span class="gradient">zero.</span></h2><p>Give FacelessAI a topic and see what your short-form workflow can produce.</p><div class="hero-actions" style="justify-content:center;margin-bottom:0"><a href="#studio" class="btn btn-primary">Open Creator Studio →</a><a href="mailto:jashofficial.support@gmail.com" class="btn">Contact support</a></div></div></div></section>  
-</main>  <footer class="footer"><div class="container"><div class="footer-grid"><div><a href="#top" class="brand"><span class="brand-mark">F</span><span>Faceless<span class="gradient">AI</span></span></a><p style="margin-top:15px;max-width:280px">An AI-powered short-form video workflow for creators and modern content teams.</p></div><div><h4>Product</h4><a href="#studio">Creator Studio</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div><div><h4>Use cases</h4><a href="#studio">YouTube Shorts</a><a href="#studio">TikTok</a><a href="#studio">Instagram Reels</a><a href="#features">Business content</a></div><div><h4>Contact</h4><a href="mailto:jashofficial.support@gmail.com">jashofficial.support@gmail.com</a><a href="#pricing">Creator Pro</a></div></div><div class="copyright"><span>© 2026 FacelessAI. All rights reserved.</span><span>Made for short-form creators.</span></div></div></footer>  <script>  
-"use strict";  
-const BACKEND_URL="https://faceless-ai-website.onrender.com";  
-const CHECKOUT_URL="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1";  
-const topicInput=document.getElementById("topicInput"),charCount=document.getElementById("charCount"),generateBtn=document.getElementById("generateBtn"),status=document.getElementById("status"),statusText=document.getElementById("statusText"),progressBar=document.getElementById("progressBar"),errorBox=document.getElementById("errorBox"),placeholder=document.getElementById("placeholder"),result=document.getElementById("result"),videoPlayer=document.getElementById("videoPlayer"),downloadBtn=document.getElementById("downloadBtn"),scriptText=document.getElementById("scriptText"),copyBtn=document.getElementById("copyBtn");  
-let lastTopic="",statusTimer=null;  
-  
-topicInput.addEventListener("input",()=>{charCount.textContent=String(topicInput.value.length)});  
-topicInput.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();generateVideo()}});  
-  
-function scrollToId(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:"smooth",block:"start"})}  
-function useIdea(text){topicInput.value=text;topicInput.dispatchEvent(new Event("input"));topicInput.focus()}  
-function showError(message){errorBox.textContent=message;errorBox.classList.add("show")}  
-function hideError(){errorBox.textContent="";errorBox.classList.remove("show")}  
-function setLoading(v){generateBtn.disabled=v;generateBtn.textContent=v?"Generating...":"Generate video ⚡";status.classList.toggle("show",v)}  
-function startProgress(){clearInterval(statusTimer);let i=0;const stages=[[8,"Preparing your prompt..."],[25,"Generating the script..."],[45,"Preparing voiceover..."],[65,"Collecting video assets..."],[82,"Rendering the vertical video..."],[94,"Finalising the result..."]];const tick=()=>{if(i>=stages.length)return;progressBar.style.width=stages[i][0]+"%";statusText.textContent=stages[i][1];i++};tick();statusTimer=setInterval(tick,1800)}  
-function stopProgress(){clearInterval(statusTimer);progressBar.style.width="100%";statusText.textContent="Video ready."}  
-function normalizeVideoUrl(value){if(!value)return"";if(/^https?:\/\//i.test(value))return value;if(value.startsWith("/"))return BACKEND_URL+value;return BACKEND_URL+"/"+value}  
-  
-async function generateVideo(){  
- hideError();const topic=topicInput.value.trim();  
- if(!topic){showError("Please enter a topic first.");topicInput.focus();return}  
- if(topic.length<3){showError("Please enter a little more detail.");topicInput.focus();return}  
- lastTopic=topic;  
- const audience=document.getElementById("audience").value,platform=document.getElementById("platform").value,style=document.getElementById("style").value,hook=document.getElementById("hook").value;  
- const finalTopic=topic+"\n\nCreator settings:\nAudience: "+audience+"\nPlatform: "+platform+"\nStyle: "+style+"\nHook: "+hook;  
- setLoading(true);startProgress();placeholder.style.display="none";result.classList.remove("show");  
- try{  
-  const response=await fetch(BACKEND_URL+"/generate-video",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:finalTopic})});  
-  const raw=await response.text();let data;  
-  try{data=JSON.parse(raw)}catch(e){throw new Error("The video server returned an invalid response.")}  
-  if(!response.ok){const detail=data&&(data.detail||data.message||data.error);if(response.status===405)throw new Error("The video endpoint rejected this request method. Check the Render backend.");throw new Error(detail||("Video server error ("+response.status+")."))}  
-  if(!data||data.success!==true)throw new Error(data&&(data.message||data.error||data.detail)||"The video could not be generated.");  
-  const videoUrl=normalizeVideoUrl(data.video_url);if(!videoUrl)throw new Error("The server succeeded but did not return a video URL.");  
-  videoPlayer.src=videoUrl;videoPlayer.load();downloadBtn.href=videoUrl;scriptText.textContent=data.script||"No script was returned.";  
-  result.classList.add("show");stopProgress();setTimeout(()=>setLoading(false),500);  
-  result.scrollIntoView({behavior:"smooth",block:"nearest"});  
- }catch(error){clearInterval(statusTimer);setLoading(false);progressBar.style.width="8%";statusText.textContent="Generation failed.";showError(error&&error.message?error.message:"Something went wrong. Please try again.");console.error("FacelessAI:",error)}  
-}  
-function regenerate(){if(lastTopic){topicInput.value=lastTopic;topicInput.dispatchEvent(new Event("input"))}generateVideo()}  
-async function copyScript(){const text=scriptText.textContent.trim();if(!text)return;try{await navigator.clipboard.writeText(text);const old=copyBtn.textContent;copyBtn.textContent="Copied ✓";setTimeout(()=>copyBtn.textContent=old,1200)}catch(e){showError("Could not copy automatically. Please copy the script manually.")}}  
-function toggleFaq(button){const item=button.closest(".faq-item");if(item)item.classList.toggle("open")}  
-document.getElementById("checkoutLink").href=CHECKOUT_URL;  
-</script>  </body>  
-</html>  
+<style>
+:root{
+  --bg:#07070b;
+  --bg2:#0b0b11;
+  --panel:rgba(255,255,255,.045);
+  --panel2:rgba(255,255,255,.065);
+  --line:rgba(255,255,255,.09);
+  --text:#f7f7fb;
+  --muted:#9b9ba8;
+  --purple:#8b5cf6;
+  --violet:#a855f7;
+  --cyan:#22d3ee;
+  --green:#34d399;
+  --red:#fb7185;
+  --radius:22px;
+  --shadow:0 25px 80px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:
+    radial-gradient(circle at 50% -10%,rgba(139,92,246,.19),transparent 35%),
+    radial-gradient(circle at 90% 35%,rgba(34,211,238,.08),transparent 25%),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.5;
+  overflow-x:hidden;
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.025;
+  background-image:
+    linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px);
+  background-size:45px 45px;
+  mask-image:linear-gradient(to bottom,black,transparent 75%);
+}
+
+a{text-decoration:none;color:inherit}
+
+button,input,textarea,select{font:inherit}
+
+button{cursor:pointer}
+
+.container{
+  width:min(1160px,calc(100% - 36px));
+  margin:auto;
+}
+
+nav{
+  height:76px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:relative;
+  z-index:20;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:19px;
+  font-weight:800;
+  letter-spacing:-.5px;
+}
+
+.logo-mark{
+  width:35px;
+  height:35px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:linear-gradient(135deg,var(--purple),var(--cyan));
+  box-shadow:0 0 30px rgba(139,92,246,.35);
+  color:white;
+  font-weight:900;
+}
+
+.nav-links{
+  display:flex;
+  align-items:center;
+  gap:28px;
+  color:#b4b4c0;
+  font-size:14px;
+}
+
+.nav-links a:hover{color:white}
+
+.nav-cta{
+  padding:11px 17px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:11px;
+  background:rgba(255,255,255,.05);
+}
+
+.hero{
+  min-height:760px;
+  display:grid;
+  grid-template-columns:1.03fr .97fr;
+  gap:60px;
+  align-items:center;
+  padding:70px 0 100px;
+}
+
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 11px;
+  border:1px solid rgba(139,92,246,.25);
+  border-radius:999px;
+  color:#c8b5ff;
+  background:rgba(139,92,246,.08);
+  font-size:12px;
+  font-weight:700;
+}
+
+.dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#a78bfa;
+  box-shadow:0 0 12px #8b5cf6;
+}
+
+.hero h1{
+  margin-top:22px;
+  max-width:720px;
+  font-size:clamp(48px,6vw,78px);
+  line-height:.98;
+  letter-spacing:-4px;
+}
+
+.gradient{
+  background:linear-gradient(100deg,#fff 15%,#bda5ff 48%,#67e8f9 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.hero-copy{
+  max-width:620px;
+  margin-top:25px;
+  font-size:18px;
+  color:#a9a9b5;
+  line-height:1.7;
+}
+
+.hero-actions{
+  display:flex;
+  gap:12px;
+  margin-top:32px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  min-height:48px;
+  padding:0 19px;
+  border-radius:13px;
+  border:1px solid var(--line);
+  font-size:14px;
+  font-weight:750;
+  transition:.2s ease;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+}
+
+.btn-primary{
+  color:white;
+  border:0;
+  background:linear-gradient(100deg,#7c3aed,#8b5cf6 55%,#06b6d4);
+  box-shadow:0 12px 35px rgba(124,58,237,.25);
+}
+
+.btn-secondary{
+  background:rgba(255,255,255,.045);
+  color:#dddde7;
+}
+
+.trust{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:25px;
+  color:#777784;
+  font-size:12px;
+}
+
+.trust span{
+  width:6px;
+  height:6px;
+  background:#34d399;
+  border-radius:50%;
+  box-shadow:0 0 10px #34d399;
+}
+
+/* HERO APP */
+.app-window{
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:25px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+  box-shadow:var(--shadow),0 0 100px rgba(139,92,246,.12);
+  overflow:hidden;
+  backdrop-filter:blur(25px);
+}
+
+.window-top{
+  height:49px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:0 17px;
+  border-bottom:1px solid var(--line);
+}
+
+.window-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#444451;
+}
+
+.window-title{
+  margin-left:8px;
+  color:#777783;
+  font-size:11px;
+}
+
+.app-body{padding:20px}
+
+.app-label{
+  color:#9b9ba8;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.fake-input{
+  margin-top:9px;
+  min-height:86px;
+  padding:14px;
+  border-radius:14px;
+  background:#09090e;
+  border:1px solid rgba(255,255,255,.09);
+  color:#d9d9e2;
+  font-size:13px;
+}
+
+.fake-input strong{color:white}
+
+.ai-output{
+  margin-top:15px;
+  padding:15px;
+  border-radius:15px;
+  border:1px solid rgba(139,92,246,.2);
+  background:linear-gradient(135deg,rgba(139,92,246,.09),rgba(34,211,238,.04));
+}
+
+.output-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:13px;
+}
+
+.output-title{
+  font-size:13px;
+  font-weight:800;
+}
+
+.live{
+  font-size:10px;
+  color:#6ee7b7;
+}
+
+.output-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+.mini-card{
+  padding:12px;
+  border-radius:12px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.06);
+}
+
+.mini-card span{
+  display:block;
+  color:#777784;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+}
+
+.mini-card b{
+  display:block;
+  margin-top:5px;
+  font-size:12px;
+}
+
+section{padding:105px 0}
+
+.section-head{
+  max-width:680px;
+  margin-bottom:45px;
+}
+
+.section-head h2{
+  margin-top:14px;
+  font-size:clamp(34px,4vw,55px);
+  line-height:1.05;
+  letter-spacing:-2.5px;
+}
+
+.section-head p{
+  margin-top:16px;
+  color:var(--muted);
+  font-size:16px;
+}
+
+.tools-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+
+.tool-card{
+  min-height:220px;
+  padding:25px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+  transition:.25s ease;
+}
+
+.tool-card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(139,92,246,.3);
+  box-shadow:0 20px 55px rgba(0,0,0,.25);
+}
+
+.tool-icon{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  background:rgba(139,92,246,.12);
+  border:1px solid rgba(139,92,246,.18);
+  font-size:18px;
+}
+
+.tool-card h3{
+  margin-top:21px;
+  font-size:17px;
+}
+
+.tool-card p{
+  margin-top:9px;
+  color:#858591;
+  font-size:13px;
+  line-height:1.65;
+}
+
+.workflow{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.step{
+  position:relative;
+  padding:27px;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:rgba(255,255,255,.025);
+}
+
+.step-num{
+  color:#a78bfa;
+  font-size:12px;
+  font-weight:800;
+}
+
+.step h3{
+  margin-top:14px;
+  font-size:21px;
+}
+
+.step p{
+  margin-top:9px;
+  color:#888893;
+  font-size:14px;
+  line-height:1.65;
+}
+
+.demo{
+  padding-top:40px;
+}
+
+.studio{
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:27px;
+  background:#0b0b11;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+.studio-head{
+  padding:18px 21px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.studio-head strong{font-size:14px}
+
+.status-pill{
+  color:#8ef0c2;
+  background:rgba(52,211,153,.08);
+  border:1px solid rgba(52,211,153,.16);
+  padding:6px 9px;
+  border-radius:999px;
+  font-size:10px;
+}
+
+.studio-grid{
+  display:grid;
+  grid-template-columns:310px 1fr;
+  min-height:500px;
+}
+
+.sidebar{
+  padding:20px;
+  border-right:1px solid var(--line);
+}
+
+.side-title{
+  color:#777783;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  font-weight:800;
+}
+
+.tool-select{
+  margin-top:11px;
+  display:grid;
+  gap:7px;
+}
+
+.tool-option{
+  padding:11px 12px;
+  border-radius:11px;
+  color:#9999a5;
+  border:1px solid transparent;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.tool-option.active{
+  color:#eeeef5;
+  background:rgba(139,92,246,.1);
+  border-color:rgba(139,92,246,.22);
+}
+
+.workspace{
+  padding:24px;
+}
+
+.workspace h3{
+  font-size:22px;
+}
+
+.workspace-sub{
+  margin-top:6px;
+  color:#858591;
+  font-size:13px;
+}
+
+textarea{
+  width:100%;
+  min-height:145px;
+  resize:vertical;
+  margin-top:20px;
+  padding:16px;
+  border-radius:15px;
+  background:#08080d;
+  color:#eee;
+  border:1px solid rgba(255,255,255,.1);
+  outline:none;
+}
+
+textarea:focus{
+  border-color:rgba(139,92,246,.6);
+  box-shadow:0 0 0 3px rgba(139,92,246,.08);
+}
+
+.workspace-actions{
+  margin-top:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+
+.char{
+  color:#666672;
+  font-size:11px;
+}
+
+.generate{
+  border:0;
+  padding:13px 18px;
+  border-radius:12px;
+  color:white;
+  font-weight:800;
+  background:linear-gradient(100deg,#7c3aed,#06b6d4);
+}
+
+.generate:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.output-box{
+  margin-top:20px;
+  min-height:150px;
+  padding:17px;
+  border-radius:15px;
+  border:1px dashed rgba(255,255,255,.1);
+  color:#92929e;
+  font-size:13px;
+  white-space:pre-wrap;
+}
+
+.output-box.ready{
+  border-style:solid;
+  color:#dddde5;
+  background:rgba(255,255,255,.025);
+}
+
+.pricing-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  max-width:850px;
+  margin:auto;
+}
+
+.price-card{
+  position:relative;
+  padding:32px;
+  border:1px solid var(--line);
+  border-radius:25px;
+  background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.018));
+}
+
+.price-card.pro{
+  border-color:rgba(139,92,246,.45);
+  box-shadow:0 0 70px rgba(139,92,246,.11);
+}
+
+.popular{
+  position:absolute;
+  top:18px;
+  right:18px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:rgba(139,92,246,.13);
+  color:#c4b5fd;
+  border:1px solid rgba(139,92,246,.25);
+  font-size:9px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+
+.price-name{
+  color:#9b9ba7;
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.price{
+  margin-top:12px;
+  font-size:46px;
+  font-weight:850;
+  letter-spacing:-2px;
+}
+
+.price small{
+  color:#777783;
+  font-size:13px;
+  letter-spacing:0;
+}
+
+.price-desc{
+  min-height:44px;
+  margin-top:10px;
+  color:#888893;
+  font-size:13px;
+}
+
+.features{
+  list-style:none;
+  margin:24px 0;
+  display:grid;
+  gap:11px;
+}
+
+.features li{
+  color:#bdbdc8;
+  font-size:13px;
+}
+
+.features li:before{
+  content:"✓";
+  margin-right:9px;
+  color:#6ee7b7;
+}
+
+.price-btn{
+  width:100%;
+}
+
+.faq{
+  max-width:800px;
+  margin:auto;
+}
+
+.faq-item{
+  border-bottom:1px solid var(--line);
+}
+
+.faq-q{
+  width:100%;
+  padding:20px 0;
+  display:flex;
+  justify-content:space-between;
+  background:none;
+  border:0;
+  color:#e7e7ed;
+  text-align:left;
+  font-weight:700;
+  font-size:15px;
+}
+
+.faq-q span{
+  color:#777783;
+  transition:.2s;
+}
+
+.faq-a{
+  max-height:0;
+  overflow:hidden;
+  color:#858591;
+  font-size:13px;
+  line-height:1.7;
+  transition:.3s ease;
+}
+
+.faq-item.open .faq-a{
+  max-height:180px;
+  padding-bottom:19px;
+}
+
+.faq-item.open .faq-q span{
+  transform:rotate(45deg);
+}
+
+.final-cta{
+  text-align:center;
+  padding:120px 20px;
+  border:1px solid var(--line);
+  border-radius:30px;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(139,92,246,.15),transparent 50%),
+    rgba(255,255,255,.025);
+}
+
+.final-cta h2{
+  font-size:clamp(35px,5vw,62px);
+  letter-spacing:-3px;
+  line-height:1;
+}
+
+.final-cta p{
+  max-width:560px;
+  margin:17px auto 28px;
+  color:#8e8e9a;
+}
+
+footer{
+  padding:35px 0 50px;
+  color:#666672;
+  font-size:12px;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+}
+
+@media(max-width:900px){
+  .hero{
+    grid-template-columns:1fr;
+    padding-top:50px;
+  }
+
+  .hero h1{font-size:56px}
+
+  .tools-grid,
+  .workflow{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .studio-grid{
+    grid-template-columns:1fr;
+  }
+
+  .sidebar{
+    border-right:0;
+    border-bottom:1px solid var(--line);
+  }
+
+  .nav-links{display:none}
+}
+
+@media(max-width:620px){
+  .container{
+    width:min(100% - 24px,1160px);
+  }
+
+  section{padding:75px 0}
+
+  .hero{
+    min-height:auto;
+    padding:35px 0 75px;
+  }
+
+  .hero h1{
+    font-size:45px;
+    letter-spacing:-2.5px;
+  }
+
+  .hero-copy{font-size:16px}
+
+  .tools-grid,
+  .workflow,
+  .pricing-grid{
+    grid-template-columns:1fr;
+  }
+
+  .output-row{
+    grid-template-columns:1fr;
+  }
+
+  .workspace-actions{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .generate{width:100%}
+
+  footer{
+    flex-direction:column;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="container">
+    <nav>
+      <a class="logo" href="#">
+        <span class="logo-mark">F</span>
+        FacelessAI
+      </a>
+
+      <div class="nav-links">
+        <a href="#tools">AI Tools</a>
+        <a href="#studio">Studio</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+      </div>
+
+      <a class="nav-cta" href="#studio">Open Copilot →</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="container" style="display:contents">
+
+    <div>
+      <div class="eyebrow">
+        <span class="dot"></span>
+        AI GROWTH COPILOT
+      </div>
+
+      <h1>
+        One idea.
+        <span class="gradient">An entire marketing engine.</span>
+      </h1>
+
+      <p class="hero-copy">
+        FacelessAI turns your product, service, or idea into
+        offers, sales copy, emails, ads, social content and
+        launch campaigns — in seconds.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#studio">
+          Create your first campaign ⚡
+        </a>
+
+        <a class="btn btn-secondary" href="#tools">
+          Explore AI tools
+        </a>
+      </div>
+
+      <div class="trust">
+        <span></span>
+        Built for creators, founders, freelancers and growing businesses
+      </div>
+    </div>
+
+    <div class="app-window">
+      <div class="window-top">
+        <span class="window-dot"></span>
+        <span class="window-dot"></span>
+        <span class="window-dot"></span>
+        <span class="window-title">facelessai / growth-copilot</span>
+      </div>
+
+      <div class="app-body">
+
+        <div class="app-label">Your idea</div>
+
+        <div class="fake-input">
+          <strong>“I sell website design to local dentists.”</strong>
+          <br><br>
+          Build me an offer that makes the value obvious.
+        </div>
+
+        <div class="ai-output">
+
+          <div class="output-head">
+            <div class="output-title">AI Growth Brief</div>
+            <div class="live">● READY</div>
+          </div>
+
+          <div class="output-row">
+
+            <div class="mini-card">
+              <span>Offer</span>
+              <b>7-Day Dental Website Sprint</b>
+            </div>
+
+            <div class="mini-card">
+              <span>Positioning</span>
+              <b>More booked appointments</b>
+            </div>
+
+            <div class="mini-card">
+              <span>Hook</span>
+              <b>Your website should sell while you sleep.</b>
+            </div>
+
+            <div class="mini-card">
+              <span>CTA</span>
+              <b>Get Your Free Website Audit</b>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<section id="tools">
+  <div class="container">
+
+    <div class="section-head">
+      <div class="eyebrow">ONE COPILOT · MANY WORKFLOWS</div>
+      <h2>Everything you need to turn attention into action.</h2>
+      <p>
+        Stop jumping between five different AI tools.
+        Start with one idea and build the entire campaign from one workspace.
+      </p>
+    </div>
+
+    <div class="tools-grid">
+
+      <div class="tool-card">
+        <div class="tool-icon">✦</div>
+        <h3>Offer Builder</h3>
+        <p>
+          Turn what you sell into a clear, compelling offer
+          your target customer can understand immediately.
+        </p>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-icon">↗</div>
+        <h3>Sales Copy</h3>
+        <p>
+          Generate headlines, benefits, CTAs, product copy
+          and persuasive landing-page sections.
+        </p>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-icon">◎</div>
+        <h3>Cold Outreach</h3>
+        <p>
+          Create personalized cold emails and DMs designed
+          to start conversations without sounding robotic.
+        </p>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-icon">⌁</div>
+        <h3>Ad Creative</h3>
+        <p>
+          Generate multiple hooks, angles and ad variations
+          for testing across your campaigns.
+        </p>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-icon">#</div>
+        <h3>Content Engine</h3>
+        <p>
+          Turn one idea into social posts, threads,
+          captions and content angles.
+        </p>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-icon">⚡</div>
+        <h3>Campaign Builder</h3>
+        <p>
+          Connect the pieces into a complete campaign
+          instead of generating disconnected AI outputs.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<section id="how">
+  <div class="container">
+
+    <div class="section-head">
+      <div class="eyebrow">HOW IT WORKS</div>
+      <h2>From blank page to campaign in three moves.</h2>
+    </div>
+
+    <div class="workflow">
+
+      <div class="step">
+        <div class="step-num">01 — INPUT</div>
+        <h3>Tell us what you sell.</h3>
+        <p>
+          Describe your product, service, audience or idea
+          in plain English. No complicated setup.
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02 — BUILD</div>
+        <h3>Let AI connect the dots.</h3>
+        <p>
+          FacelessAI transforms the raw idea into positioning,
+          messaging and ready-to-use marketing assets.
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">03 — LAUNCH</div>
+        <h3>Copy. Publish. Iterate.</h3>
+        <p>
+          Take the output directly into your website,
+          outreach, ads or social channels.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<section id="studio" class="demo">
+  <div class="container">
+
+    <div class="section-head">
+      <div class="eyebrow">LIVE AI WORKSPACE</div>
+      <h2>Meet your new growth desk.</h2>
+      <p>
+        Pick a workflow, describe what you're working on,
+        and let FacelessAI build the first version.
+      </p>
+    </div>
+
+    <div class="studio">
+
+      <div class="studio-head">
+        <strong>FacelessAI Studio</strong>
+        <span class="status-pill">AI ENGINE READY</span>
+      </div>
+
+      <div class="studio-grid">
+
+        <aside class="sidebar">
+
+          <div class="side-title">Workflows</div>
+
+          <div class="tool-select">
+
+            <div class="tool-option active" data-mode="offer">
+              ✦ Offer Builder
+            </div>
+
+            <div class="tool-option" data-mode="landing">
+              ◇ Landing Page
+            </div>
+
+            <div class="tool-option" data-mode="email">
+              ↗ Cold Email
+            </div>
+
+            <div class="tool-option" data-mode="dm">
+              @ Sales DM
+            </div>
+
+            <div class="tool-option" data-mode="ads">
+              ◉ Ad Campaign
+            </div>
+
+            <div class="tool-option" data-mode="content">
+              # Content Pack
+            </div>
+
+          </div>
+
+        </aside>
+
+        <div class="workspace">
+
+
+<h3 id="workspaceTitle">
+Build a stronger offer
+</h3>
+
+
+<p class="workspace-sub" id="workspaceSub">
+Tell the AI what you sell and who you sell it to.
+</p>
+
+
+<textarea
+id="promptInput"
+maxlength="2000"
+placeholder="Example: I run a $500 website design service for dentists in the United States. I want more qualified leads..."
+></textarea>
+
+
+<div class="workspace-actions">
+
+<span class="char">
+<span id="charCount">0</span>/2000
+</span>
+
+
+<button
+id="generateBtn"
+class="generate"
+type="button"
+>
+Generate with AI ⚡
+</button>
+
+</div>
+
+
+<div id="outputBox" class="output-box">
+Your generated result will appear here.
+</div>
+
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- PRICING -->
+
+<section id="pricing">
+
+<div class="container">
+
+
+<div
+class="section-head"
+style="margin-left:auto;margin-right:auto;text-align:center"
+>
+
+<div class="eyebrow">
+SIMPLE PRICING
+</div>
+
+<h2>
+Start small. Grow when you need more.
+</h2>
+
+<p>
+Choose the workflow that fits where you are today.
+</p>
+
+</div>
+
+
+<div class="pricing-grid">
+
+
+<!-- $9 -->
+
+<div class="price-card">
+
+<div class="price-name">
+Starter
+</div>
+
+<div class="price">
+$9<small>/month</small>
+</div>
+
+<p class="price-desc">
+For creators, freelancers and small businesses
+building their marketing engine.
+</p>
+
+
+<ul class="features">
+
+<li>
+AI Offer Builder
+</li>
+
+<li>
+Sales copy generation
+</li>
+
+<li>
+Cold email & DM creation
+</li>
+
+<li>
+Ad hooks & creative angles
+</li>
+
+<li>
+Social content generation
+</li>
+
+<li>
+Landing page copy
+</li>
+
+</ul>
+
+
+<a
+class="btn btn-secondary price-btn"
+href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1"
+target="_blank"
+rel="noopener noreferrer"
+>
+Get Starter →
+</a>
+
+</div>
+
+
+<!-- $29 -->
+
+<div class="price-card pro">
+
+<div class="popular">
+PRO
+</div>
+
+<div class="price-name">
+Pro
+</div>
+
+<div class="price">
+$29<small>/month</small>
+</div>
+
+<p class="price-desc">
+For serious builders who want a deeper AI-powered
+marketing workflow.
+</p>
+
+
+<ul class="features">
+
+<li>
+Everything in Starter
+</li>
+
+<li>
+Advanced campaign workflows
+</li>
+
+<li>
+More powerful generation modes
+</li>
+
+<li>
+Multi-channel campaign creation
+</li>
+
+<li>
+Advanced positioning workflows
+</li>
+
+<li>
+Priority product features
+</li>
+
+</ul>
+
+
+<a
+class="btn btn-primary price-btn"
+href="https://checkout.dodopayments.com/buy/pdt_0Nor4IRUyNeuBzfuxt6wI?quantity=1"
+target="_blank"
+rel="noopener noreferrer"
+>
+Go Pro →
+</a>
+
+</div>
+
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- FAQ -->
+
+<section id="faq">
+
+<div class="container">
+
+
+<div
+class="section-head"
+style="margin-left:auto;margin-right:auto;text-align:center"
+>
+
+<div class="eyebrow">
+FAQ
+</div>
+
+<h2>
+Questions, answered.
+</h2>
+
+</div>
+
+
+<div class="faq">
+
+
+<div class="faq-item">
+
+<button class="faq-q" type="button">
+
+What is FacelessAI?
+
+<span>+</span>
+
+</button>
+
+<div class="faq-a">
+
+FacelessAI is an AI growth copilot that helps you
+turn a product, service or idea into practical
+marketing assets and campaigns.
+
+</div>
+
+</div>
+
+
+<div class="faq-item">
+
+<button class="faq-q" type="button">
+
+Who is it for?
+
+<span>+</span>
+
+</button>
+
+<div class="faq-a">
+
+It is designed for creators, freelancers, founders,
+agencies and small businesses that need marketing
+output without building everything from scratch.
+
+</div>
+
+</div>
+
+
+<div class="faq-item">
+
+<button class="faq-q" type="button">
+
+Do I need marketing experience?
+
+<span>+</span>
+
+</button>
+
+<div class="faq-a">
+
+No. The workflows are designed to work from a plain-language
+description of what you sell and who you want to reach.
+
+</div>
+
+</div>
+
+
+<div class="faq-item">
+
+<button class="faq-q" type="button">
+
+Can I cancel my subscription?
+
+<span>+</span>
+
+</button>
+
+<div class="faq-a">
+
+Yes. Your subscription is handled through the checkout
+provider and can be managed according to the subscription
+terms shown during checkout.
+
+</div>
+
+</div>
+
+
+<div class="faq-item">
+
+<button class="faq-q" type="button">
+
+Is FacelessAI an agency?
+
+<span>+</span>
+
+</button>
+
+<div class="faq-a">
+
+No. FacelessAI is software. It gives you AI-powered
+workflows so you can create marketing assets yourself.
+
+</div>
+
+</div>
+
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- FINAL CTA -->
+
+<section>
+
+<div class="container">
+
+<div class="final-cta">
+
+<h2>
+
+Your next campaign
+<span class="gradient">
+starts here.
+</span>
+
+</h2>
+
+<p>
+
+Give FacelessAI one idea. See how much marketing
+you can build from it.
+
+</p>
+
+<a
+class="btn btn-primary"
+href="#studio"
+>
+Open the AI Copilot ⚡
+</a>
+
+</div>
+
+</div>
+
+</section>
+
+
+</main>
+
+
+<footer>
+
+<div class="container" style="display:flex;justify-content:space-between;gap:20px;width:100%">
+
+<div>
+© 2026 FacelessAI. All rights reserved.
+</div>
+
+<div>
+AI-powered growth workflows.
+</div>
+
+</div>
+
+</footer>
+
+
+<script>
+
+"use strict";
+
+
+/* =========================================
+   BACKEND
+========================================= */
+
+const BACKEND_URL =
+"https://faceless-ai-website.onrender.com";
+
+
+/* =========================================
+   MODES
+========================================= */
+
+let currentMode = "offer";
+
+
+const modes = {
+
+offer:{
+title:"Build a stronger offer",
+sub:"Tell the AI what you sell and who you sell it to.",
+placeholder:
+"Example: I run a $500 website design service for dentists in the United States. I want more qualified leads..."
+},
+
+landing:{
+title:"Build landing-page copy",
+sub:"Give AI your product and target customer.",
+placeholder:
+"Example: SaaS that helps freelancers automatically create client proposals..."
+},
+
+email:{
+title:"Write a cold email",
+sub:"Describe your offer and ideal customer.",
+placeholder:
+"Example: I sell bookkeeping services to US e-commerce businesses doing $1M+ revenue..."
+},
+
+dm:{
+title:"Create a sales DM",
+sub:"Describe who you're contacting and what you offer.",
+placeholder:
+"Example: I want to DM gym owners and offer them a website redesign..."
+},
+
+ads:{
+title:"Build an ad campaign",
+sub:"Give AI your product, audience and desired outcome.",
+placeholder:
+"Example: A $29 productivity app for university students who struggle to organize assignments..."
+},
+
+content:{
+title:"Create a content pack",
+sub:"Give AI one topic and let it create multiple content angles.",
+placeholder:
+"Example: My business teaches beginners how to use AI for freelancing..."
+}
+
+};
+
+
+/* =========================================
+   ELEMENTS
+========================================= */
+
+const promptInput =
+document.getElementById("promptInput");
+
+const charCount =
+document.getElementById("charCount");
+
+const outputBox =
+document.getElementById("outputBox");
+
+const generateBtn =
+document.getElementById("generateBtn");
+
+const workspaceTitle =
+document.getElementById("workspaceTitle");
+
+const workspaceSub =
+document.getElementById("workspaceSub");
+
+
+/* =========================================
+   CHARACTER COUNT
+========================================= */
+
+promptInput.addEventListener(
+"input",
+function(){
+
+charCount.textContent =
+String(promptInput.value.length);
+
+});
+
+
+/* =========================================
+   WORKFLOW SWITCHING
+========================================= */
+
+document.querySelectorAll(".tool-option").forEach(
+function(option){
+
+option.addEventListener(
+"click",
+function(){
+
+document
+.querySelectorAll(".tool-option")
+.forEach(function(item){
+
+item.classList.remove("active");
+
+});
+
+
+option.classList.add("active");
+
+
+currentMode =
+option.dataset.mode;
+
+
+const config =
+modes[currentMode];
+
+
+workspaceTitle.textContent =
+config.title;
+
+workspaceSub.textContent =
+config.sub;
+
+promptInput.placeholder =
+config.placeholder;
+
+
+outputBox.className =
+"output-box";
+
+outputBox.textContent =
+"Your generated result will appear here.";
+
+});
+
+});
+
+
+/* =========================================
+   GENERATE
+========================================= */
+
+async function generateAI(){
+
+const prompt =
+promptInput.value.trim();
+
+
+if(!prompt){
+
+outputBox.className =
+"output-box ready";
+
+outputBox.textContent =
+"Tell FacelessAI what you're working on first.";
+
+promptInput.focus();
+
+return;
+
+}
+
+
+if(prompt.length < 10){
+
+outputBox.className =
+"output-box ready";
+
+outputBox.textContent =
+"Give the AI a little more context so it can create a useful result.";
+
+promptInput.focus();
+
+return;
+
+}
+
+
+generateBtn.disabled = true;
+
+generateBtn.textContent =
+"AI is thinking...";
+
+
+outputBox.className =
+"output-box";
+
+outputBox.textContent =
+"Building your marketing asset...\n\n" +
+"Analyzing your offer...\n" +
+"Understanding your audience...\n" +
+"Creating the first draft...";
+
+
+try{
+
+
+const response =
+await fetch(
+BACKEND_URL + "/generate",
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+mode:currentMode,
+
+prompt:prompt
+
+})
+
+});
+
+
+const raw =
+await response.text();
+
+
+let data;
+
+
+try{
+
+data =
+JSON.parse(raw);
+
+}catch(error){
+
+throw new Error(
+"The AI server returned an invalid response."
+);
+
+}
+
+
+if(!response.ok){
+
+throw new Error(
+
+data.detail ||
+data.message ||
+"The AI request failed."
+
+);
+
+}
+
+
+const result =
+data.result ||
+data.output ||
+data.text;
+
+
+if(!result){
+
+throw new Error(
+"The AI completed the request but returned no result."
+);
+
+}
+
+
+outputBox.className =
+"output-box ready";
+
+outputBox.textContent =
+result;
+
+
+}catch(error){
+
+
+outputBox.className =
+"output-box reeady";
+
+outputBox.textContent =
+"Something went wrong.\n\n" +
+(
+error.message ||
+"Please try again."
+);
+
+
+}finally{
+
+
+generateBtn.disabled =
+false;
+
+generateBtn.textContent =
+"Generate with AI ⚡";
+
+
+}
+
+}
+
+
+/* =========================================
+   GENERATE BUTTON
+========================================= */
+
+generateBtn.addEventListener(
+"click",
+generateAI
+);
+
+
+/* =========================================
+   FAQ
+========================================= */
+
+document.querySelectorAll(".faq-q").forEach(
+function(button){
+
+button.addEventListener(
+"click",
+function(){
+
+const item =
+button.closest(".faq-item");
+
+if(item){
+
+item.classList.toggle("open");
+
+}
+
+});
+
+});
+
+
+/* =========================================
+   CTRL + ENTER
+========================================= */
+
+promptInput.addEventListener(
+"keydown",
+function(event){
+
+if(
+(event.ctrlKey || event.metaKey) &&
+event.key === "Enter"
+){
+
+event.preventDefault();
+
+generateAI();
+
+}
+
+});
+
+</script>
+
+</body>
+</html
