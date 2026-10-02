@@ -1,9 +1,6 @@
 fastapi
 uvicorn[standard]
-requests
 python-dotenv
-edge-tts
 google-genai
-moviepy>=2.0
 
 
