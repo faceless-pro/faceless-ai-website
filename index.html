@@ -857,9 +857,61 @@ async function generateAsset(){
     try{ data = await response.json(); }catch(_){}
 
     if(!response.ok){
-      throw new Error(data.detail || "The AI could not generate the result right now.");
+  const detail = data.detail;
+
+  if(detail && detail.error === "monthly_limit_reached"){
+    const planNames = {
+      free: "Free",
+      starter: "Starter",
+      pro: "Pro"
+    };
+
+    const planName = planNames[detail.plan] || "Current";
+    const used = detail.used ?? 0;
+    const limit = detail.limit ?? 0;
+
+    let upgradeHTML = "";
+
+    if(detail.plan === "free"){
+      upgradeHTML = `
+        <a class="btn btn-primary" href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1">
+          Upgrade to Starter — $9/month
+        </a>`;
+    }else if(detail.plan === "starter"){
+      upgradeHTML = `
+        <a class="btn btn-primary" href="https://checkout.dodopayments.com/buy/pdt_0Nor4IRUyNeuBzfuxt6wI?quantity=1">
+          Upgrade to Pro — $29/month
+        </a>`;
+    }else{
+      upgradeHTML = `
+        <div>🎉 You're on the highest plan. Your monthly limit resets next month.</div>`;
     }
 
+    resultCard.innerHTML = `
+      <div class="empty-result">
+        <div style="font-size:26px;margin-bottom:10px">
+          Monthly limit reached
+        </div>
+
+        <div style="max-width:560px;margin:0 auto 18px">
+          You've used <strong>${used} / ${limit}</strong> generations
+          on your <strong>${planName}</strong> plan this month.
+        </div>
+
+        ${upgradeHTML}
+      </div>
+    `;
+
+    showToast(`${used} / ${limit} generations used.`);
+    return;
+  }
+
+  throw new Error(
+    detail?.message ||
+    "The AI could not generate the result right now."
+  );
+    } 
+    
     const result = data.result || data.output || data.text;
     if(!result) throw new Error("The AI returned an empty result.");
 
