@@ -1,85 +1,39 @@
 import os
 import time
-import logging
 from collections import defaultdict, deque
-from typing import Optional
+from datetime import datetime, timezone
+from typing import Dict, Deque
 
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
 
 # ============================================================
-# CONFIG
+# ENVIRONMENT
 # ============================================================
 
 load_dotenv()
 
-APP_NAME = "FacelessAI Growth Copilot"
-
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-PRIMARY_MODEL = os.getenv(
-    "GEMINI_MODEL",
-    "gemini-3.5-flash-lite"
-)
-
-FALLBACK_MODEL = os.getenv(
-    "GEMINI_FALLBACK_MODEL",
-    "gemini-3.8-flash"
-)
-
-FRONTEND_URL = os.getenv(
-    "FRONTEND_URL",
-    "https://faceless-ai-website.vercel.app"
-)
-
-MAX_PROMPT_LENGTH = 2000
-MIN_PROMPT_LENGTH = 10
-
-# Basic anti-abuse protection.
-# This is intentionally lightweight because Render instances
-# can restart and memory is not persistent.
-RATE_LIMIT_WINDOW = 60
-RATE_LIMIT_REQUESTS = 15
-
-
-# ============================================================
-# LOGGING
-# ============================================================
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
-
-logger = logging.getLogger(APP_NAME)
-
-
-# ============================================================
-# GEMINI CLIENT
-# ============================================================
+PRIMARY_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+FALLBACK_MODEL = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.8-flash")
 
 if not GEMINI_API_KEY:
-    logger.warning(
-        "GEMINI_API_KEY is missing. "
-        "The server will start, but generation will fail."
-    )
-    client = None
-else:
-    client = genai.Client(api_key=GEMINI_API_KEY)
+    raise RuntimeError("GEMINI_API_KEY is missing.")
+
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 
 # ============================================================
-# FASTAPI
+# APP
 # ============================================================
 
 app = FastAPI(
-    title=APP_NAME,
-    description="AI-powered marketing growth copilot.",
+    title="FacelessAI Growth Copilot API",
     version="2.0.0"
 )
 
@@ -91,65 +45,49 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        FRONTEND_URL,
         "https://faceless-ai-website.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
 # ============================================================
-# SIMPLE RATE LIMITER
+# PLAN LIMITS
 # ============================================================
 
-request_log = defaultdict(deque)
-
-
-def get_client_identifier(request: Request) -> str:
-    """
-    Gets a basic client identifier.
-
-    This is NOT a replacement for proper authentication.
-    It is only an additional layer against accidental abuse.
-    """
-
-    forwarded = request.headers.get("x-forwarded-for")
-
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-
-    if request.client:
-        return request.client.host
-
-    return "unknown"
-
-
-def check_rate_limit(request: Request):
-    client_id = get_client_identifier(request)
-    now = time.time()
-
-    timestamps = request_log[client_id]
-
-    # Remove old requests
-    while timestamps and now - timestamps[0] > RATE_LIMIT_WINDOW:
-        timestamps.popleft()
-
-    if len(timestamps) >= RATE_LIMIT_REQUESTS:
-        raise HTTPException(
-            status_code=429,
-            detail=(
-                "Too many requests. "
-                "Please wait a moment and try again."
-            )
-        )
-
-    timestamps.append(now)
+PLAN_LIMITS = {
+    "free": 3,
+    "starter": 100,
+    "pro": 500,
+}
 
 
 # ============================================================
 # REQUEST MODEL
+# ============================================================
+
+class GenerateRequest(BaseModel):
+    mode: str = Field(..., min_length=1, max_length=50)
+    prompt: str = Field(..., min_length=10, max_length=2000)
+
+    # IMPORTANT:
+    # Current frontend doesn't send this field, so it defaults
+    # to Free.
+    #
+    # This is ONLY a temporary testing mechanism.
+    # Real paid-plan verification will later come from
+    # Dodo + Supabase on the server.
+    plan: str = Field(default="free", max_length=20)
+
+
+# ============================================================
+# VALID MODES
 # ============================================================
 
 VALID_MODES = {
@@ -163,124 +101,80 @@ VALID_MODES = {
 }
 
 
-class GenerateRequest(BaseModel):
-    mode: str = Field(
-        ...,
-        min_length=1,
-        max_length=50
-    )
-
-    prompt: str = Field(
-        ...,
-        min_length=MIN_PROMPT_LENGTH,
-        max_length=MAX_PROMPT_LENGTH
-    )
-
-    @field_validator("mode")
-    @classmethod
-    def validate_mode(cls, value: str) -> str:
-        value = value.strip().lower()
-
-        if value not in VALID_MODES:
-            raise ValueError(
-                f"Invalid mode. Allowed modes: "
-                f"{', '.join(sorted(VALID_MODES))}"
-            )
-
-        return value
-
-    @field_validator("prompt")
-    @classmethod
-    def validate_prompt(cls, value: str) -> str:
-        value = value.strip()
-
-        if len(value) < MIN_PROMPT_LENGTH:
-            raise ValueError(
-                "Please provide a more detailed idea."
-            )
-
-        if len(value) > MAX_PROMPT_LENGTH:
-            raise ValueError(
-                f"Prompt cannot exceed {MAX_PROMPT_LENGTH} characters."
-            )
-
-        return value
-
-
 # ============================================================
-# MODE DEFINITIONS
+# MODE INSTRUCTIONS
 # ============================================================
 
 MODE_INSTRUCTIONS = {
 
     "offer": """
-Create a strong, clear and commercially useful offer.
+Create a strong, realistic offer for the user's business or idea.
 
 Include:
-1. Core offer
+1. Offer name
 2. Target customer
-3. Main problem
+3. Core problem
 4. Desired outcome
-5. Unique value proposition
-6. Offer structure
-7. Pricing suggestion if enough information exists
-8. Risk reversal or guarantee idea only when appropriate
-9. Strong CTA
+5. Value proposition
+6. Deliverables
+7. Pricing/positioning suggestion if enough information exists
+8. Objection handling
+9. Clear CTA
 
-Do not invent testimonials, customer numbers,
-revenue figures or fake proof.
+Do not invent customer numbers, revenue, testimonials,
+case studies, logos, awards, or guaranteed results.
 """,
 
     "landing": """
-Create conversion-focused landing page copy.
+Create high-converting landing page copy.
 
 Include:
-1. Hero headline
-2. Supporting subheadline
+1. Headline
+2. Subheadline
 3. Problem
 4. Solution
 5. Benefits
-6. How it works
-7. Features
+6. Features
+7. How it works
 8. Objection handling
-9. CTA sections
+9. CTA
 10. FAQ
-11. Final CTA
 
-Make the copy ready to paste into a real website.
-Do not use fake testimonials or fake statistics.
+Keep claims realistic.
+Never invent testimonials, customer counts, revenue,
+logos, case studies, awards, or guaranteed outcomes.
 """,
 
     "email": """
-Create a professional cold outreach email sequence.
+Create a professional cold outreach email.
 
 Include:
-1. Subject line options
+1. Subject line
 2. Opening
-3. Personalization angle
-4. Problem
-5. Value proposition
-6. CTA
-7. Follow-up 1
-8. Follow-up 2
+3. Personalized problem
+4. Value proposition
+5. Specific offer
+6. Low-friction CTA
+7. Follow-up suggestion
 
-Keep it concise, natural and non-spammy.
+Keep it concise and natural.
 Do not make unsupported claims.
+Do not pretend to know personal facts that were not provided.
 """,
 
     "dm": """
-Create a high-quality sales DM sequence.
+Create a natural sales DM suitable for Instagram, LinkedIn,
+X, Facebook, or similar platforms.
 
-Include:
+Give:
 1. First message
-2. Follow-up
-3. Value message
-4. Objection response
-5. Soft close
-6. Final follow-up
+2. Follow-up message
+3. Objection response
+4. Closing CTA
 
-Make it conversational rather than robotic.
-Do not use fake urgency or fake social proof.
+Avoid spammy language.
+Avoid fake urgency.
+Avoid fake testimonials or results.
 """,
 
     "ads": """
@@ -289,60 +183,53 @@ Create an advertising campaign concept.
 Include:
 1. Campaign angle
 2. Target audience
-3. Core message
-4. 5 headline variations
-5. 3 primary-text variations
-6. 3 CTA variations
-7. Creative concepts
-8. Testing ideas
+3. Main hook
+4. Primary ad copy
+5. Short headline
+6. CTA
+7. Creative concept
+8. Variations
 
 Do not claim guaranteed results.
+Do not invent statistics or customer outcomes.
 """,
 
     "content": """
-Create a practical content engine.
+Create a content engine for the user's idea.
 
 Include:
-1. Content strategy
+1. Content pillars
 2. 10 content ideas
 3. Hooks
-4. Short-form post/video concepts
+4. Short-form video concepts
 5. CTA ideas
-6. Repurposing strategy
+6. Posting strategy
+7. Repurposing ideas
 
-Make ideas specific to the user's audience.
-Avoid generic filler.
+Keep ideas practical and original.
+Do not promise virality.
 """,
 
     "campaign": """
-Build a complete coordinated marketing campaign from one idea.
+Create a complete marketing campaign.
 
-Generate:
+Include:
+1. Campaign objective
+2. Target audience
+3. Offer
+4. Positioning
+5. Landing page angle
+6. Cold email
+7. Sales DM
+8. Ad concepts
+9. Organic content ideas
+10. CTA
+11. 7-day execution plan
+12. Measurement framework
 
-1. Offer
-2. Positioning
-3. Landing page messaging
-4. Cold email
-5. Sales DM
-6. Ad campaign
-7. Content ideas
-8. Campaign sequence
-9. CTA
-10. Execution checklist
-
-All assets must be connected to the same positioning,
-audience and offer.
-
-Do not create fake testimonials,
-fake customer counts,
-fake revenue,
-fake logos,
-fake case studies,
-or guaranteed-result claims.
-
-Make the result practical enough that a founder,
-creator, freelancer or agency could actually use it.
-"""
+Do not invent performance data.
+Do not claim guaranteed revenue, leads, customers, or virality.
+""",
 }
 
 
@@ -351,248 +238,296 @@ creator, freelancer or agency could actually use it.
 # ============================================================
 
 SYSTEM_PROMPT = """
-You are the senior marketing strategist and growth copywriter
-inside FacelessAI Growth Copilot.
+You are FacelessAI Growth Copilot, a high-quality AI marketing
+strategy and copywriting assistant.
 
-Your job is to turn a user's rough business idea into
-specific, useful marketing assets.
+Your job is to turn a user's idea into practical marketing assets
+that can actually be used.
 
-CORE RULES:
+IMPORTANT RULES:
 
-- Write in clear professional English.
-- Be specific rather than generic.
-- Optimize for usefulness and execution.
-- Understand the user's audience before writing.
-- Never invent testimonials.
-- Never invent customer counts.
-- Never invent revenue numbers.
-- Never invent case studies.
-- Never invent logos or partnerships.
-- Never claim guaranteed viral growth.
+- Never fabricate testimonials.
+- Never fabricate customer numbers.
+- Never fabricate revenue.
+- Never fabricate logos.
+- Never fabricate case studies.
+- Never fabricate awards.
+- Never fabricate reviews.
+- Never claim a result is guaranteed.
+- Never guarantee virality.
 - Never guarantee revenue.
-- Never fabricate data.
-- Do not use unnecessary emojis.
-- Avoid repetitive filler.
-- Do not begin with generic AI disclaimers.
-- Use clean Markdown headings.
-- Make outputs easy to copy and use.
-- If important information is missing, make a reasonable
-  clearly-labeled assumption rather than inventing facts.
-- Prefer short paragraphs and useful bullet points.
-- Make every section actionable.
-
-QUALITY STANDARD:
-
-The output should feel like it was prepared by an experienced
-growth marketer for a real business, not like generic AI text.
-
-If the user's idea is weak or unclear, improve its positioning
-without pretending unsupported facts are true.
+- Never guarantee leads or sales.
+- Never pretend a business has customers unless the user explicitly
+  provided that information.
+- If information is missing, make a clearly labeled assumption or
+  keep the claim generic.
+- Prefer specific, useful copy over generic motivational advice.
+- Keep output organized with clear headings.
+- Write naturally.
+- Avoid excessive emojis.
+- Avoid spammy language.
+- Avoid fake scarcity.
+- Avoid deceptive marketing.
+- Respect the user's actual product and audience.
 """
 
 
 # ============================================================
-# GEMINI ERROR DETECTION
+# ANTI-ABUSE RATE LIMIT
+# ============================================================
+
+RATE_LIMIT_WINDOW = 60
+RATE_LIMIT_REQUESTS = 15
+
+request_log: Dict[str, Deque[float]] = defaultdict(deque)
+
+
+def get_client_ip(request: Request) -> str:
+    """
+    Gets the client IP.
+
+    Note:
+    On Render, the actual client IP may be supplied through
+    X-Forwarded-For.
+    """
+
+    forwarded_for = request.headers.get("x-forwarded-for")
+
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+
+    if request.client:
+        return request.client.host
+
+    return "unknown"
+
+
+def check_rate_limit(ip: str) -> None:
+    now = time.time()
+
+    timestamps = request_log[ip]
+
+    while timestamps and now - timestamps[0] > RATE_LIMIT_WINDOW:
+        timestamps.popleft()
+
+    if len(timestamps) >= RATE_LIMIT_REQUESTS:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please wait a minute and try again."
+        )
+
+    timestamps.append(now)
+
+
+# ============================================================
+# MONTHLY USAGE
+# ============================================================
+
+# Temporary in-memory usage storage.
+#
+# IMPORTANT:
+# This resets when Render restarts/redeploys.
+#
+# Production version should move this to Supabase.
+#
+# Structure:
+# {
+#   "ip": {
+#       "month": "2026-09",
+#       "used": 2
+#   }
+# }
+
+usage_store = {}
+
+
+def current_month() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m")
+
+
+def get_usage(ip: str) -> int:
+
+    month = current_month()
+
+    record = usage_store.get(ip)
+
+    if not record:
+        usage_store[ip] = {
+            "month": month,
+            "used": 0,
+        }
+
+        return 0
+
+    # Automatic monthly reset
+    if record["month"] != month:
+        usage_store[ip] = {
+            "month": month,
+            "used": 0,
+        }
+
+        return 0
+
+    return int(record["used"])
+
+
+def increment_usage(ip: str) -> int:
+
+    month = current_month()
+
+    record = usage_store.get(ip)
+
+    if not record or record["month"] != month:
+        usage_store[ip] = {
+            "month": month,
+            "used": 1,
+        }
+
+        return 1
+
+    record["used"] += 1
+
+    return record["used"]
+
+
+def check_plan_limit(ip: str, plan: str) -> int:
+
+    limit = PLAN_LIMITS[plan]
+    used = get_usage(ip)
+
+    if used >= limit:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "monthly_limit_reached",
+                "message": (
+                    f"You have used all {limit} generations "
+                    f"available on the {plan.capitalize()} plan this month."
+                ),
+                "plan": plan,
+                "used": used,
+                "limit": limit,
+                "remaining": 0,
+            },
+        )
+
+    return used
+
+
+# ============================================================
+# GEMINI HELPERS
 # ============================================================
 
 def is_retryable_error(error: Exception) -> bool:
-    message = str(error).upper()
 
-    retryable_terms = [
+    message = str(error).lower()
+
+    retryable_words = [
         "429",
-        "500",
-        "502",
+        "rate limit",
+        "resource exhausted",
+        "quota",
+        "timeout",
+        "temporarily unavailable",
         "503",
-        "504",
-        "UNAVAILABLE",
-        "RESOURCE_EXHAUSTED",
-        "TIMEOUT",
-        "DEADLINE",
-        "INTERNAL",
-        "SERVICE_UNAVAILABLE",
-        "TEMPORARY",
+        "500",
+        "internal",
+        "overloaded",
+        "deadline",
     ]
 
-    return any(term in message for term in retryable_terms)
+    return any(word in message for word in retryable_words)
 
-
-# ============================================================
-# GEMINI GENERATION
-# ============================================================
 
 def generate_with_model(
     model_name: str,
     mode: str,
-    prompt: str
+    user_prompt: str,
 ) -> str:
-
-    if client is None:
-        raise RuntimeError(
-            "Gemini API is not configured. "
-            "Please add GEMINI_API_KEY to Render environment variables."
-        )
 
     mode_instruction = MODE_INSTRUCTIONS[mode]
 
     full_prompt = f"""
-USER'S BUSINESS IDEA / REQUEST:
+{SYSTEM_PROMPT}
 
-{prompt}
+TASK MODE:
+{mode}
 
-WORKFLOW:
-
+MODE-SPECIFIC INSTRUCTIONS:
 {mode_instruction}
 
-Now produce the final marketing output.
+USER REQUEST:
+{user_prompt}
 
-Remember:
-- Stay specific.
-- Keep everything connected to the user's idea.
-- Do not fabricate proof.
-- Do not promise guaranteed results.
-- Make the result directly usable.
+Return a polished, useful answer that the user can directly use.
 """
 
     response = client.models.generate_content(
         model=model_name,
         contents=full_prompt,
         config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
             temperature=0.75,
             max_output_tokens=5000,
         ),
     )
 
-    if not response:
-        raise RuntimeError("Gemini returned an empty response.")
-
     text = getattr(response, "text", None)
 
     if not text:
-        raise RuntimeError("Gemini returned no usable text.")
+        raise RuntimeError("Gemini returned an empty response.")
 
-    text = text.strip()
-
-    if not text:
-        raise RuntimeError("Gemini returned an empty result.")
-
-    return text
+    return text.strip()
 
 
-# ============================================================
-# GENERATION WITH RETRIES + FALLBACK
-# ============================================================
-
-def generate_ai_output(
+def generate_ai_result(
     mode: str,
-    prompt: str
+    user_prompt: str,
 ) -> str:
 
-    models = []
+    models_to_try = [
+        PRIMARY_MODEL,
+        FALLBACK_MODEL,
+    ]
 
-    if PRIMARY_MODEL:
-        models.append(PRIMARY_MODEL)
+    last_error = None
 
-    if FALLBACK_MODEL and FALLBACK_MODEL != PRIMARY_MODEL:
-        models.append(FALLBACK_MODEL)
+    for model_name in models_to_try:
 
-    last_error: Optional[Exception] = None
-
-    for model_name in models:
+        # Avoid trying the same model twice
+        if not model_name:
+            continue
 
         for attempt in range(3):
 
             try:
-                logger.info(
-                    "Generating | mode=%s | model=%s | attempt=%s",
-                    mode,
-                    model_name,
-                    attempt + 1
-                )
 
                 result = generate_with_model(
                     model_name=model_name,
                     mode=mode,
-                    prompt=prompt
+                    user_prompt=user_prompt,
                 )
 
-                logger.info(
-                    "Generation successful | mode=%s | model=%s",
-                    mode,
-                    model_name
-                )
-
-                return result
+                if result:
+                    return result
 
             except Exception as error:
 
                 last_error = error
 
-                logger.warning(
-                    "Generation failed | mode=%s | model=%s | "
-                    "attempt=%s | error=%s",
-                    mode,
-                    model_name,
-                    attempt + 1,
-                    str(error)
+                print(
+                    f"[Gemini Error] "
+                    f"model={model_name} "
+                    f"attempt={attempt + 1}/3 "
+                    f"error={error}"
                 )
 
                 if not is_retryable_error(error):
                     break
 
-                if attempt < 2:
-                    # 1.5s -> 3s
-                    wait_time = 1.5 * (attempt + 1)
-                    time.sleep(wait_time)
-
-    if last_error:
-        raise last_error
+                time.sleep(1.5 * (attempt + 1))
 
     raise RuntimeError(
-        "No Gemini model was available."
-    )
-
-
-# ============================================================
-# ERROR MESSAGE CLEANER
-# ============================================================
-
-def friendly_error_message(error: Exception) -> str:
-
-    message = str(error)
-
-    upper = message.upper()
-
-    if "429" in upper or "RESOURCE_EXHAUSTED" in upper:
-        return (
-            "AI generation is temporarily busy. "
-            "Please wait a little and try again."
-        )
-
-    if any(
-        code in upper
-        for code in ["500", "502", "503", "504", "UNAVAILABLE"]
-    ):
-        return (
-            "The AI service is temporarily unavailable. "
-            "Please try again in a moment."
-        )
-
-    if "API_KEY" in upper or "AUTH" in upper:
-        return (
-            "AI service configuration needs attention. "
-            "Please contact support."
-        )
-
-    if "TIMEOUT" in upper or "DEADLINE" in upper:
-        return (
-            "The AI request took too long. "
-            "Please try again."
-        )
-
-    return (
-        "Something went wrong while generating your result. "
-        "Please try again."
+        f"AI generation failed. Last error: {last_error}"
     )
 
 
@@ -602,27 +537,26 @@ def friendly_error_message(error: Exception) -> str:
 
 @app.get("/")
 async def root():
+
     return {
-        "name": APP_NAME,
+        "name": "FacelessAI Growth Copilot API",
         "status": "online",
         "version": "2.0.0",
-        "service": "AI Marketing Generation API",
     }
 
 
 # ============================================================
-# HEALTH CHECK
+# HEALTH
 # ============================================================
 
 @app.get("/health")
 async def health():
+
     return {
-        "status": "healthy",
-        "service": APP_NAME,
-        "version": "2.0.0",
-        "gemini_configured": client is not None,
+        "status": "ok",
         "primary_model": PRIMARY_MODEL,
         "fallback_model": FALLBACK_MODEL,
+        "plans": PLAN_LIMITS,
     }
 
 
@@ -632,73 +566,179 @@ async def health():
 
 @app.post("/generate")
 async def generate(
+    payload: GenerateRequest,
     request: Request,
-    data: GenerateRequest
 ):
 
-    check_rate_limit(request)
+    # --------------------------------------------------------
+    # CLIENT
+    # --------------------------------------------------------
 
-    start_time = time.time()
+    ip = get_client_ip(request)
 
-    logger.info(
-        "Generation request | mode=%s | prompt_length=%s",
-        data.mode,
-        len(data.prompt)
+    # --------------------------------------------------------
+    # ANTI-ABUSE RATE LIMIT
+    # --------------------------------------------------------
+
+    check_rate_limit(ip)
+
+    # --------------------------------------------------------
+    # VALIDATE MODE
+    # --------------------------------------------------------
+
+    mode = payload.mode.strip().lower()
+
+    if mode not in VALID_MODES:
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_mode",
+                "message": (
+                    f"Invalid mode '{mode}'. "
+                    f"Valid modes are: {', '.join(sorted(VALID_MODES))}"
+                ),
+            },
+        )
+
+    # --------------------------------------------------------
+    # VALIDATE PROMPT
+    # --------------------------------------------------------
+
+    user_prompt = payload.prompt.strip()
+
+    if len(user_prompt) < 10:
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "prompt_too_short",
+                "message": "Please enter at least 10 characters.",
+            },
+        )
+
+    if len(user_prompt) > 2000:
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "prompt_too_long",
+                "message": "Prompt cannot exceed 2000 characters.",
+            },
+        )
+
+    # --------------------------------------------------------
+    # VALIDATE PLAN
+    # --------------------------------------------------------
+
+    plan = payload.plan.strip().lower()
+
+    if plan not in PLAN_LIMITS:
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_plan",
+                "message": "Invalid plan.",
+            },
+        )
+
+    # --------------------------------------------------------
+    # CHECK MONTHLY LIMIT
+    # --------------------------------------------------------
+
+    used_before = check_plan_limit(
+        ip=ip,
+        plan=plan,
     )
+
+    limit = PLAN_LIMITS[plan]
+
+    remaining_before = max(
+        limit - used_before,
+        0,
+    )
+
+    # --------------------------------------------------------
+    # GENERATE AI RESULT
+    # --------------------------------------------------------
 
     try:
 
-        result = generate_ai_output(
-            mode=data.mode,
-            prompt=data.prompt
+        result = generate_ai_result(
+            mode=mode,
+            user_prompt=user_prompt,
         )
-
-        elapsed = round(
-            time.time() - start_time,
-            2
-        )
-
-        logger.info(
-            "Generation complete | mode=%s | time=%ss",
-            data.mode,
-            elapsed
-        )
-
-        return {
-            "success": True,
-            "mode": data.mode,
-            "result": result,
-            "meta": {
-                "processing_time": elapsed,
-                "model": PRIMARY_MODEL,
-            }
-        }
 
     except Exception as error:
 
-        logger.exception(
-            "Generation error | mode=%s",
-            data.mode
-        )
+        print(f"[Generation Failed] {error}")
 
         raise HTTPException(
-            status_code=503,
-            detail=friendly_error_message(error)
+            status_code=502,
+            detail={
+                "error": "generation_failed",
+                "message": (
+                    "AI generation is temporarily unavailable. "
+                    "Please try again in a moment."
+                ),
+            },
         )
+
+    # --------------------------------------------------------
+    # ONLY COUNT SUCCESSFUL GENERATIONS
+    # --------------------------------------------------------
+
+    used_after = increment_usage(ip)
+
+    remaining_after = max(
+        limit - used_after,
+        0,
+    )
+
+    # --------------------------------------------------------
+    # RESPONSE
+    # --------------------------------------------------------
+
+    return {
+        "success": True,
+
+        "result": result,
+
+        "mode": mode,
+
+        "plan": plan,
+
+        "usage": {
+            "used": used_after,
+            "limit": limit,
+            "remaining": remaining_after,
+            "month": current_month(),
+        },
+
+        "message": (
+            f"{remaining_after} generation(s) remaining "
+            f"on your {plan.capitalize()} plan this month."
+        ),
+    }
 
 
 # ============================================================
-# LEGACY VIDEO ENDPOINT
+# OLD VIDEO ENDPOINT
 # ============================================================
 
 @app.post("/generate-video")
 async def generate_video():
+
     raise HTTPException(
         status_code=410,
-        detail=(
-            "Video generation is no longer part of the "
-            "FacelessAI Growth Copilot API."
-        )
+        detail={
+            "error": "endpoint_removed",
+            "message": (
+                "Video generation is no longer part of "
+                "FacelessAI Growth Copilot."
+            ),
+        },
     )
 
 
@@ -709,16 +749,22 @@ async def generate_video():
 @app.on_event("startup")
 async def startup_event():
 
-    logger.info("=" * 60)
-    logger.info("%s starting...", APP_NAME)
-    logger.info("Primary model: %s", PRIMARY_MODEL)
-    logger.info("Fallback model: %s", FALLBACK_MODEL)
-    logger.info("Frontend: %s", FRONTEND_URL)
-    logger.info(
-        "Gemini configured: %s",
-        client is not None
-    )
-    logger.info("=" * 60)
+    print("=" * 60)
+    print("FacelessAI Growth Copilot API")
+    print("=" * 60)
+
+    print(f"Primary model : {PRIMARY_MODEL}")
+    print(f"Fallback model: {FALLBACK_MODEL}")
+
+    print("Plan limits:")
+    print(f"  Free    : {PLAN_LIMITS['free']}")
+    print(f"  Starter : {PLAN_LIMITS['starter']}")
+    print(f"  Pro     : {PLAN_LIMITS['pro']}")
+
+    print("Rate limit:")
+    print(f"  {RATE_LIMIT_REQUESTS} requests / {RATE_LIMIT_WINDOW} seconds")
+
+    print("=" * 60)
 
 
 # ============================================================
@@ -729,13 +775,9 @@ if __name__ == "__main__":
 
     import uvicorn
 
-    port = int(
-        os.getenv("PORT", "8000")
-    )
-
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=port,
-        reload=False
+        port=int(os.getenv("PORT", "8000")),
+        reload=False,
 )
