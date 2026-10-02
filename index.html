@@ -1,1047 +1,2482 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#07070a" />
-  <meta name="description" content="FacelessAI Growth Copilot — turn one idea into offers, landing pages, outreach, ads and content." />
-  <meta property="og:title" content="FacelessAI Growth Copilot" />
-  <meta property="og:description" content="Turn ideas into growth." />
-  <title>FacelessAI — Growth Copilot</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#07070b">
+<meta name="description" content="FacelessAI Growth Copilot — turn one idea into an entire marketing engine.">
+<title>FacelessAI — Growth Copilot</title>
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+<style>
+:root{
+  --bg:#07070b;
+  --bg2:#0b0b11;
+  --card:rgba(18,18,27,.78);
+  --card2:#11111a;
+  --line:rgba(255,255,255,.09);
+  --line2:rgba(255,255,255,.06);
+  --text:#f7f7fb;
+  --muted:#9898a8;
+  --muted2:#6f6f7d;
+  --purple:#8b5cf6;
+  --purple2:#a78bfa;
+  --cyan:#22d3ee;
+  --green:#34d399;
+  --red:#fb7185;
+  --shadow:0 25px 80px rgba(0,0,0,.42);
+  --radius:22px;
+}
 
-    :root{
-      --bg:#07070a;
-      --bg2:#0b0b10;
-      --card:rgba(17,17,24,.78);
-      --card2:#111118;
-      --line:rgba(255,255,255,.09);
-      --line2:rgba(255,255,255,.15);
-      --text:#f7f7fb;
-      --muted:#9c9ca9;
-      --purple:#9b6cff;
-      --purple2:#6d42ff;
-      --cyan:#5ee7ff;
-      --green:#54e6a3;
-      --danger:#ff6b7d;
-      --shadow:0 24px 80px rgba(0,0,0,.42);
-      --radius:22px;
-      --max:1180px;
-    }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(139,92,246,.14),transparent 28%),
+    radial-gradient(circle at 90% 12%,rgba(34,211,238,.08),transparent 25%),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.5;
+  overflow-x:hidden;
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+a{text-decoration:none;color:inherit}
 
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      background:
-        radial-gradient(circle at 15% -5%, rgba(121,72,255,.18), transparent 30%),
-        radial-gradient(circle at 90% 10%, rgba(0,215,255,.09), transparent 24%),
-        var(--bg);
-      color:var(--text);
-      font-family:"DM Sans",system-ui,sans-serif;
-      line-height:1.55;
-      overflow-x:hidden;
-    }
-    body:before{
-      content:"";
-      position:fixed;inset:0;pointer-events:none;z-index:-1;
-      background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
-                       linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
-      background-size:64px 64px;
-      mask-image:linear-gradient(to bottom,black,transparent 70%);
-    }
-    a{text-decoration:none;color:inherit}
-    button,input,textarea{font:inherit}
-    button{cursor:pointer}
-    .container{width:min(var(--max),calc(100% - 36px));margin:auto}
+.container{
+  width:min(1180px,calc(100% - 36px));
+  margin:auto;
+}
 
-    .nav{
-      position:sticky;top:0;z-index:50;
-      backdrop-filter:blur(18px);
-      background:rgba(7,7,10,.74);
-      border-bottom:1px solid var(--line);
-    }
-    .nav-inner{
-      height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px;
-    }
-    .logo{display:flex;align-items:center;gap:10px;font-family:"Space Grotesk";font-weight:700;font-size:20px}
-    .logo-mark{
-      width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
-      background:linear-gradient(135deg,var(--purple),var(--cyan));
-      color:#08080b;font-weight:900;box-shadow:0 0 30px rgba(145,91,255,.32);
-    }
-    .nav-links{display:flex;gap:26px;color:#aaaab7;font-size:14px}
-    .nav-links a:hover{color:#fff}
-    .nav-actions{display:flex;align-items:center;gap:10px}
-    .mobile-menu{display:none}
+.nav{
+  position:sticky;
+  top:0;
+  z-index:100;
+  border-bottom:1px solid var(--line2);
+  background:rgba(7,7,11,.78);
+  backdrop-filter:blur(18px);
+}
+.nav-inner{
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:800;
+  letter-spacing:-.5px;
+  font-size:18px;
+}
+.logo-mark{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:linear-gradient(135deg,var(--purple),var(--cyan));
+  color:white;
+  box-shadow:0 0 30px rgba(139,92,246,.3);
+}
+.nav-links{
+  display:flex;
+  align-items:center;
+  gap:26px;
+}
+.nav-links a{
+  color:#aaaab7;
+  font-size:14px;
+  transition:.2s;
+}
+.nav-links a:hover{color:white}
+.nav-actions{display:flex;gap:10px;align-items:center}
 
-    .btn{
-      border:1px solid var(--line2);border-radius:12px;padding:11px 16px;
-      color:#fff;background:rgba(255,255,255,.04);transition:.2s;
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;
-      font-weight:700;font-size:14px;
-    }
-    .btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.07)}
-    .btn-primary{
-      border:0;background:linear-gradient(135deg,#a16cff,#7041ff);box-shadow:0 12px 34px rgba(112,65,255,.28);
-    }
-    .btn-primary:hover{box-shadow:0 16px 42px rgba(112,65,255,.38)}
-    .btn-cyan{border:0;background:linear-gradient(135deg,#66eaff,#6f7dff);color:#07070a}
-    .btn-danger{border-color:rgba(255,107,125,.28);color:#ff9aa7}
-    .btn-sm{padding:8px 11px;font-size:12px;border-radius:9px}
+.btn{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:11px 17px;
+  color:white;
+  background:rgba(255,255,255,.045);
+  transition:.2s;
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  font-weight:650;
+  font-size:14px;
+}
+.btn:hover{
+  transform:translateY(-1px);
+  border-color:rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);
+}
+.btn-primary{
+  border:0;
+  background:linear-gradient(135deg,#7c3aed,#9333ea);
+  box-shadow:0 10px 30px rgba(124,58,237,.24);
+}
+.btn-primary:hover{
+  background:linear-gradient(135deg,#8b5cf6,#a855f7);
+}
+.btn-large{
+  padding:14px 21px;
+  font-size:15px;
+}
+.btn-danger{color:#fecdd3}
+.btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+}
 
-    .hero{padding:92px 0 70px;text-align:center}
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
-      padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.035);
-      color:#c9c9d4;font-size:12px;font-weight:700;
-    }
-    .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
-    h1,h2,h3{font-family:"Space Grotesk";line-height:1.08;margin:0}
-    .hero h1{
-      max-width:850px;margin:22px auto 18px;font-size:clamp(44px,7vw,82px);
-      letter-spacing:-3.5px;
-    }
-    .gradient-text{background:linear-gradient(90deg,#fff 0%,#b79bff 50%,#72e9ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-    .hero p{max-width:690px;margin:0 auto;color:var(--muted);font-size:18px}
-    .hero-actions{display:flex;justify-content:center;gap:12px;margin:30px 0 42px;flex-wrap:wrap}
-    .hero-proof{display:flex;justify-content:center;gap:26px;flex-wrap:wrap;color:#858592;font-size:12px}
-    .hero-proof span:before{content:"✓";color:var(--green);margin-right:6px}
+.mobile-menu{display:none}
 
-    .product-preview{
-      margin:20px auto 0;max-width:1060px;border:1px solid var(--line2);border-radius:24px;
-      background:linear-gradient(180deg,rgba(22,22,31,.9),rgba(10,10,14,.95));
-      box-shadow:var(--shadow);overflow:hidden;text-align:left;
-    }
-    .window-bar{height:42px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:7px}
-    .window-bar i{width:8px;height:8px;border-radius:50%;background:#4b4b56}
-    .preview-body{padding:24px;display:grid;grid-template-columns:210px 1fr;gap:20px}
-    .preview-side{border-right:1px solid var(--line);padding-right:18px}
-    .mini-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#777783;margin:8px 0}
-    .mini-item{padding:10px;border-radius:10px;color:#92929e;font-size:12px;margin:3px 0}
-    .mini-item.active{background:rgba(144,96,255,.13);color:#e6dcff;border:1px solid rgba(144,96,255,.18)}
-    .preview-main .mini-kicker{color:#a88cff;font-size:11px;font-weight:700}
-    .preview-main h3{font-size:28px;margin:8px 0 10px}
-    .preview-main p{color:#777784;font-size:12px;margin:0 0 18px}
-    .fake-output{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .fake-card{border:1px solid var(--line);padding:13px;border-radius:13px;background:rgba(255,255,255,.025)}
-    .fake-card strong{font-size:12px}
-    .fake-card div{height:5px;background:rgba(255,255,255,.08);border-radius:4px;margin-top:9px}
-    .fake-card div:nth-child(3){width:70%}
+.hero{
+  padding:95px 0 70px;
+  text-align:center;
+  position:relative;
+}
+.hero:before{
+  content:"";
+  position:absolute;
+  width:500px;
+  height:300px;
+  background:rgba(124,58,237,.16);
+  filter:blur(100px);
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  pointer-events:none;
+}
+.eyebrow{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 12px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.035);
+  border-radius:999px;
+  color:#c4b5fd;
+  font-size:12px;
+  font-weight:700;
+}
+.dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#a78bfa;
+  box-shadow:0 0 12px #8b5cf6;
+}
+.hero h1{
+  position:relative;
+  max-width:850px;
+  margin:22px auto 18px;
+  font-size:clamp(45px,7vw,82px);
+  line-height:.98;
+  letter-spacing:-4px;
+}
+.gradient{
+  background:linear-gradient(110deg,#fff 10%,#c4b5fd 45%,#67e8f9 90%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.hero p{
+  position:relative;
+  max-width:680px;
+  margin:0 auto;
+  color:var(--muted);
+  font-size:18px;
+}
+.hero-actions{
+  position:relative;
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-top:30px;
+  flex-wrap:wrap;
+}
+.hero-proof{
+  position:relative;
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  margin-top:24px;
+  color:#777787;
+  font-size:12px;
+  flex-wrap:wrap;
+}
+.hero-proof span{display:flex;align-items:center;gap:6px}
 
-    .section{padding:80px 0}
-    .section-head{text-align:center;max-width:700px;margin:0 auto 42px}
-    .eyebrow{font-size:11px;font-weight:800;letter-spacing:1.5px;color:#a88cff;text-transform:uppercase}
-    .section-head h2{font-size:clamp(32px,5vw,52px);margin:12px 0}
-    .section-head p{color:var(--muted);margin:0}
+.preview-wrap{margin-top:55px}
+.preview{
+  position:relative;
+  max-width:1020px;
+  margin:auto;
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:linear-gradient(180deg,rgba(20,20,30,.9),rgba(11,11,17,.9));
+  box-shadow:var(--shadow),0 0 100px rgba(124,58,237,.08);
+  overflow:hidden;
+}
+.preview-top{
+  height:45px;
+  padding:0 17px;
+  border-bottom:1px solid var(--line2);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.window-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#3b3b48;
+}
+.preview-body{
+  padding:30px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:22px;
+  text-align:left;
+}
+.preview-card{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.025);
+  border-radius:17px;
+  padding:22px;
+}
+.preview-card h3{margin:0 0 8px;font-size:16px}
+.preview-card p{margin:0;color:var(--muted);font-size:13px}
+.mini-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:18px;
+}
+.mini{
+  padding:12px;
+  border-radius:11px;
+  border:1px solid var(--line2);
+  color:#bbb;
+  font-size:12px;
+  background:rgba(255,255,255,.025);
+}
 
-    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-    .feature{
-      border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.018));
-      border-radius:18px;padding:22px;min-height:185px;transition:.2s;
-    }
-    .feature:hover{transform:translateY(-3px);border-color:var(--line2)}
-    .feature-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:rgba(145,92,255,.12);color:#b89aff;margin-bottom:18px}
-    .feature h3{font-size:18px;margin-bottom:7px}
-    .feature p{font-size:13px;color:var(--muted);margin:0}
+.section{padding:90px 0}
+.section-head{text-align:center;max-width:700px;margin:0 auto 45px}
+.section-head h2{
+  font-size:clamp(32px,5vw,48px);
+  letter-spacing:-2px;
+  margin:13px 0;
+}
+.section-head p{color:var(--muted);margin:0}
 
-    .studio-shell{
-      border:1px solid var(--line2);border-radius:24px;background:rgba(12,12,17,.86);
-      box-shadow:var(--shadow);overflow:hidden;
-    }
-    .studio-top{
-      padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;
-    }
-    .studio-title{font-family:"Space Grotesk";font-weight:700}
-    .plan-badge{font-size:11px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.06);color:#aaa}
-    .studio-layout{display:grid;grid-template-columns:245px 1fr;min-height:610px}
-    .workflow-nav{padding:18px;border-right:1px solid var(--line)}
-    .workflow{
-      width:100%;text-align:left;border:1px solid transparent;background:transparent;color:#90909d;
-      border-radius:12px;padding:12px;margin:3px 0;display:flex;gap:10px;align-items:center;
-    }
-    .workflow:hover{background:rgba(255,255,255,.035);color:#fff}
-    .workflow.active{background:linear-gradient(90deg,rgba(143,89,255,.15),rgba(143,89,255,.04));border-color:rgba(143,89,255,.2);color:#fff}
-    .workflow-icon{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.05);display:grid;place-items:center;font-size:12px}
-    .workflow-text strong{display:block;font-size:13px}
-    .workflow-text small{display:block;color:#6e6e7a;font-size:10px;margin-top:2px}
-    .studio-main{padding:28px}
-    .mode-title{font-size:30px;margin-bottom:7px}
-    .mode-desc{color:var(--muted);font-size:13px;margin:0 0 22px}
-    .quick-prompts{display:flex;gap:7px;overflow:auto;padding-bottom:8px;margin-bottom:10px}
-    .quick{
-      white-space:nowrap;border:1px solid var(--line);background:rgba(255,255,255,.025);color:#aaaabb;
-      border-radius:999px;padding:7px 10px;font-size:11px;
-    }
-    .quick:hover{color:#fff;border-color:var(--line2)}
-    .prompt-wrap{position:relative}
-    textarea{
-      width:100%;min-height:175px;resize:vertical;color:#eee;background:#09090d;border:1px solid var(--line2);
-      border-radius:16px;padding:16px;outline:none;transition:.2s;
-    }
-    textarea:focus{border-color:rgba(150,103,255,.65);box-shadow:0 0 0 4px rgba(150,103,255,.08)}
-    .prompt-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:8px;color:#686875;font-size:11px}
-    .generate-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-    .generate-row .btn-primary{min-width:160px}
-    .result-area{margin-top:24px}
-    .result-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
-    .result-head h3{font-size:17px}
-    .result-actions{display:flex;gap:6px;flex-wrap:wrap}
-    .result-card{
-      border:1px solid var(--line2);background:#0b0b10;border-radius:16px;padding:20px;
-      min-height:130px;
-    }
-    .result-content{font-size:14px;color:#dddde6}
-    .result-content h4{font-family:"Space Grotesk";font-size:18px;color:#fff;margin:20px 0 8px}
-    .result-content h4:first-child{margin-top:0}
-    .result-content p{margin:8px 0;color:#c7c7d1}
-    .result-content ul{margin:8px 0 14px;padding-left:20px}
-    .result-content li{margin:5px 0}
-    .result-content strong{color:#fff}
-    .empty-result{color:#6f6f7b;text-align:center;padding:45px 15px}
-    .loading{
-      display:flex;align-items:center;gap:10px;color:#aaa;padding:30px 5px;
-    }
-    .spinner{width:18px;height:18px;border:2px solid #363640;border-top-color:#a277ff;border-radius:50%;animation:spin .7s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
+.features{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+.feature{
+  padding:25px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.025);
+  border-radius:18px;
+  transition:.25s;
+}
+.feature:hover{
+  transform:translateY(-3px);
+  border-color:rgba(139,92,246,.28);
+}
+.feature-icon{
+  width:42px;height:42px;
+  display:grid;place-items:center;
+  border-radius:12px;
+  background:rgba(139,92,246,.12);
+  color:#c4b5fd;
+  margin-bottom:18px;
+}
+.feature h3{margin:0 0 8px;font-size:17px}
+.feature p{margin:0;color:var(--muted);font-size:14px}
 
-    .pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
-    .price-card{position:relative;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.025);padding:25px}
-    .price-card.featured{border-color:rgba(157,105,255,.55);box-shadow:0 0 55px rgba(113,65,255,.12)}
-    .popular{position:absolute;right:17px;top:17px;background:rgba(157,105,255,.15);border:1px solid rgba(157,105,255,.25);color:#c9b6ff;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:800}
-    .price-name{font-family:"Space Grotesk";font-size:19px}
-    .price{font-family:"Space Grotesk";font-size:43px;margin:16px 0 3px}
-    .price span{font-size:13px;color:#777783;font-family:"DM Sans"}
-    .price-desc{color:var(--muted);font-size:12px;min-height:40px}
-    .price-list{list-style:none;padding:0;margin:22px 0}
-    .price-list li{font-size:12px;color:#c6c6d0;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-    .price-list li:before{content:"✓";color:var(--green);margin-right:8px}
-    .price-card .btn{width:100%}
+.studio-shell{
+  border:1px solid var(--line);
+  background:rgba(12,12,18,.88);
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.studio-top{
+  padding:18px 20px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.studio-brand strong{font-size:15px}
+.studio-brand small{
+  display:block;
+  color:var(--muted2);
+  margin-top:2px;
+}
+.usage-wrap{
+  display:flex;
+  gap:7px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.plan-badge,.usage-badge{
+  font-size:11px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  color:#aaa;
+  border:1px solid var(--line2);
+}
+.plan-badge{color:#d6bcff}
+.usage-badge{color:#9ca3af}
 
-    .faq{max-width:800px;margin:auto}
-    .faq-item{border-bottom:1px solid var(--line)}
-    .faq-q{width:100%;padding:18px 0;background:none;border:0;color:#eee;display:flex;justify-content:space-between;text-align:left;font-weight:700}
-    .faq-q span{color:#888}
-    .faq-a{display:none;color:#8f8f9c;font-size:13px;padding:0 30px 18px 0}
-    .faq-item.open .faq-a{display:block}
+.studio-layout{
+  display:grid;
+  grid-template-columns:245px 1fr;
+  min-height:650px;
+}
+.workflow-nav{
+  padding:18px;
+  border-right:1px solid var(--line);
+}
+.workflow{
+  width:100%;
+  border:1px solid transparent;
+  background:transparent;
+  color:#aaa;
+  padding:12px;
+  border-radius:13px;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  text-align:left;
+  margin-bottom:6px;
+  position:relative;
+}
+.workflow:hover{background:rgba(255,255,255,.035);color:white}
+.workflow.active{
+  background:rgba(139,92,246,.10);
+  border-color:rgba(139,92,246,.2);
+  color:white;
+}
+.workflow-icon{
+  width:29px;height:29px;
+  display:grid;place-items:center;
+  border-radius:9px;
+  background:rgba(255,255,255,.055);
+  flex:none;
+}
+.workflow-text strong{
+  display:block;
+  font-size:12px;
+}
+.workflow-text small{
+  display:block;
+  color:#6f6f7c;
+  font-size:10px;
+  margin-top:2px;
+}
+.pro-label{
+  margin-left:auto;
+  font-size:8px;
+  padding:3px 5px;
+  border-radius:5px;
+  background:rgba(139,92,246,.15);
+  color:#c4b5fd;
+  font-weight:800;
+}
+.studio-main{padding:25px}
+.mode-head{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:flex-start;
+}
+.mode-head h2{margin:0;font-size:24px;letter-spacing:-.8px}
+.mode-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.status{
+  display:none;
+  padding:7px 10px;
+  border-radius:8px;
+  font-size:11px;
+  background:rgba(52,211,153,.08);
+  color:#6ee7b7;
+}
+.form-grid{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:12px;
+  margin-top:22px;
+}
+.field label{
+  display:block;
+  color:#8c8c9b;
+  font-size:11px;
+  font-weight:700;
+  margin:0 0 7px 2px;
+}
+.select,.prompt{
+  width:100%;
+  border:1px solid var(--line);
+  background:#0d0d14;
+  color:white;
+  outline:none;
+  border-radius:12px;
+}
+.select{
+  height:46px;
+  padding:0 12px;
+}
+.prompt{
+  min-height:155px;
+  resize:vertical;
+  padding:15px;
+  font-size:14px;
+  line-height:1.55;
+}
+.select:focus,.prompt:focus{
+  border-color:rgba(139,92,246,.55);
+  box-shadow:0 0 0 3px rgba(139,92,246,.08);
+}
+.prompt::placeholder{color:#555563}
 
-    .contact-card{
-      text-align:center;padding:50px 25px;border:1px solid var(--line);border-radius:24px;
-      background:radial-gradient(circle at 50% 0%,rgba(132,77,255,.14),transparent 55%),rgba(255,255,255,.02)
-    }
-    .contact-card h2{font-size:42px;margin:12px 0}
-    .contact-card p{max-width:600px;margin:0 auto 24px;color:var(--muted)}
-    .contact-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.quick-title{
+  color:#777785;
+  font-size:10px;
+  margin:15px 0 8px;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+}
+.quick{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.quick button{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.025);
+  color:#9999a7;
+  padding:7px 10px;
+  border-radius:8px;
+  font-size:11px;
+}
+.quick button:hover{color:white;background:rgba(255,255,255,.06)}
+.generate-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-top:17px;
+}
+.counter{font-size:11px;color:#6d6d7b}
+.result{
+  margin-top:22px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,.025);
+  min-height:220px;
+  overflow:hidden;
+}
+.empty-result{
+  min-height:220px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  padding:35px;
+  color:#656573;
+  font-size:13px;
+}
+.result-content{
+  padding:22px;
+  white-space:pre-wrap;
+  color:#d7d7df;
+  font-size:14px;
+  line-height:1.75;
+}
+.result-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 18px;
+  border-bottom:1px solid var(--line2);
+}
+.result-head strong{font-size:12px}
+.result-head span{font-size:10px;color:#70707e}
+.result-actions{
+  display:none;
+  padding:12px 18px;
+  border-top:1px solid var(--line2);
+  gap:7px;
+  flex-wrap:wrap;
+}
+.result-actions .btn{font-size:11px;padding:8px 11px}
 
-    footer{border-top:1px solid var(--line);padding:28px 0;color:#696975;font-size:12px}
-    .footer-inner{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
-    .footer-links{display:flex;gap:18px}
-    .footer-links a:hover{color:#fff}
+.limit-box{
+  text-align:center;
+  padding:40px 25px;
+}
+.limit-box h3{margin:0 0 9px;font-size:20px}
+.limit-box p{color:var(--muted);max-width:530px;margin:0 auto 20px;font-size:13px}
+.limit-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
 
-    .toast{
-      position:fixed;right:18px;bottom:18px;z-index:100;transform:translateY(20px);opacity:0;pointer-events:none;
-      background:#17171f;border:1px solid var(--line2);box-shadow:var(--shadow);padding:12px 15px;border-radius:12px;font-size:12px;transition:.25s;
-    }
-    .toast.show{transform:translateY(0);opacity:1}
+.lock-box{
+  text-align:center;
+  padding:45px 20px;
+}
+.lock-icon{
+  width:52px;height:52px;
+  display:grid;place-items:center;
+  margin:0 auto 15px;
+  border-radius:15px;
+  background:rgba(139,92,246,.12);
+  color:#c4b5fd;
+  font-size:22px;
+}
+.lock-box h3{margin:0 0 7px}
+.lock-box p{color:var(--muted);font-size:13px;max-width:480px;margin:0 auto 18px}
 
-    .modal{
-      position:fixed;inset:0;z-index:90;display:none;place-items:center;padding:20px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);
-    }
-    .modal.show{display:grid}
-    .modal-box{width:min(520px,100%);border:1px solid var(--line2);border-radius:20px;background:#101017;box-shadow:var(--shadow);padding:25px}
-    .modal-box h3{font-size:25px}
-    .modal-box p{color:var(--muted);font-size:13px}
-    .modal-actions{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap}
+.workflow-strip{
+  margin-top:28px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+.strip-item{
+  border:1px solid var(--line);
+  border-radius:13px;
+  padding:15px;
+  color:#999;
+  font-size:12px;
+  background:rgba(255,255,255,.02);
+}
+.strip-item strong{display:block;color:#ddd;margin-bottom:4px}
 
-    .history-list{display:grid;gap:9px;margin-top:14px}
-    .history-item{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;justify-content:space-between;gap:10px;align-items:center}
-    .history-item strong{font-size:12px}
-    .history-item small{display:block;color:#70707c;margin-top:3px}
+.pricing{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:15px;
+  align-items:stretch;
+}
+.price-card{
+  border:1px solid var(--line);
+  border-radius:21px;
+  padding:27px;
+  background:rgba(255,255,255,.025);
+  position:relative;
+}
+.price-card.featured{
+  border-color:rgba(139,92,246,.42);
+  background:linear-gradient(180deg,rgba(139,92,246,.09),rgba(255,255,255,.025));
+  box-shadow:0 20px 70px rgba(124,58,237,.12);
+}
+.popular{
+  position:absolute;
+  top:16px;
+  right:16px;
+  padding:5px 8px;
+  border-radius:999px;
+  font-size:9px;
+  color:#ddd;
+  background:rgba(139,92,246,.18);
+}
+.price-card h3{margin:0;font-size:18px}
+.price{
+  font-size:43px;
+  letter-spacing:-2px;
+  font-weight:800;
+  margin:12px 0 3px;
+}
+.price small{font-size:12px;color:#777}
+.price-desc{font-size:12px;color:#888;margin-bottom:20px}
+.price-list{
+  list-style:none;
+  padding:0;
+  margin:0 0 22px;
+}
+.price-list li{
+  padding:8px 0;
+  color:#aaa;
+  font-size:12px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.price-list li:before{
+  content:"✓";
+  color:#a78bfa;
+  margin-right:8px;
+}
+.price-card .btn{width:100%}
 
-    @media(max-width:900px){
-      .nav-links{display:none}
-      .mobile-menu{display:inline-flex}
-      .features,.pricing{grid-template-columns:1fr}
-      .studio-layout{grid-template-columns:1fr}
-      .workflow-nav{border-right:0;border-bottom:1px solid var(--line);display:flex;overflow:auto;gap:5px;padding:12px}
-      .workflow{min-width:155px;margin:0}
-      .workflow-text small{display:none}
-      .preview-body{grid-template-columns:1fr}
-      .preview-side{display:none}
-    }
-    @media(max-width:620px){
-      .container{width:min(100% - 24px,var(--max))}
-      .nav-inner{height:64px}
-      .nav-actions .btn-secondary{display:none}
-      .hero{padding:65px 0 45px}
-      .hero h1{font-size:46px;letter-spacing:-2.5px}
-      .hero p{font-size:15px}
-      .section{padding:60px 0}
-      .studio-main{padding:18px}
-      .studio-top{padding:15px}
-      .mode-title{font-size:26px}
-      .fake-output{grid-template-columns:1fr}
-      .contact-card h2{font-size:34px}
-      .price{font-size:38px}
-    }
-  </style>
+.faq{max-width:800px;margin:auto}
+.faq-item{
+  border:1px solid var(--line);
+  border-radius:13px;
+  margin-bottom:8px;
+  overflow:hidden;
+  background:rgba(255,255,255,.02);
+}
+.faq-q{
+  width:100%;
+  border:0;
+  background:none;
+  color:white;
+  padding:18px;
+  text-align:left;
+  display:flex;
+  justify-content:space-between;
+  font-weight:650;
+  font-size:14px;
+}
+.faq-q span{color:#888}
+.faq-a{
+  display:none;
+  padding:0 18px 18px;
+  color:#90909e;
+  font-size:13px;
+}
+.faq-item.open .faq-a{display:block}
+
+.contact-card{
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:40px;
+  text-align:center;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(139,92,246,.13),transparent 50%),
+    rgba(255,255,255,.025);
+}
+.contact-card h2{margin:0 0 10px;font-size:32px;letter-spacing:-1px}
+.contact-card p{color:var(--muted);font-size:14px}
+.email{
+  display:inline-flex;
+  margin-top:12px;
+  color:#c4b5fd;
+  font-weight:700;
+}
+
+.footer{
+  border-top:1px solid var(--line2);
+  padding:30px 0;
+  color:#686875;
+  font-size:11px;
+}
+.footer-inner{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+}
+.footer-links{display:flex;gap:18px}
+.footer-links a:hover{color:white}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:25px;
+  transform:translate(-50%,20px);
+  background:#15151e;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  color:white;
+  padding:11px 15px;
+  border-radius:11px;
+  font-size:12px;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+  z-index:999;
+}
+.toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+
+.spinner{
+  width:15px;
+  height:15px;
+  border:2px solid rgba(255,255,255,.25);
+  border-top-color:white;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  .nav-links{display:none}
+  .mobile-menu{display:block}
+  .features{grid-template-columns:1fr 1fr}
+  .pricing{grid-template-columns:1fr}
+  .studio-layout{grid-template-columns:1fr}
+  .workflow-nav{
+    border-right:0;
+    border-bottom:1px solid var(--line);
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+  }
+  .workflow{margin:0}
+  .workflow-strip{grid-template-columns:1fr 1fr}
+}
+
+@media(max-width:620px){
+  .container{width:min(100% - 24px,1180px)}
+  .hero{padding:65px 0 45px}
+  .hero h1{letter-spacing:-2.5px}
+  .hero p{font-size:15px}
+  .preview-body{grid-template-columns:1fr;padding:16px}
+  .preview-card:nth-child(2){display:none}
+  .section{padding:65px 0}
+  .features{grid-template-columns:1fr}
+  .studio-top{align-items:flex-start}
+  .studio-main{padding:17px}
+  .form-grid{grid-template-columns:1fr}
+  .generate-row{align-items:stretch;flex-direction:column}
+  .generate-row .btn{width:100%}
+  .workflow-nav{grid-template-columns:1fr}
+  .mode-head{display:block}
+  .status{margin-top:12px}
+  .contact-card{padding:28px 18px}
+  .footer-inner{flex-direction:column}
+  .nav-actions .btn:first-child{display:none}
+}
+</style>
 </head>
 
 <body>
-  <div id="toast" class="toast"></div>
 
-  <header class="nav">
-    <div class="container nav-inner">
-      <a class="logo" href="#">
-        <span class="logo-mark">F</span>
-        <span>Faceless<span style="color:#a786ff">AI</span></span>
-      </a>
+<header class="nav">
+  <div class="container nav-inner">
+    <a href="#" class="logo">
+      <span class="logo-mark">F</span>
+      <span>FacelessAI</span>
+    </a>
 
-      <nav class="nav-links">
-        <a href="#studio">Studio</a>
-        <a href="#features">Features</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#faq">FAQ</a>
-        <a href="#contact">Contact</a>
-      </nav>
+    <nav class="nav-links">
+      <a href="#studio">Studio</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
+    </nav>
 
-      <div class="nav-actions">
-        <a class="btn btn-secondary" href="#pricing">Pricing</a>
-        <a class="btn btn-primary" href="#studio">Open Studio →</a>
-        <button class="btn btn-sm mobile-menu" onclick="document.getElementById('studio').scrollIntoView({behavior:'smooth'})">Studio</button>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero">
-      <div class="container">
-        <div class="pill"><span class="dot"></span> AI-powered growth workspace</div>
-        <h1>One idea.<br><span class="gradient-text">An entire marketing engine.</span></h1>
-        <p>FacelessAI turns a rough idea into offers, landing-page copy, outreach, ads and content you can actually use.</p>
-
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="#studio">Create your first asset ⚡</a>
-          <a class="btn" href="#features">See how it works</a>
-        </div>
-
-        <div class="hero-proof">
-          <span>6 growth workflows</span>
-          <span>Copy-ready outputs</span>
-          <span>Built for creators & businesses</span>
-        </div>
-
-        <div class="product-preview">
-          <div class="window-bar"><i></i><i></i><i></i></div>
-          <div class="preview-body">
-            <div class="preview-side">
-              <div class="mini-label">Growth Studio</div>
-              <div class="mini-item active">✦ Offer Builder</div>
-              <div class="mini-item">▣ Landing Page</div>
-              <div class="mini-item">✉ Cold Email</div>
-              <div class="mini-item">↗ Sales DM</div>
-              <div class="mini-item">◈ Ad Campaign</div>
-              <div class="mini-item">✦ Content Pack</div>
-            </div>
-            <div class="preview-main">
-              <div class="mini-kicker">OFFER BUILDER</div>
-              <h3>Turn your idea into an offer people understand.</h3>
-              <p>Describe what you sell. FacelessAI structures the positioning, promise, benefits and CTA.</p>
-              <div class="fake-output">
-                <div class="fake-card"><strong>Positioning</strong><div></div><div></div></div>
-                <div class="fake-card"><strong>Benefits</strong><div></div><div></div></div>
-                <div class="fake-card"><strong>CTA</strong><div></div><div></div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="features">
-      <div class="container">
-        <div class="section-head">
-          <div class="eyebrow">Built around the work</div>
-          <h2>From blank page to usable growth assets.</h2>
-          <p>No complicated marketing dashboard. Pick a workflow, describe your idea and get a structured result.</p>
-        </div>
-
-        <div class="features">
-          <article class="feature">
-            <div class="feature-icon">✦</div>
-            <h3>One idea, multiple assets</h3>
-            <p>Turn the same business idea into offers, landing copy, outreach, ads and content without starting from zero.</p>
-          </article>
-          <article class="feature">
-            <div class="feature-icon">⌁</div>
-            <h3>Copy-ready output</h3>
-            <p>Results are structured into sections so you can copy, edit, save or download them quickly.</p>
-          </article>
-          <article class="feature">
-            <div class="feature-icon">◈</div>
-            <h3>Built for real businesses</h3>
-            <p>Useful for creators, freelancers, agencies, founders and small businesses—not just generic brainstorming.</p>
-          </article>
-          <article class="feature">
-            <div class="feature-icon">↗</div>
-            <h3>Campaign thinking</h3>
-            <p>Pro is designed around connected marketing work instead of isolated AI answers.</p>
-          </article>
-          <article class="feature">
-            <div class="feature-icon">⌘</div>
-            <h3>Fast workflow</h3>
-            <p>Quick prompts, clean states and one-click actions keep the process simple on mobile and desktop.</p>
-          </article>
-          <article class="feature">
-            <div class="feature-icon">✓</div>
-            <h3>No fake proof</h3>
-            <p>FacelessAI does not pretend to have customers, revenue numbers or guaranteed results it cannot verify.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="studio">
-      <div class="container">
-        <div class="section-head">
-          <div class="eyebrow">Growth Studio</div>
-          <h2>Your marketing workspace.</h2>
-          <p>Choose a workflow and give the Copilot enough context to create something useful.</p>
-        </div>
-
-        <div class="studio-shell">
-          <div class="studio-top">
-            <div>
-              <div class="studio-title">FacelessAI Growth Copilot</div>
-              <span class="plan-badge" id="planBadge">Free preview</span>
-            </div>
-            <button class="btn btn-sm" onclick="showHistory()">History</button>
-          </div>
-
-          <div class="studio-layout">
-            <aside class="workflow-nav" id="workflowNav"></aside>
-
-            <section class="studio-main">
-              <h2 class="mode-title" id="modeTitle">Offer Builder</h2>
-              <p class="mode-desc" id="modeDesc">Create a clear, specific offer around your product or service.</p>
-
-              <div class="quick-prompts" id="quickPrompts"></div>
-
-              <div class="prompt-wrap">
-                <textarea id="prompt" maxlength="2000" placeholder="Example: I run a dental clinic in Delhi. We offer general dentistry and cosmetic treatments. We want more local patients and our website needs better positioning."></textarea>
-              </div>
-
-              <div class="prompt-bottom">
-                <span>Tip: include your audience, offer, problem and desired outcome.</span>
-                <span id="counter">0 / 2000</span>
-              </div>
-
-              <div class="generate-row">
-                <button class="btn btn-primary" id="generateBtn" onclick="generateAsset()">Generate with AI ⚡</button>
-                <button class="btn" onclick="useExample()">Use example</button>
-                <button class="btn" onclick="clearPrompt()">Clear</button>
-              </div>
-
-              <div class="result-area">
-                <div class="result-head">
-                  <h3 id="resultTitle">Your result</h3>
-                  <div class="result-actions" id="resultActions" style="display:none">
-                    <button class="btn btn-sm" onclick="copyAll()">Copy all</button>
-                    <button class="btn btn-sm" onclick="saveResult()">Save</button>
-                    <button class="btn btn-sm" onclick="downloadResult()">Download</button>
-                    <button class="btn btn-sm" onclick="shareResult()">Share</button>
-                    <button class="btn btn-sm" onclick="generateAsset()">Regenerate</button>
-                  </div>
-                </div>
-                <div class="result-card" id="resultCard">
-                  <div class="empty-result">Your finished marketing asset will appear here.</div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="pricing">
-      <div class="container">
-        <div class="section-head">
-          <div class="eyebrow">Simple pricing</div>
-          <h2>Start small. Upgrade when you need more.</h2>
-          <p>Clear differences between plans. No fake guarantees, fake customer counts or hidden “magic” claims.</p>
-        </div>
-
-        <div class="pricing">
-          <article class="price-card">
-            <div class="price-name">Free</div>
-            <div class="price">$0 <span>/ forever</span></div>
-            <div class="price-desc">Try the core workflows and see whether FacelessAI fits your process.</div>
-            <ul class="price-list">
-              <li>3 AI generations / month</li>
-              <li>All 6 core workflows</li>
-              <li>Copy results</li>
-              <li>Basic download</li>
-              <li>Mobile-friendly Studio</li>
-            </ul>
-            <a class="btn" href="#studio">Try free</a>
-          </article>
-
-          <article class="price-card featured">
-            <div class="popular">MOST POPULAR</div>
-            <div class="price-name">Starter</div>
-            <div class="price">$9 <span>/ month</span></div>
-            <div class="price-desc">For creators, freelancers and small businesses doing marketing regularly.</div>
-            <ul class="price-list">
-              <li>100 AI generations / month</li>
-              <li>All 6 core workflows</li>
-              <li>Save & history</li>
-              <li>Copy, download & share</li>
-              <li>Regenerate workflows</li>
-              <li>Deeper marketing outputs</li>
-            </ul>
-            <a class="btn btn-primary" href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1">Get Starter →</a>
-          </article>
-
-          <article class="price-card">
-            <div class="price-name">Pro</div>
-            <div class="price">$29 <span>/ month</span></div>
-            <div class="price-desc">For people who want to turn one brief into a coordinated marketing campaign.</div>
-            <ul class="price-list">
-              <li>500 AI generations / month</li>
-              <li>Everything in Starter</li>
-              <li>Campaign Builder</li>
-              <li>Multi-asset campaign generation</li>
-              <li>Advanced content depth</li>
-              <li>Brand/voice workflow controls</li>
-            </ul>
-            <a class="btn btn-cyan" href="https://checkout.dodopayments.com/buy/pdt_0Nor4IRUyNeuBzfuxt6wI?quantity=1">Get Pro →</a>
-          </article>
-        </div>
-
-        <p style="text-align:center;color:#666673;font-size:11px;margin-top:18px">
-          Generation allowances and secure subscription enforcement are controlled by the backend. This frontend does not treat a checkout click as proof of payment.
-        </p>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <div class="section-head">
-          <div class="eyebrow">How it works</div>
-          <h2>Three steps. Less blank-page work.</h2>
-        </div>
-        <div class="features">
-          <article class="feature">
-            <div class="feature-icon">01</div>
-            <h3>Describe the idea</h3>
-            <p>Tell FacelessAI what you sell, who it is for and what you want to achieve.</p>
-          </article>
-          <article class="feature">
-            <div class="feature-icon">02</div>
-            <h3>Choose a workflow</h3>
-            <p>Pick the exact marketing asset you need instead of asking an AI to “do everything.”</p>
-          </article>
-          <article class="feature">
-            <div class="feature-icon">03</div>
-            <h3>Use the output</h3>
-            <p>Copy, save, download, share or regenerate the result and move on to execution.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="faq">
-      <div class="container">
-        <div class="section-head">
-          <div class="eyebrow">FAQ</div>
-          <h2>Questions, answered.</h2>
-        </div>
-
-        <div class="faq">
-          <div class="faq-item">
-            <button class="faq-q" onclick="toggleFaq(this)">What does FacelessAI generate?<span>+</span></button>
-            <div class="faq-a">The current Growth Copilot includes Offer Builder, Landing Page Copy, Cold Email, Sales DM, Ad Campaign and Content Pack workflows.</div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-q" onclick="toggleFaq(this)">Can I use the generated copy directly?<span>+</span></button>
-            <div class="faq-a">The outputs are designed to be copy-ready, but you should review and personalize them for your business before publishing or sending.</div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-q" onclick="toggleFaq(this)">Does FacelessAI guarantee sales or viral results?<span>+</span></button>
-            <div class="faq-a">No. AI can help create and organize marketing assets, but business outcomes depend on your offer, audience, execution, market and many other factors.</div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-q" onclick="toggleFaq(this)">Where can I get support?<span>+</span></button>
-            <div class="faq-a">Email <a style="color:#b99cff" href="mailto:jashofficial.support@gmail.com">jashofficial.support@gmail.com</a> for product, subscription or payment support.</div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-q" onclick="toggleFaq(this)">What is the difference between Starter and Pro?<span>+</span></button>
-            <div class="faq-a">Starter is built for regular individual marketing workflows. Pro adds deeper campaign-oriented functionality, including the Campaign Builder experience.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="contact">
-      <div class="container">
-        <div class="contact-card">
-          <div class="eyebrow">Need help?</div>
-          <h2>Let's talk.</h2>
-          <p>Have aquestion about FacelessAI, your subscription, payment, or need support? Send us an email and we'll get back to you.</p>
-          <div class="contact-actions">
-            <a class="btn btn-primary" href="mailto:jashofficial.support@gmail.com">Contact Support →</a>
-            <a class="btn" href="mailto:jashofficial.support@gmail.com">jashofficial.support@gmail.com</a>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="container footer-inner">
-      <div>© 2026 FacelessAI. Growth tools for modern businesses.</div>
-      <div class="footer-links">
-        <a href="#pricing">Pricing</a>
-        <a href="#faq">FAQ</a>
-        <a href="#contact">Support</a>
-      </div>
-    </div>
-  </footer>
-
-  <div class="modal" id="historyModal" onclick="if(event.target===this)closeHistory()">
-    <div class="modal-box">
-      <div style="display:flex;justify-content:space-between;gap:15px;align-items:center">
-        <h3>Saved history</h3>
-        <button class="btn btn-sm" onclick="closeHistory()">Close</button>
-      </div>
-      <p>Saved results are stored on this device in your browser.</p>
-      <div id="historyList" class="history-list"></div>
+    <div class="nav-actions">
+      <a href="#pricing" class="btn">Pricing</a>
+      <a href="#studio" class="btn btn-primary">Open Studio →</a>
     </div>
   </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow"><span class="dot"></span> AI-powered growth system</span>
+
+    <h1>
+      One idea.<br>
+      <span class="gradient">An entire marketing engine.</span>
+    </h1>
+
+    <p>
+      FacelessAI turns a simple idea into offers, landing-page copy,
+      outreach, ads, content and complete campaigns.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#studio" class="btn btn-primary btn-large">Create with AI ⚡</a>
+      <a href="#features" class="btn btn-large">Explore the system</a>
+    </div>
+
+    <div class="hero-proof">
+      <span>✦ 7 growth workflows</span>
+      <span>✦ Built for creators & businesses</span>
+      <span>✦ Start free</span>
+    </div>
+
+    <div class="preview-wrap">
+      <div class="preview">
+        <div class="preview-top">
+          <span class="window-dot"></span>
+          <span class="window-dot"></span>
+          <span class="window-dot"></span>
+        </div>
+
+        <div class="preview-body">
+          <div class="preview-card">
+            <h3>Growth Copilot</h3>
+            <p>Choose a workflow, describe your idea and let AI build the marketing asset.</p>
+
+            <div class="mini-grid">
+              <div class="mini">✦ Offer Builder</div>
+              <div class="mini">▣ Landing Page</div>
+              <div class="mini">✉ Cold Email</div>
+              <div class="mini">↗ Sales DM</div>
+              <div class="mini">◈ Ad Campaign</div>
+              <div class="mini">✦ Content Pack</div>
+              <div class="mini">◈ Campaign Builder</div>
+            </div>
+          </div>
+
+          <div class="preview-card">
+            <h3>AI-generated output</h3>
+            <p>Structured, actionable marketing copy instead of a generic paragraph.</p>
+
+            <div style="margin-top:18px;padding:15px;border-radius:12px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.14)">
+              <div style="font-size:10px;color:#a78bfa;margin-bottom:7px">GROWTH ANGLE</div>
+              <div style="font-size:13px;color:#ddd">Clear positioning → stronger offer → better outreach → more ways to distribute.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Built for execution</span>
+      <h2>From blank page to growth assets.</h2>
+      <p>Instead of juggling multiple AI prompts, keep the entire marketing workflow inside one focused workspace.</p>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">✦</div>
+        <h3>Offer Builder</h3>
+        <p>Turn a vague product or service into a clearer, more specific offer.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">▣</div>
+        <h3>Landing Page</h3>
+        <p>Generate structured copy designed around attention, value and action.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">✉</div>
+        <h3>Cold Outreach</h3>
+        <p>Create concise email sequences and follow-ups for B2B prospecting.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">↗</div>
+        <h3>Sales DMs</h3>
+        <p>Build conversational outreach that feels natural instead of robotic.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">◈</div>
+        <h3>Ad Campaigns</h3>
+        <p>Generate hooks, angles, CTAs, audiences and creative concepts.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">✦</div>
+        <h3>Content Engine</h3>
+        <p>Turn one topic into a complete set of useful content ideas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="studio">
+  <div class="container">
+
+    <div class="section-head">
+  <span class="eyebrow">Growth Studio</span>
+  <h2>Give AI the idea. Get the engine.</h2>
+  <p>Pick a workflow, choose your niche and describe what you want to achieve.</p>
+    </div>
+        <div class="studio-shell">
+
+      <div class="studio-top">
+        <div class="studio-brand">
+          <strong>FacelessAI Growth Copilot</strong>
+          <small>Marketing workspace</small>
+        </div>
+
+        <div class="usage-wrap">
+          <span class="plan-badge" id="planBadge">Free</span>
+          <span class="usage-badge" id="usageBadge">0 / 3 used</span>
+        </div>
+      </div>
+
+      <div class="studio-layout">
+
+        <aside class="workflow-nav" id="workflowNav"></aside>
+
+        <div class="studio-main">
+
+          <div class="mode-head">
+            <div>
+              <h2 id="modeTitle">Offer Builder</h2>
+              <p id="modeDesc">Create a clear, specific offer around your product or service.</p>
+            </div>
+
+            <span class="status" id="status">Ready</span>
+          </div>
+
+          <div class="form-grid">
+
+            <div class="field">
+              <label>YOUR NICHE</label>
+
+              <select class="select" id="nicheSelect">
+                <option>AI & Tech</option>
+                <option>Business</option>
+                <option>Finance</option>
+                <option>Fitness</option>
+                <option>Gaming</option>
+                <option>Creator</option>
+                <option>E-commerce</option>
+                <option>Real Estate</option>
+                <option>Education</option>
+                <option>Food</option>
+                <option>Marketing</option>
+                <option>Local Services</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>WHAT DO YOU WANT TO BUILD?</label>
+
+              <textarea
+                id="prompt"
+                class="prompt"
+                maxlength="2000"
+                placeholder="I run a dental clinic in Delhi. We offer general dentistry and cosmetic treatments. We want more local patients and need a clearer offer."
+              ></textarea>
+            </div>
+
+          </div>
+
+          <div class="quick-title">Quick starts</div>
+
+          <div class="quick" id="quickPrompts"></div>
+
+          <div class="generate-row">
+
+            <span class="counter" id="counter">
+              0 / 2000 characters
+            </span>
+
+            <button
+              class="btn btn-primary btn-large"
+              id="generateBtn"
+              onclick="generateAsset()"
+            >
+              <span id="generateText">
+                Generate with AI ⚡
+              </span>
+            </button>
+
+          </div>
+
+          <div class="result" id="resultCard">
+
+            <div class="empty-result">
+              Your generated marketing asset will appear here.
+            </div>
+
+          </div>
+
+          <div class="result-actions" id="resultActions">
+
+            <button class="btn" onclick="copyResult()">
+              Copy
+            </button>
+
+            <button class="btn" onclick="saveResult()">
+              Save
+            </button>
+
+            <button class="btn" onclick="downloadResult()">
+              Download
+            </button>
+
+            <button class="btn" onclick="shareResult()">
+              Share
+            </button>
+
+            <button class="btn" onclick="regenerate()">
+              Regenerate
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="workflow-strip">
+
+      <div class="strip-item">
+        <strong>01 · Define</strong>
+        Describe your business and goal.
+      </div>
+
+      <div class="strip-item">
+        <strong>02 · Generate</strong>
+        AI creates the selected asset.
+      </div>
+
+      <div class="strip-item">
+        <strong>03 · Refine</strong>
+        Copy, save or regenerate.
+      </div>
+
+      <div class="strip-item">
+        <strong>04 · Execute</strong>
+        Take the output into your workflow.
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="pricing">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <span class="eyebrow">Simple pricing</span>
+
+      <h2>
+        Start small. Scale when you need more.
+      </h2>
+
+      <p>
+        Every plan is designed around a clear monthly generation limit.
+      </p>
+
+    </div>
+
+    <div class="pricing">
+
+      <div class="price-card">
+
+        <h3>Free</h3>
+
+        <div class="price">
+          $0
+        </div>
+
+        <div class="price-desc">
+          For trying the Growth Copilot.
+        </div>
+
+        <ul class="price-list">
+          <li>3 AI generations / month</li>
+          <li>All 6 core workflows</li>
+          <li>Copy results</li>
+          <li>Basic download</li>
+          <li>Mobile-friendly Studio</li>
+        </ul>
+
+        <a href="#studio" class="btn">
+          Start free
+        </a>
+
+      </div>
+
+      <div class="price-card featured">
+
+        <span class="popular">
+          MOST POPULAR
+        </span>
+
+        <h3>Starter</h3>
+
+        <div class="price">
+          $9 <small>/ month</small>
+        </div>
+
+        <div class="price-desc">
+          For creators, freelancers and small businesses.
+        </div>
+
+        <ul class="price-list">
+          <li>100 AI generations / month</li>
+          <li>All 6 core workflows</li>
+          <li>Save & history</li>
+          <li>Copy, download & share</li>
+          <li>Regenerate workflows</li>
+          <li>Deeper marketing outputs</li>
+        </ul>
+
+        <a
+          class="btn btn-primary"
+          href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1"
+          target="_blank"
+          rel="noopener"
+        >
+          Get Starter — $9
+        </a>
+
+      </div>
+
+      <div class="price-card">
+
+        <h3>Pro</h3>
+
+        <div class="price">
+          $29 <small>/ month</small>
+        </div>
+
+        <div class="price-desc">
+          For serious growth workflows and campaigns.
+        </div>
+
+        <ul class="price-list">
+          <li>500 AI generations / month</li>
+          <li>Everything in Starter</li>
+          <li>Campaign Builder</li>
+          <li>Multi-asset campaign generation</li>
+          <li>Advanced content depth</li>
+          <li>Brand/voice workflow controls</li>
+        </ul>
+
+        <a
+          class="btn btn-primary"
+          href="https://checkout.dodopayments.com/buy/pdt_0Nor4IRUyNeuBzfuxt6wI?quantity=1"
+          target="_blank"
+          rel="noopener"
+        >
+          Get Pro — $29
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<section class="section" id="faq">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <span class="eyebrow">FAQ</span>
+
+      <h2>
+        Questions, answered.
+      </h2>
+
+    </div>
+
+    <div class="faq">
+
+      <div class="faq-item">
+
+        <button
+          class="faq-q"
+          onclick="toggleFaq(this)"
+        >
+          What does FacelessAI generate?
+          <span>+</span>
+        </button>
+
+        <div class="faq-a">
+          FacelessAI generates structured marketing assets such as offers,
+          landing-page copy, cold emails, sales DMs, ad campaigns, content packs
+          and complete campaigns on the Pro plan.
+        </div>
+
+      </div>
+
+      <div class="faq-item">
+
+        <button
+          class="faq-q"
+          onclick="toggleFaq(this)"
+        >
+          How do the monthly generations work?
+          <span>+</span>
+        </button>
+
+        <div class="faq-a">
+          Free includes 3 generations, Starter includes 100 and Pro includes 500
+          generations per month.
+        </div>
+
+      </div>
+
+      <div class="faq-item">
+
+        <button
+          class="faq-q"
+          onclick="toggleFaq(this)"
+        >
+          What happens when I reach my limit?
+          <span>+</span>
+        </button>
+
+        <div class="faq-a">
+          The Studio shows your exact usage and gives you the relevant upgrade
+          option instead of showing a generic generation error.
+        </div>
+
+      </div>
+
+      <div class="faq-item">
+
+        <button
+          class="faq-q"
+          onclick="toggleFaq(this)"
+        >
+          Is Campaign Builder included in Free?
+          <span>+</span>
+        </button>
+
+        <div class="faq-a">
+          Campaign Builder is a Pro workflow. The six core workflows are available
+          separately according to the selected plan.
+        </div>
+
+      </div>
+
+      <div class="faq-item">
+
+        <button
+          class="faq-q"
+          onclick="toggleFaq(this)"
+        >
+          Can I use FacelessAI from my phone?
+          <span>+</span>
+        </button>
+
+        <div class="faq-a">
+          Yes. The Studio is designed to work on mobile browsers as well as desktop.
+        </div>
+
+      </div>
+
+      <div class="faq-item">
+
+        <button
+          class="faq-q"
+          onclick="toggleFaq(this)"
+        >
+          Who can I contact for support?
+          <span>+</span>
+        </button>
+
+        <div class="faq-a">
+          You can contact the FacelessAI support team at
+          jashofficial.support@gmail.com.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<section class="section" id="contact">
+
+  <div class="container">
+
+    <div class="contact-card">
+
+      <span class="eyebrow">
+        Need help?
+      </span>
+
+      <h2>
+        Let's get your growth engine moving.
+      </h2>
+
+      <p>
+        If you have a question about FacelessAI, plans or your account, reach out.
+      </p>
+
+      <a
+        class="email"
+        href="mailto:jashofficial.support@gmail.com"
+      >
+        jashofficial.support@gmail.com
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+<footer class="footer">
+
+  <div class="container footer-inner">
+
+    <div>
+      © 2026 FacelessAI. Turn ideas into growth.
+    </div>
+
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Support</a>
+    </div>
+
+  </div>
+
+</footer>
+
+<div class="toast" id="toast"></div>
 
 <script>
-const BACKEND_URL = "https://faceless-ai-website.onrender.com";
+"use strict";
+
+const BACKEND_URL =
+  "https://faceless-ai-website.onrender.com";
+
+const DODO_STARTER =
+  "https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1";
+
+const DODO_PRO =
+  "https://checkout.dodopayments.com/buy/pdt_0Nor4IRUyNeuBzfuxt6wI?quantity=1";
+
+let currentPlan = "free";
+
+const planLimits = {
+  free:3,
+  starter:100,
+  pro:500
+};
+
+const planNames = {
+  free:"Free",
+  starter:"Starter",
+  pro:"Pro"
+};
 
 const workflows = {
-  offer: {
+
+  offer:{
     name:"Offer Builder",
     short:"Build a stronger offer",
     desc:"Create a clear, specific offer around your product or service.",
     icon:"✦",
     example:"I run a dental clinic in Delhi. We offer general dentistry and cosmetic treatments. We want more local patients and need a clearer offer."
   },
-  landing: {
+
+  landing:{
     name:"Landing Page",
     short:"Write conversion-focused copy",
     desc:"Create structured landing-page copy for a product, service or campaign.",
     icon:"▣",
     example:"We build fast websites for local dentists in India. Our goal is to turn more website visitors into appointment enquiries."
   },
-  email: {
+
+  email:{
     name:"Cold Email",
     short:"Start B2B conversations",
     desc:"Create concise, natural cold outreach with useful follow-ups.",
     icon:"✉",
     example:"I sell website redesign services to independent dental clinics. I want to contact clinic owners who have outdated websites."
   },
-  dm: {
+
+  dm:{
     name:"Sales DM",
     short:"Write natural outreach",
     desc:"Create a conversational sales DM sequence that does not feel spammy.",
     icon:"↗",
     example:"I offer short-form video editing for coaches and consultants. I want to start conversations on Instagram."
   },
-  ads: {
+
+  ads:{
     name:"Ad Campaign",
     short:"Create campaign angles",
     desc:"Develop hooks, copy, CTAs, audiences and creative concepts for ads.",
     icon:"◈",
     example:"We sell an online bookkeeping service for small businesses. We want to test Meta ads aimed at founders who hate doing their own books."
   },
-  content: {
+
+  content:{
     name:"Content Pack",
     short:"Build a content engine",
     desc:"Turn one topic into hooks, posts, insights, CTAs and a 7-day outline.",
     icon:"✦",
     example:"My business teaches freelancers how to find their first 5 clients. I want a week of useful LinkedIn and Instagram content."
-  }
-   campaign: {
-  name:"Campaign Builder",
-  short:"Build a complete campaign",
-  desc:"Turn one marketing goal into a coordinated campaign with multiple assets.",
-  icon:"◈",
-  example:"We are launching a new SaaS product for creators. Build a complete campaign with an offer, landing-page copy, emails, social content and ad angles."
-}
+  },
 
+  campaign:{
+    name:"Campaign Builder",
+    short:"Build a complete campaign",
+    desc:"Turn one marketing goal into a coordinated campaign with multiple assets.",
+    icon:"◈",
+    pro:true,
+    example:"We are launching a new SaaS product for creators. Build a complete campaign with an offer, landing-page copy, emails, social content and ad angles."
+  }
+
+};
 
 let currentMode = "offer";
+let currentNiche = "Other";
 let currentResult = "";
 let currentResultMeta = {};
 let generating = false;
-let campaignMode = false;
+let currentUsage = 0;
 
-const workflowNav = document.getElementById("workflowNav");
-const promptEl = document.getElementById("prompt");
-const counterEl = document.getElementById("counter");
-const resultCard = document.getElementById("resultCard");
-const resultActions = document.getElementById("resultActions");
+const workflowNav =
+  document.getElementById("workflowNav");
 
-function escapeHtml(value){
-  return String(value)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+const promptEl =
+  document.getElementById("prompt");
+
+const counterEl =
+  document.getElementById("counter");
+
+const resultCard =
+  document.getElementById("resultCard");
+
+const resultActions =
+  document.getElementById("resultActions");
+
+const generateBtn =
+  document.getElementById("generateBtn");
+
+const generateText =
+  document.getElementById("generateText");
+
+const quickPrompts =
+  document.getElementById("quickPrompts");
+
+const nicheSelect =
+  document.getElementById("nicheSelect");
+
+const usageBadge =
+  document.getElementById("usageBadge");
+
+const planBadge =
+  document.getElementById("planBadge");
+
+const statusEl =
+  document.getElementById("status");
+
+function escapeHTML(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
 }
 
-function renderResult(text){
-  const lines = text.split(/\r?\n/);
-  let html = "";
-  let inList = false;
+function showToast(message){
 
-  function closeList(){
-    if(inList){ html += "</ul>"; inList=false; }
-  }
+  const toast =
+    document.getElementById("toast");
 
-  for(let raw of lines){
-    const line = raw.trim();
-    if(!line){ closeList(); continue; }
+  toast.textContent =
+    message;
 
-    if(/^#{1,4}\s+/.test(line)){
-      closeList();
-      const title = line.replace(/^#{1,4}\s+/,"");
-      html += "<h4>"+inlineFormat(title)+"</h4>";
-      continue;
-    }
+  toast.classList.add("show");
 
-    if(/^\d+[\.\)]\s+/.test(line)){
-      if(!inList){ html += "<ul>"; inList=true; }
-      html += "<li>"+inlineFormat(line.replace(/^\d+[\.\)]\s+/,""))+"</li>";
-      continue;
-    }
+  clearTimeout(window.__toastTimer);
 
-    if(/^[-*•]\s+/.test(line)){
-      if(!inList){ html += "<ul>"; inList=true; }
-      html += "<li>"+inlineFormat(line.replace(/^[-*•]\s+/,""))+"</li>";
-      continue;
-    }
+  window.__toastTimer =
+    setTimeout(()=>{
+      toast.classList.remove("show");
+    },2500);
 
-    closeList();
-    html += "<p>"+inlineFormat(line)+"</p>";
-  }
-
-  closeList();
-  return html || "<p>No result returned.</p>";
 }
 
-function inlineFormat(text){
-  return escapeHtml(text)
-    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
-    .replace(/`(.+?)`/g,"<strong>$1</strong>");
-}
+function setStatus(message,show=true){
 
-function buildNav(){
-  workflowNav.innerHTML = Object.entries(workflows).map(([key,w]) => `
-    <button class="workflow ${key===currentMode?"active":""}" onclick="selectMode('${key}')">
-      <span class="workflow-icon">${w.icon}</span>
-      <span class="workflow-text"><strong>${w.name}</strong><small>${w.short}</small></span>
-    </button>
-  `).join("");
-}
+  statusEl.textContent =
+    message;
 
-function buildQuickPrompts(){
-  const w = workflows[currentMode];
-  const ideas = {
-    offer:["SaaS product","Local service","Freelance offer"],
-    landing:["Landing page","Product launch","Service business"],
-    email:["B2B outreach","Agency prospecting","Local business"],
-    dm:["Instagram outreach","Founder outreach","Freelancer pitch"],
-    ads:["Meta campaign","Lead generation","Product launch"],
-    content:["7-day content","Founder brand","Educational content"]
-  };
-  document.getElementById("quickPrompts").innerHTML = ideas[currentMode].map(x =>
-    `<button class="quick" onclick="quickFill('${x}')">${x}</button>`
-  ).join("");
-}
+  statusEl.style.display =
+    show ? "inline-block" : "none";
 
-function selectMode(mode){
-  if(!workflows[mode]) return;
-  currentMode = mode;
-  campaignMode = false;
-  document.getElementById("modeTitle").textContent = workflows[mode].name;
-  document.getElementById("modeDesc").textContent = workflows[mode].desc;
-  promptEl.placeholder = workflows[mode].example;
-  buildNav();
-  buildQuickPrompts();
-}
-
-function quickFill(type){
-  const examples = {
-    "SaaS product":"I am building an AI SaaS for creators that turns one idea into marketing assets. I want a clear offer for creators and small businesses.",
-    "Local service":"I run a local service business and want a stronger offer that explains our value clearly and gives customers a reason to contact us.",
-    "Freelance offer":"I am a freelancer offering website and marketing services to small businesses. I want a specific package that is easy to sell.",
-    "Landing page":"We offer a service that helps small businesses improve their online presence and generate more enquiries. Create persuasive landing page copy.",
-    "Product launch":"We are launching a new software product for creators. We need landing copy that explains the problem, solution and CTA clearly.",
-    "Service business":"We provide a professional service to small businesses and want a landing page that turns visitors into enquiries.",
-    "B2B outreach":"I sell a service to business owners. Create a short cold email that starts a conversation without sounding spammy.",
-    "Agency prospecting":"I run a marketing agency and want to reach businesses that may need better websites and content.",
-    "Local business":"I provide marketing services to local businesses and want a natural outreach email.",
-    "Instagram outreach":"I sell a service to creators and want to start conversations through Instagram DMs without being pushy.",
-    "Founder outreach":"I help founders improve their marketing. Create a conversational DM sequence.",
-    "Freelancer pitch":"I am a freelancer looking for clients and want a natural DM sequence.",
-    "Meta campaign":"Create a Meta ad campaign for a service business that wants more qualified enquiries.",
-    "Lead generation":"We want to generate leads for a B2B service using paid social advertising.",
-    "Product launch":"We are launching a software product and need several ad angles.",
-    "7-day content":"Create a practical 7-day content plan around my business and audience.",
-    "Founder brand":"Create content ideas that help a founder build authority around their expertise.",
-    "Educational content":"Create educational content ideas that teach the audience something useful and lead naturally to the offer."
-  };
-  promptEl.value = examples[type] || workflows[currentMode].example;
-  updateCounter();
-  promptEl.focus();
-}
-
-function useExample(){
-  promptEl.value = workflows[currentMode].example;
-  updateCounter();
-  promptEl.focus();
-}
-
-function clearPrompt(){
-  promptEl.value = "";
-  updateCounter();
-  promptEl.focus();
 }
 
 function updateCounter(){
-  counterEl.textContent = `${promptEl.value.length} / 2000`;
-}
-promptEl.addEventListener("input",updateCounter);
 
-function showToast(message){
-  const t = document.getElementById("toast");
-  t.textContent = message;
-  t.classList.add("show");
-  clearTimeout(window.__toast);
-  window.__toast = setTimeout(()=>t.classList.remove("show"),2400);
+  counterEl.textContent =
+    `${promptEl.value.length} / 2000 characters`;
+
+}
+
+function updateUsageUI(info){
+
+  if(!info) return;
+
+  const plan =
+    info.plan || currentPlan;
+
+  const used =
+    Number(info.used ?? currentUsage ?? 0);
+
+  const limit =
+    Number(
+      info.limit ??
+      planLimits[plan] ??
+      3
+    );
+
+  currentPlan =
+    plan;
+
+  currentUsage =
+    used;
+
+  planBadge.textContent =
+    planNames[plan] || plan;
+
+  usageBadge.textContent =
+    `${used} / ${limit} used`;
+
+  usageBadge.style.color =
+    used >= limit
+      ? "#fda4af"
+      : "#9ca3af";
+
+}
+
+function buildNav(){
+
+  workflowNav.innerHTML =
+    Object.entries(workflows)
+      .map(([key,w])=>`
+
+        <button
+          class="workflow ${key===currentMode ? "active" : ""}"
+          onclick="selectMode('${key}')"
+        >
+
+          <span class="workflow-icon">
+            ${w.icon}
+          </span>
+
+          <span class="workflow-text">
+
+            <strong>
+              ${escapeHTML(w.name)}
+            </strong>
+
+            <small>
+              ${escapeHTML(w.short)}
+            </small>
+
+          </span>
+
+          ${
+            w.pro
+              ? `<span class="pro-label">PRO</span>`
+              : ""
+          }
+
+        </button>
+
+      `)
+      .join("");
+
+}
+
+const quickIdeas = {
+
+  offer:[
+    [
+      "SaaS product",
+      "I run a SaaS product for small businesses. Help me create a sharper offer that clearly explains the outcome and why someone should choose us."
+    ],
+    [
+      "Local service",
+      "I run a local service business. Create an attractive offer for customers in my city without using fake claims."
+    ],
+    [
+      "Freelance offer",
+      "I am a freelancer and want to package my service into a clear, specific offer that is easy for prospects to understand."
+    ]
+  ],
+
+  landing:[
+    [
+      "Landing page",
+      "We sell a digital product and need a conversion-focused landing page with a strong headline, benefits, objections and CTA."
+    ],
+    [
+      "Product launch",
+      "We are launching a new product. Create structured landing-page copy that explains the problem, solution, benefits and CTA."
+    ],
+    [
+      "Service business",
+      "We provide a professional service and need landing-page copy that turns visitors into enquiries."
+    ]
+  ],
+
+  email:[
+    [
+      "B2B outreach",
+      "I sell a B2B service. Create a concise cold email sequence for business owners with natural follow-ups."
+    ],
+    [
+      "Agency prospecting",
+      "I run an agency and want to contact qualified business prospects without sounding spammy."
+    ],
+    [
+      "Local business",
+      "I offer digital services to local businesses. Create a short outreach sequence that starts a genuine conversation."
+    ]
+  ],
+
+  dm:[
+    [
+      "Instagram outreach",
+      "I want to sell a useful service through Instagram DMs. Create a natural conversation-first outreach sequence."
+    ],
+    [
+      "Founder outreach",
+      "I want to contact startup founders about my service. Create a short, personalized-feeling DM sequence."
+    ],
+    [
+      "Freelancer pitch",
+      "I am a freelancer looking for clients. Create a non-spammy DM sequence that opens a conversation."
+    ]
+  ],
+
+  ads:[
+    [
+      "Meta campaign",
+      "Create a Meta ad campaign with hooks, primary copy, headlines, CTAs, audience ideas and creative angles."
+    ],
+    [
+      "Lead generation",
+      "Create an ad campaign focused on generating qualified leads for a service business."
+    ],
+    [
+      "Product launch",
+      "Create multiple advertising angles for launching a new digital product."
+    ]
+  ],
+
+  content:[
+    [
+      "7-day content",
+      "Create a useful 7-day content plan with hooks, post ideas, insights and CTAs around my business."
+    ],
+    [
+      "Founder brand",
+      "Create content ideas for building a founder-led personal brand around my expertise."
+    ],
+    [
+      "Educational content",
+      "Turn my topic into educational social content that provides practical value instead of generic motivation."
+    ]
+  ],
+
+  campaign:[
+    [
+      "Product launch",
+      "We are launching a new SaaS product. Build a coordinated campaign with positioning, offer, landing page, emails, social content and ad angles."
+    ],
+    [
+      "Lead generation",
+      "We need more qualified leads. Build a complete campaign around a clear offer, landing page, outreach and paid acquisition."
+    ],
+    [
+      "Full campaign",
+      "Take my business goal and build a complete multi-channel marketing campaign with coordinated assets."
+    ]
+  ]
+
+};
+
+function buildQuickPrompts(){
+
+  const ideas =
+    quickIdeas[currentMode] || [];
+
+  quickPrompts.innerHTML =
+    ideas.map(([label,text])=>`
+
+      <button onclick='quickFill(${JSON.stringify(text)})'>
+        ${escapeHTML(label)}
+      </button>
+
+    `).join("");
+
+}
+
+function quickFill(text){
+
+  promptEl.value =
+    text;
+
+  updateCounter();
+
+  promptEl.focus();
+
+}
+
+function selectMode(mode){
+
+  if(!workflows[mode]) return;
+
+  currentMode =
+    mode;
+
+  document.getElementById("modeTitle").textContent =
+    workflows[mode].name;
+
+  document.getElementById("modeDesc").textContent =
+    workflows[mode].desc;
+
+  promptEl.placeholder =
+    workflows[mode].example;
+
+  buildNav();
+
+  buildQuickPrompts();
+
+  if(
+    workflows[mode].pro &&
+    currentPlan !== "pro"
+  ){
+
+    showProLock();
+
+  }else{
+
+    resultActions.style.display =
+      currentResult
+        ? "flex"
+        : "none";
+
+    resultCard.innerHTML = `
+      <div class="empty-result">
+        Your generated
+        ${escapeHTML(
+          workflows[mode].name.toLowerCase()
+        )}
+        will appear here.
+          <div class="empty-result">
+        Your generated
+        ${escapeHTML(
+          workflows[mode].name.toLowerCase()
+        )}
+        will appear here.
+      </div>
+    `;
+
+  }
+
+  updateCounter();
+
+}
+
+function showProLock(){
+
+  resultActions.style.display =
+    "none";
+
+  resultCard.innerHTML = `
+
+    <div class="lock-box">
+
+      <div class="lock-icon">
+        ✦
+      </div>
+
+      <h3>
+        Campaign Builder is a Pro workflow
+      </h3>
+
+      <p>
+        Build a coordinated campaign with
+        offers, landing-page copy, emails,
+        social content and ad angles from
+        one idea.
+      </p>
+
+      <a
+        class="btn btn-primary"
+        href="${DODO_PRO}"
+        target="_blank"
+        rel="noopener"
+      >
+        Unlock Pro — $29/month
+      </a>
+
+    </div>
+
+  `;
+
 }
 
 async function generateAsset(){
+
   if(generating) return;
 
-  const prompt = promptEl.value.trim();
+  const prompt =
+    promptEl.value.trim();
+
   if(prompt.length < 10){
-    showToast("Add a little more detail first.");
+
+    showToast(
+      "Please enter at least 10 characters."
+    );
+
     promptEl.focus();
+
+    return;
+  }
+
+  if(prompt.length > 2000){
+
+    showToast(
+      "Prompt is too long."
+    );
+
+    return;
+  }
+
+  if(
+    workflows[currentMode].pro &&
+    currentPlan !== "pro"
+  ){
+
+    showProLock();
+
+    showToast(
+      "Campaign Builder requires Pro."
+    );
+
     return;
   }
 
   generating = true;
-  const btn = document.getElementById("generateBtn");
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Creating...';
-  resultActions.style.display = "none";
-  resultCard.innerHTML = '<div class="loading"><span class="spinner"></span><span>FacelessAI is structuring your marketing asset...</span></div>';
+
+  generateBtn.disabled = true;
+
+  generateText.textContent =
+    "Generating...";
+
+  setStatus(
+    "AI is working...",
+    true
+  );
+
+  resultActions.style.display =
+    "none";
+
+  resultCard.innerHTML = `
+
+    <div class="loading-result">
+
+      <div class="loader"></div>
+
+      <h3>
+        Building your ${escapeHTML(
+          workflows[currentMode].name
+        ).toLowerCase()}...
+      </h3>
+
+      <p>
+        FacelessAI is turning your idea
+        into a structured marketing asset.
+      </p>
+
+    </div>
+
+  `;
 
   try{
-    const response = await fetch(BACKEND_URL + "/generate",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({mode:currentMode,prompt})
-    });
 
-    let data = {};
-    try{ data = await response.json(); }catch(_){}
+    const response =
+      await fetch(
+        BACKEND_URL + "/generate",
+        {
+          method:"POST",
 
-    if(!response.ok){
-  const detail = data.detail;
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
 
-  if(detail && detail.error === "monthly_limit_reached"){
-    const planNames = {
-      free: "Free",
-      starter: "Starter",
-      pro: "Pro"
-    };
+          body:JSON.stringify({
 
-    const planName = planNames[detail.plan] || "Current";
-    const used = detail.used ?? 0;
-    const limit = detail.limit ?? 0;
+            mode:
+              currentMode,
 
-    let upgradeHTML = "";
+            niche:
+              currentNiche,
 
-    if(detail.plan === "free"){
-      upgradeHTML = `
-        <a class="btn btn-primary" href="https://checkout.dodopayments.com/buy/pdt_0NoQXaM9rTHblSiCaXFqb?quantity=1">
-          Upgrade to Starter — $9/month
-        </a>`;
-    }else if(detail.plan === "starter"){
-      upgradeHTML = `
-        <a class="btn btn-primary" href="https://checkout.dodopayments.com/buy/pdt_0Nor4IRUyNeuBzfuxt6wI?quantity=1">
-          Upgrade to Pro — $29/month
-        </a>`;
-    }else{
-      upgradeHTML = `
-        <div>🎉 You're on the highest plan. Your monthly limit resets next month.</div>`;
+            prompt:
+              prompt
+
+          })
+
+        }
+      );
+
+    let data = null;
+
+    try{
+
+      data =
+        await response.json();
+
+    }catch(error){
+
+      data = null;
+
     }
 
+    if(!response.ok){
+
+      const detail =
+        data?.detail;
+
+      if(
+        detail &&
+        detail.error ===
+          "monthly_limit_reached"
+      ){
+
+        const planName =
+          planNames[detail.plan] ||
+          "Current";
+
+        const used =
+          detail.used ?? 0;
+
+        const limit =
+          detail.limit ??
+          planLimits[detail.plan] ??
+          0;
+
+        updateUsageUI({
+
+          plan:
+            detail.plan,
+
+          used:
+            used,
+
+          limit:
+            limit
+
+        });
+
+        let upgradeHTML = "";
+
+        if(detail.plan === "free"){
+
+          upgradeHTML = `
+
+            <a
+              class="btn btn-primary"
+              href="${DODO_STARTER}"
+              target="_blank"
+              rel="noopener"
+            >
+              Upgrade to Starter — $9/month
+            </a>
+
+          `;
+
+        }else if(
+          detail.plan === "starter"
+        ){
+
+          upgradeHTML = `
+
+            <a
+              class="btn btn-primary"
+              href="${DODO_PRO}"
+              target="_blank"
+              rel="noopener"
+            >
+              Upgrade to Pro — $29/month
+            </a>
+
+          `;
+
+        }else{
+
+          upgradeHTML = `
+
+            <div
+              style="color:#aaa;font-size:12px"
+            >
+              🎉 You're on the highest plan.
+              Your monthly limit resets next month.
+            </div>
+
+          `;
+
+        }
+
+        resultCard.innerHTML = `
+
+          <div class="limit-box">
+
+            <h3>
+              Monthly limit reached
+            </h3>
+
+            <p>
+              You've used
+              <strong>
+                ${used} / ${limit}
+              </strong>
+              generations on your
+              <strong>
+                ${escapeHTML(planName)}
+              </strong>
+              plan this month.
+            </p>
+
+            <div class="limit-actions">
+              ${upgradeHTML}
+            </div>
+
+          </div>
+
+        `;
+
+        showToast(
+          `${used} / ${limit} generations used.`
+        );
+
+        return;
+
+      }
+
+      const message =
+        detail?.message ||
+        detail?.error ||
+        "Generation failed.";
+
+      throw new Error(message);
+
+    }
+
+    if(
+      !data ||
+      !data.success
+    ){
+
+      throw new Error(
+        data?.message ||
+        "No result returned."
+      );
+
+    }
+
+    currentResult =
+      String(
+        data.result || ""
+      );
+
+    currentResultMeta = {
+
+      mode:
+        currentMode,
+
+      niche:
+        currentNiche,
+
+      prompt:
+        prompt,
+
+      createdAt:
+        new Date().toISOString()
+
+    };
+
+    updateUsageUI({
+
+      plan:
+        data.plan ||
+        currentPlan,
+
+      used:
+        data.usage?.used ??
+        currentUsage,
+
+      limit:
+        data.usage?.limit ??
+        planLimits[
+          data.plan ||
+          currentPlan
+        ]
+
+    });
+
+    renderResult();
+
+    resultActions.style.display =
+      "flex";
+
+    setStatus(
+      "Generated",
+      true
+    );
+
+    showToast(
+      "Your marketing asset is ready."
+    );
+
+  }catch(error){
+
+    console.error(error);
+
     resultCard.innerHTML = `
-      <div class="empty-result">
-        <div style="font-size:26px;margin-bottom:10px">
-          Monthly limit reached
-        </div>
 
-        <div style="max-width:560px;margin:0 auto 18px">
-          You've used <strong>${used} / ${limit}</strong> generations
-          on your <strong>${planName}</strong> plan this month.
-        </div>
+      <div class="error-result">
 
-        ${upgradeHTML}
+        <h3>
+          Something went wrong
+        </h3>
+
+        <p>
+          ${escapeHTML(
+            error.message ||
+            "Unable to generate your asset."
+          )}
+        </p>
+
+        <button
+          class="btn"
+          onclick="generateAsset()"
+        >
+          Try again
+        </button>
+
       </div>
+
     `;
 
-    showToast(`${used} / ${limit} generations used.`);
+    setStatus(
+      "Error",
+      true
+    );
+
+    showToast(
+      error.message ||
+      "Generation failed."
+    );
+
+  }finally{
+
+    generating = false;
+
+    generateBtn.disabled =
+      false;
+
+    generateText.textContent =
+      "Generate with AI ⚡";
+
+  }
+
+}
+
+function renderResult(){
+
+  resultCard.innerHTML = `
+
+    <div class="result-head">
+
+      <div>
+
+        <span class="eyebrow">
+          AI GENERATED
+        </span>
+
+        <h3>
+          ${escapeHTML(
+            workflows[currentMode].name
+          )}
+        </h3>
+
+      </div>
+
+      <span class="result-mode">
+        ${escapeHTML(currentNiche)}
+      </span>
+
+    </div>
+
+    <div class="result-content">
+      ${escapeHTML(currentResult)}
+    </div>
+
+  `;
+
+}
+
+function copyResult(){
+
+  if(!currentResult){
+
+    showToast(
+      "Generate something first."
+    );
+
     return;
   }
 
-  throw new Error(
-    detail?.message ||
-    "The AI could not generate the result right now."
-  );
-    } 
-    
-    const result = data.result || data.output || data.text;
-    if(!result) throw new Error("The AI returned an empty result.");
+  navigator.clipboard
+    .writeText(currentResult)
+    .then(()=>{
 
-    currentResult = String(result);
-    currentResultMeta = {mode:currentMode,prompt,createdAt:new Date().toISOString()};
-    resultCard.innerHTML = '<div class="result-content">'+renderResult(currentResult)+'</div>';
-    resultActions.style.display = "flex";
-    document.getElementById("resultTitle").textContent = workflows[currentMode].name + " result";
-    addHistory(currentResultMeta,currentResult);
-    showToast("Done — your marketing asset is ready.");
-  }catch(error){
-    resultCard.innerHTML = `
-      <div class="empty-result">
-        <div style="font-size:24px;margin-bottom:8px">Something went wrong</div>
-        <div style="max-width:520px;margin:auto">${escapeHtml(error.message || "Please try again.")}</div>
-        <button class="btn btn-sm" style="margin-top:15px" onclick="generateAsset()">Try again</button>
-      </div>`;
-    showToast(error.message || "Generation failed.");
-  }finally{
-    generating = false;
-    btn.disabled = false;
-    btn.innerHTML = "Generate with AI ⚡";
-  }
-}
+      showToast(
+        "Copied to clipboard."
+      );
 
-async function copyText(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    showToast("Copied to clipboard.");
-  }catch(_){
-    const ta=document.createElement("textarea");
-    ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();
-    showToast("Copied to clipboard.");
-  }
-}
+    })
+    .catch(()=>{
 
-function copyAll(){
-  if(currentResult) copyText(currentResult);
+      showToast(
+        "Copy failed."
+      );
+
+    });
+
 }
 
 function saveResult(){
-  if(!currentResult){showToast("Generate a result first.");return;}
-  const saved = JSON.parse(localStorage.getItem("facelessai_saved") || "[]");
-  saved.unshift({...currentResultMeta,result:currentResult});
-  localStorage.setItem("facelessai_saved",JSON.stringify(saved.slice(0,30)));
-  showToast("Saved on this device.");
-}
 
-function addHistory(meta,result){
-  const history = JSON.parse(localStorage.getItem("facelessai_history") || "[]");
-  history.unshift({...meta,result});
-  localStorage.setItem("facelessai_history",JSON.stringify(history.slice(0,30)));
-}
+  if(!currentResult){
 
-function getHistory(){
-  return JSON.parse(localStorage.getItem("facelessai_history") || "[]");
-}
+    showToast(
+      "Generate something first."
+    );
 
-function showHistory(){
-  const list=document.getElementById("historyList");
-  const history=getHistory();
-  if(!history.length){
-    list.innerHTML='<div class="empty-result">No generated assets yet.</div>';
-  }else{
-    list.innerHTML=history.map((item,i)=>`
-      <div class="history-item">
-        <div>
-          <strong>${escapeHtml(workflows[item.mode]?.name || item.mode)}</strong>
-          <small>${new Date(item.createdAt).toLocaleString()}</small>
-        </div>
-        <button class="btn btn-sm" onclick="loadHistory(${i})">Open</button>
-      </div>
-    `).join("");
+    return;
   }
-  document.getElementById("historyModal").classList.add("show");
-}
 
-function loadHistory(index){
-  const item=getHistory()[index];
-  if(!item) return;
-  currentMode=item.mode;
-  selectMode(item.mode);
-  promptEl.value=item.prompt || "";
-  currentResult=item.result || "";
-  currentResultMeta=item;
-  updateCounter();
-  resultCard.innerHTML='<div class="result-content">'+renderResult(currentResult)+'</div>';
-  resultActions.style.display="flex";
-  document.getElementById("resultTitle").textContent=workflows[currentMode].name+" result";
-  closeHistory();
-  document.getElementById("studio").scrollIntoView({behavior:"smooth"});
-}
+  const history =
+    JSON.parse(
+      localStorage.getItem(
+        "facelessai_history"
+      ) || "[]"
+    );
 
-function closeHistory(){
-  document.getElementById("historyModal").classList.remove("show");
+  history.unshift({
+
+    id:
+      Date.now(),
+
+    mode:
+      currentMode,
+
+    niche:
+      currentNiche,
+
+    prompt:
+      currentResultMeta.prompt,
+
+    result:
+      currentResult,
+
+    createdAt:
+      currentResultMeta.createdAt
+
+  });
+
+  const limited =
+    history.slice(0,30);
+
+  localStorage.setItem(
+    "facelessai_history",
+    JSON.stringify(limited)
+  );
+
+  showToast(
+    "Saved to your browser."
+  );
+
 }
 
 function downloadResult(){
-  if(!currentResult){showToast("Generate a result first.");return;}
-  const blob=new Blob([currentResult],{type:"text/markdown;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=`facelessai-${currentMode}-${Date.now()}.md`;
+
+  if(!currentResult){
+
+    showToast(
+      "Generate something first."
+    );
+
+    return;
+  }
+
+  const blob =
+    new Blob(
+      [currentResult],
+      {
+        type:
+          "text/plain;charset=utf-8"
+      }
+    );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const a =
+    document.createElement("a");
+
+  a.href =
+    url;
+
+  a.download =
+    `facelessai-${currentMode}-${Date.now()}.txt`;
+
+  document.body.appendChild(a);
+
   a.click();
+
+  a.remove();
+
   URL.revokeObjectURL(url);
-  showToast("Download started.");
+
+  showToast(
+    "Downloaded successfully."
+  );
+
 }
 
 async function shareResult(){
-  if(!currentResult){showToast("Generate a result first.");return;}
-  if(navigator.share){
-    try{
-      await navigator.share({title:"FacelessAI marketing asset",text:currentResult});
-    }catch(_){}
-  }else{
-    await copyText(currentResult);
-    showToast("Sharing isn't supported here, so the result was copied.");
+
+  if(!currentResult){
+
+    showToast(
+      "Generate something first."
+    );
+
+    return;
   }
+
+  if(
+    navigator.share
+  ){
+
+    try{
+
+      await navigator.share({
+
+        title:
+          "FacelessAI Generated Asset",
+
+        text:
+          currentResult
+
+      });
+
+    }catch(error){
+
+      if(error.name !== "AbortError"){
+
+        showToast(
+          "Sharing failed."
+        );
+
+      }
+
+    }
+
+  }else{
+
+    copyResult();
+
+    showToast(
+      "Sharing isn't supported here. Result copied."
+    );
+
+  }
+
 }
 
-function toggleFaq(btn){
-  const item=btn.parentElement;
-  const open=item.classList.toggle("open");
-  btn.querySelector("span").textContent=open?"−":"+";
+function regenerate(){
+
+  if(!currentResultMeta.prompt){
+
+    showToast(
+      "Generate something first."
+    );
+
+    return;
+  }
+
+  promptEl.value =
+    currentResultMeta.prompt;
+
+  updateCounter();
+
+  generateAsset();
+
 }
+
+function toggleFaq(button){
+
+  const item =
+    button.closest(".faq-item");
+
+  if(!item) return;
+
+  const wasOpen =
+    item.classList.contains("open");
+
+  document
+    .querySelectorAll(".faq-item")
+    .forEach(el=>{
+      el.classList.remove("open");
+    });
+
+  if(!wasOpen){
+
+    item.classList.add("open");
+
+  }
+
+}
+
+nicheSelect.addEventListener(
+  "change",
+  ()=>{
+    currentNiche =
+      nicheSelect.value;
+  }
+);
+
+promptEl.addEventListener(
+  "input",
+  updateCounter
+);
 
 buildNav();
+
 buildQuickPrompts();
+
 updateCounter();
+
 </script>
+
 </body>
 </html>
