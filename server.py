@@ -16,7 +16,7 @@ from dodopayments import DodoPayments
 # =========================================================
 
 logging.basicConfig(
-    level=os.getenv("LOG_LEVEL", "INFO"),
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
 
@@ -24,7 +24,7 @@ logger = logging.getLogger("facelessai")
 
 
 # =========================================================
-# ENV
+# ENVIRONMENT
 # =========================================================
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -52,8 +52,6 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv(
     "SUPABASE_SERVICE_ROLE_KEY"
 )
 
-FRONTEND_URL = os.getenv("FRONTEND_URL")
-
 
 # =========================================================
 # APP
@@ -61,18 +59,20 @@ FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 app = FastAPI(
     title="FacelessAI Growth Copilot API",
-    version="6.1.0",
+    version="7.0.0",
 )
 
-
-if FRONTEND_URL:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[FRONTEND_URL],
-        allow_credentials=False,
-        allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["Content-Type"],
-    )
+# IMPORTANT:
+# Current frontend is hosted separately from Render.
+# The browser sends an OPTIONS preflight before POST /generate.
+# Wildcard CORS avoids frontend-origin mismatch errors.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # =========================================================
@@ -85,14 +85,18 @@ gemini_client = (
     else None
 )
 
-dodo_client = (
-    DodoPayments(
-        bearer_token=DODO_PAYMENT_KEY,
-        webhook_key=DODO_WEBHOOK_SECRET,
-    )
-    if DODO_PAYMENT_KEY
-    else None
-)
+dodo_client = None
+
+if DODO_PAYMENT_KEY:
+    try:
+        dodo_client = DodoPayments(
+            bearer_token=DODO_PAYMENT_KEY,
+            webhook_key=DODO_WEBHOOK_SECRET,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to initialize Dodo client"
+        )
 
 
 # =========================================================
@@ -104,6 +108,14 @@ PLAN_LIMITS = {
     "starter": 100,
     "pro": 500,
 }
+
+PLAN_NAMES = {
+    "free": "Free",
+    "starter": "Starter",
+    "pro": "Pro",
+}
+
+VALID_PLANS = set(PLAN_LIMITS.keys())
 
 VALID_MODES = {
     "offer",
@@ -121,17 +133,10 @@ PRO_ONLY_MODES = {
 
 
 def normalize_plan(plan):
-    if plan in PLAN_LIMITS:
+    if plan in VALID_PLANS:
         return plan
+
     return "free"
-
-
-def plan_name(plan):
-    return {
-        "free": "Free",
-        "starter": "Starter",
-        "pro": "Pro",
-    }.get(plan, "Free")
 
 
 def product_to_plan(product_id):
@@ -144,11 +149,23 @@ def product_to_plan(product_id):
     return "free"
 
 
+def get_limit(plan):
+    return PLAN_LIMITS.get(
+        normalize_plan(plan),
+        PLAN_LIMITS["free"],
+    )
+
+
 # =========================================================
 # SUPABASE
 # =========================================================
 
 def sb_headers():
+    if not SUPABASE_SERVICE_ROLE_KEY:
+        raise RuntimeError(
+            "SUPABASE_SERVICE_ROLE_KEY is missing"
+        )
+
     return {
         "apikey": SUPABASE_SERVICE_ROLE_KEY,
         "Authorization": (
@@ -175,8 +192,8 @@ def sb_request(
     )
 
     response = requests.request(
-        method,
-        url,
+        method=method,
+        url=url,
         headers=sb_headers(),
         params=params,
         json=payload,
@@ -185,10 +202,12 @@ def sb_request(
 
     if not response.ok:
         logger.error(
-            "Supabase error | %s | %s",
+            "Supabase error | table=%s | status=%s | body=%s",
+            table,
             response.status_code,
             response.text[:500],
         )
+
         raise RuntimeError(
             f"Supabase request failed: "
             f"{response.status_code}"
@@ -201,7 +220,7 @@ def sb_request(
 
 
 # =========================================================
-# CUSTOMER HELPERS
+# CUSTOMER
 # =========================================================
 
 def get_customer(customer_id):
@@ -238,13 +257,13 @@ def save_customer(
         "plan": normalize_plan(plan),
     }
 
-    if email:
+    if email is not None:
         payload["email"] = email
 
-    if subscription_id:
+    if subscription_id is not None:
         payload["subscription_id"] = subscription_id
 
-    if subscription_status:
+    if subscription_status is not None:
         payload["subscription_status"] = (
             subscription_status
         )
@@ -254,7 +273,9 @@ def save_customer(
             "PATCH",
             "customers",
             params={
-                "dodo_customer_id": f"eq.{customer_id}"
+                "dodo_customer_id": (
+                    f"eq.{customer_id}"
+                )
             },
             payload=payload,
         )
@@ -277,38 +298,50 @@ def current_month():
 
 
 def get_customer_usage(customer_id):
-    month = current_month()
+    if not customer_id:
+        return 0
 
     rows = sb_request(
         "GET",
         "usage",
         params={
-            "dodo_customer_id": f"eq.{customer_id}",
-            "month": f"eq.{month}",
+            "dodo_customer_id": (
+                f"eq.{customer_id}"
+            ),
+            "month": (
+                f"eq.{current_month()}"
+            ),
             "select": "*",
             "limit": "1",
         },
     )
 
-    if rows:
-        return int(
-            rows[0].get(
-                "generations_used",
-                0,
-            )
-        )
+    if not rows:
+        return 0
 
-    return 0
+    return int(
+        rows[0].get(
+            "generations_used",
+            0,
+        )
+    )
 
 
 def increment_customer_usage(customer_id):
+    if not customer_id:
+        raise RuntimeError(
+            "Customer ID is required"
+        )
+
     month = current_month()
 
     rows = sb_request(
         "GET",
         "usage",
         params={
-            "dodo_customer_id": f"eq.{customer_id}",
+            "dodo_customer_id": (
+                f"eq.{customer_id}"
+            ),
             "month": f"eq.{month}",
             "select": "*",
             "limit": "1",
@@ -319,7 +352,12 @@ def increment_customer_usage(customer_id):
         row = rows[0]
 
         new_value = (
-            int(row.get("generations_used", 0))
+            int(
+                row.get(
+                    "generations_used",
+                    0,
+                )
+            )
             + 1
         )
 
@@ -350,7 +388,7 @@ def increment_customer_usage(customer_id):
 
 
 # =========================================================
-# WORKFLOW PROMPTS
+# WORKFLOW INSTRUCTIONS
 # =========================================================
 
 WORKFLOW_INSTRUCTIONS = {
@@ -476,15 +514,9 @@ Include:
 }
 
 
-# =========================================================
-# GEMINI
-# =========================================================
-
 def make_prompt(mode, user_prompt):
-    instructions = WORKFLOW_INSTRUCTIONS[mode]
-
     return f"""
-{instructions}
+{WORKFLOW_INSTRUCTIONS[mode]}
 
 USER REQUEST:
 {user_prompt}
@@ -498,28 +530,43 @@ Rules:
 """
 
 
-def generate_ai(mode, prompt):
+# =========================================================
+# GEMINI
+# =========================================================
 
+def generate_ai(mode, prompt):
     if not gemini_client:
         raise RuntimeError(
             "GEMINI_API_KEY is missing"
         )
 
-    models = [
-        GEMINI_MODEL,
-        GEMINI_FALLBACK_MODEL,
-    ]
+    models = []
+
+    if GEMINI_MODEL:
+        models.append(GEMINI_MODEL)
+
+    if (
+        GEMINI_FALLBACK_MODEL
+        and GEMINI_FALLBACK_MODEL
+        != GEMINI_MODEL
+    ):
+        models.append(GEMINI_FALLBACK_MODEL)
+
+    if not models:
+        raise RuntimeError(
+            "No Gemini model configured"
+        )
 
     last_error = None
 
-    for attempt, model in enumerate(models, 1):
-
-        if not model:
-            continue
-
+    for attempt, model in enumerate(
+        models,
+        start=1,
+    ):
         try:
             logger.info(
-                "Gemini | mode=%s | model=%s | attempt=%s",
+                "Gemini generation | mode=%s | "
+                "model=%s | attempt=%s",
                 mode,
                 model,
                 attempt,
@@ -534,11 +581,9 @@ def generate_ai(mode, prompt):
                         mode,
                         prompt,
                     ),
-                    config=(
-                        types.GenerateContentConfig(
-                            temperature=0.7,
-                            max_output_tokens=5000,
-                        )
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=5000,
                     ),
                 )
             )
@@ -549,15 +594,17 @@ def generate_ai(mode, prompt):
                 return result.strip()
 
             raise RuntimeError(
-                "Empty Gemini response"
+                "Gemini returned an empty response"
             )
 
         except Exception as error:
             last_error = error
 
             logger.warning(
-                "Gemini failed | model=%s | error=%s",
+                "Gemini failed | model=%s | "
+                "attempt=%s | error=%s",
                 model,
+                attempt,
                 str(error),
             )
 
@@ -567,7 +614,7 @@ def generate_ai(mode, prompt):
 
 
 # =========================================================
-# REQUEST
+# REQUEST MODEL
 # =========================================================
 
 class GenerateRequest(BaseModel):
@@ -579,6 +626,13 @@ class GenerateRequest(BaseModel):
     prompt: str = Field(
         min_length=1,
         max_length=2000,
+    )
+
+    # Current HTML may send this field.
+    # It is accepted but NEVER trusted for plan/entitlement.
+    niche: str | None = Field(
+        default=None,
+        max_length=200,
     )
 
 
@@ -593,7 +647,7 @@ def root():
             "FacelessAI Growth Copilot API"
         ),
         "status": "running",
-        "version": "6.1.0",
+        "version": "7.0.0",
     }
 
 
@@ -605,7 +659,7 @@ def health():
             "FacelessAI Growth Copilot API"
         ),
         "status": "running",
-        "version": "6.1.0",
+        "version": "7.0.0",
         "primary_model": GEMINI_MODEL,
         "fallback_model": (
             GEMINI_FALLBACK_MODEL
@@ -629,9 +683,18 @@ def health():
 
 @app.post("/generate")
 def generate(body: GenerateRequest):
-
     mode = body.mode.strip().lower()
     prompt = body.prompt.strip()
+
+    logger.info(
+        "Generation request | mode=%s | prompt_length=%s",
+        mode,
+        len(prompt),
+    )
+
+    # -----------------------------------------------------
+    # VALIDATION
+    # -----------------------------------------------------
 
     if mode not in VALID_MODES:
         raise HTTPException(
@@ -656,15 +719,27 @@ def generate(body: GenerateRequest):
         )
 
     # -----------------------------------------------------
-    # CURRENT HTML DOES NOT SEND CUSTOMER ID.
+    # CURRENT FRONTEND HAS NO CUSTOMER ID / AUTH TOKEN.
+    #
+    # Therefore we cannot safely identify a Dodo customer
+    # from this request.
+    #
+    # We intentionally DO NOT:
+    # - trust browser plan
+    # - guess customer by email
+    # - use IP as identity
+    # - create fake paid access
+    #
+    # Until identity is supplied by the frontend,
+    # generation is treated as anonymous Free access.
     # -----------------------------------------------------
-    #
-    # Therefore anonymous requests remain Free.
-    # We NEVER trust a plan sent by the browser.
-    #
 
     plan = "free"
     limit = PLAN_LIMITS["free"]
+
+    # -----------------------------------------------------
+    # PRO WORKFLOW
+    # -----------------------------------------------------
 
     if mode in PRO_ONLY_MODES:
         raise HTTPException(
@@ -675,14 +750,18 @@ def generate(body: GenerateRequest):
                     "Campaign Builder is available "
                     "on the Pro plan."
                 ),
-                "plan": "free",
-                "plan_name": "Free",
+                "plan": plan,
+                "plan_name": PLAN_NAMES[plan],
                 "upgrade_plan": "pro",
                 "used": 0,
                 "limit": limit,
                 "remaining": limit,
             },
         )
+
+    # -----------------------------------------------------
+    # AI GENERATION
+    # -----------------------------------------------------
 
     try:
         result = generate_ai(
@@ -711,7 +790,7 @@ def generate(body: GenerateRequest):
         "success": True,
         "result": result,
         "mode": mode,
-        "plan": "free",
+        "plan": plan,
         "usage": {
             "used": 0,
             "limit": limit,
@@ -735,19 +814,35 @@ async def dodo_webhook(request: Request):
 
     raw_body = await request.body()
 
+    webhook_id = request.headers.get(
+        "webhook-id",
+        "",
+    )
+
+    webhook_signature = request.headers.get(
+        "webhook-signature",
+        "",
+    )
+
+    webhook_timestamp = request.headers.get(
+        "webhook-timestamp",
+        "",
+    )
+
+    if not (
+        webhook_id
+        and webhook_signature
+        and webhook_timestamp
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Missing webhook headers",
+        )
+
     headers = {
-        "webhook-id": request.headers.get(
-            "webhook-id",
-            "",
-        ),
-        "webhook-signature": request.headers.get(
-            "webhook-signature",
-            "",
-        ),
-        "webhook-timestamp": request.headers.get(
-            "webhook-timestamp",
-            "",
-        ),
+        "webhook-id": webhook_id,
+        "webhook-signature": webhook_signature,
+        "webhook-timestamp": webhook_timestamp,
     }
 
     try:
@@ -758,7 +853,7 @@ async def dodo_webhook(request: Request):
 
     except Exception as error:
         logger.warning(
-            "Dodo webhook verification failed: %s",
+            "Dodo webhook verification failed | %s",
             str(error),
         )
 
@@ -771,15 +866,15 @@ async def dodo_webhook(request: Request):
     data = event.get("data") or {}
 
     logger.info(
-        "Dodo event received: %s",
+        "Dodo webhook received | type=%s",
         event_type,
     )
 
     try:
 
-        # -------------------------------------------------
-        # PAYMENT SUCCESS
-        # -------------------------------------------------
+        # =================================================
+        # PAYMENT SUCCEEDED
+        # =================================================
 
         if event_type == "payment.succeeded":
 
@@ -792,7 +887,9 @@ async def dodo_webhook(request: Request):
                 "customer_id"
             )
 
-            email = customer.get("email")
+            email = customer.get(
+                "email"
+            )
 
             product_cart = (
                 data.get("product_cart")
@@ -802,116 +899,58 @@ async def dodo_webhook(request: Request):
             product_id = None
 
             if product_cart:
-                product_id = product_cart[0].get(
-                    "product_id"
+                product_id = (
+                    product_cart[0]
+                    .get("product_id")
                 )
 
             plan = product_to_plan(
                 product_id
             )
 
-            subscription_id = data.get(
-                "subscription_id"
+            subscription_id = (
+                data.get("subscription_id")
             )
 
-            if customer_id:
-
-                save_customer(
-                    customer_id=customer_id,
-                    email=email,
-                    plan=plan,
-                    subscription_id=(
-                        subscription_id
-                    ),
-                    subscription_status=(
-                        "active"
-                        if subscription_id
-                        else "paid"
-                    ),
-                )
-
-                logger.info(
-                    "Payment activated | customer=%s | "
-                    "product=%s | plan=%s",
-                    customer_id,
-                    product_id,
-                    plan,
-                )
-
-        # -------------------------------------------------
-        # SUBSCRIPTION ACTIVE
-        # -------------------------------------------------
-
-        elif event_type == "subscription.active":
-
-            customer_id = data.get(
-                "customer_id"
+            save_customer(
+                customer_id=customer_id,
+                email=email,
+                plan=plan,
+                subscription_id=(
+                    subscription_id
+                ),
+                subscription_status=(
+                    "active"
+                    if subscription_id
+                    else "paid"
+                ),
             )
 
-            product_id = data.get(
-                "product_id"
+            logger.info(
+                "Payment recorded | customer=%s | "
+                "product=%s | plan=%s",
+                customer_id,
+                product_id,
+                plan,
             )
 
-            subscription_id = data.get(
-                "subscription_id"
-            )
+        # =================================================
+        # SUBSCRIPTION EVENTS
+        # =================================================
 
-            plan = product_to_plan(
-                product_id
-            )
+        elif event_type in {
+            "subscription.active",
+            "subscription.updated",
+            "subscription.plan_changed",
+            "subscription.renewed",
+            "subscription.unpaused",
+        }:
 
-            if customer_id:
-                save_customer(
-                    customer_id=customer_id,
-                    plan=plan,
-                    subscription_id=(
-                        subscription_id
-                    ),
-                    subscription_status="active",
-                )
-
-        # -------------------------------------------------
-        # SUBSCRIPTION UPDATED
-        # -------------------------------------------------
-
-        elif event_type == "subscription.updated":
-
-            customer_id = data.get(
-                "customer_id"
-            )
-
-            product_id = data.get(
-                "product_id"
-            )
-
-            subscription_id = data.get(
-                "subscription_id"
-            )
-
-            plan = product_to_plan(
-                product_id
-            )
-
-            if customer_id:
-                save_customer(
-                    customer_id=customer_id,
-                    plan=plan,
-                    subscription_id=(
-                        subscription_id
-                    ),
-                    subscription_status="active",
-                )
-
-        # -------------------------------------------------
-        # PLAN CHANGED
-        # -------------------------------------------------
-
-        elif event_type == (
-            "subscription.plan_changed"
-        ):
-
-            customer_id = data.get(
-                "customer_id"
+            customer_id = (
+                data.get("customer_id")
+                or (
+                    data.get("customer") or {}
+                ).get("customer_id")
             )
 
             product_id = (
@@ -919,96 +958,50 @@ async def dodo_webhook(request: Request):
                 or data.get("new_product_id")
             )
 
-            subscription_id = data.get(
-                "subscription_id"
+            subscription_id = (
+                data.get("subscription_id")
             )
 
             plan = product_to_plan(
                 product_id
             )
 
-            if customer_id:
-                save_customer(
-                    customer_id=customer_id,
-                    plan=plan,
-                    subscription_id=(
-                        subscription_id
-                    ),
-                    subscription_status="active",
-                )
-
-        # -------------------------------------------------
-        # RENEWED
-        # -------------------------------------------------
-
-        elif event_type == (
-            "subscription.renewed"
-        ):
-
-            customer_id = data.get(
-                "customer_id"
+            save_customer(
+                customer_id=customer_id,
+                plan=plan,
+                subscription_id=(
+                    subscription_id
+                ),
+                subscription_status="active",
             )
 
-            existing = get_customer(
-                customer_id
+            logger.info(
+                "Subscription active/update | "
+                "customer=%s | product=%s | plan=%s",
+                customer_id,
+                product_id,
+                plan,
             )
 
-            if existing:
-                save_customer(
-                    customer_id=customer_id,
-                    plan=normalize_plan(
-                        existing.get("plan")
-                    ),
-                    subscription_id=(
-                        existing.get(
-                            "subscription_id"
-                        )
-                    ),
-                    subscription_status="active",
-                )
-
-        # -------------------------------------------------
-        # CANCELLED / EXPIRED
-        # -------------------------------------------------
-
-        elif event_type in {
-            "subscription.cancelled",
-            "subscription.expired",
-        }:
-
-            customer_id = data.get(
-                "customer_id"
-            )
-
-            if customer_id:
-                save_customer(
-                    customer_id=customer_id,
-                    plan="free",
-                    subscription_id=(
-                        data.get(
-                            "subscription_id"
-                        )
-                    ),
-                    subscription_status=(
-                        "cancelled"
-                        if event_type.endswith(
-                            "cancelled"
-                        )
-                        else "expired"
-                    ),
-                )
-
-        # -------------------------------------------------
-        # PAUSED / ON HOLD
-        # -------------------------------------------------
+        # =================================================
+        # SUBSCRIPTION PAUSED / ON HOLD / PAST DUE
+        # =================================================
 
         elif event_type in {
             "subscription.paused",
             "subscription.on_hold",
+            "subscription.past_due",
         }:
 
-            customer_id = data.get(
-                "customer_id"
+            customer_id = (
+                data.get("customer_id")
+                or (
+                    data.get("customer") or {}
+                ).get("customer_id")
+            )
+
+            subscription_id = (
+                data.get("subscription_id")
             )
 
             existing = get_customer(
@@ -1018,40 +1011,136 @@ async def dodo_webhook(request: Request):
             if existing:
                 save_customer(
                     customer_id=customer_id,
-                    plan=normalize_plan(
-                        existing.get("plan")
+                    email=existing.get("email"),
+                    plan=existing.get(
+                        "plan",
+                        "free",
                     ),
                     subscription_id=(
-                        existing.get(
-                            "subscription_id"
+                        subscription_id
+                    ),
+                    subscription_status=(
+                        event_type
+                        .replace(
+                            "subscription.",
+                            "",
                         )
                     ),
-                    subscription_status=event_type,
                 )
 
-        # -------------------------------------------------
+        # =================================================
+        # SUBSCRIPTION CANCELLED / EXPIRED / FAILED
+        # =================================================
+
+        elif event_type in {
+            "subscription.cancelled",
+            "subscription.expired",
+            "subscription.failed",
+        }:
+
+            customer_id = (
+                data.get("customer_id")
+                or (
+                    data.get("customer") or {}
+                ).get("customer_id")
+            )
+
+            subscription_id = (
+                data.get("subscription_id")
+            )
+
+            # Revoke paid entitlement.
+            if customer_id:
+                existing = get_customer(
+                    customer_id
+                )
+
+                save_customer(
+                    customer_id=customer_id,
+                    email=(
+                        existing.get("email")
+                        if existing
+                        else None
+                    ),
+                    plan="free",
+                    subscription_id=(
+                        subscription_id
+                    ),
+                    subscription_status=(
+                        event_type.replace(
+                            "subscription.",
+                            "",
+                        )
+                    ),
+                )
+
+                logger.info(
+                    "Subscription entitlement "
+                    "returned to free | customer=%s | "
+                    "event=%s",
+                    customer_id,
+                    event_type,
+                )
+
+        # =================================================
+        # REFUND
+        # =================================================
+
+        elif event_type in {
+            "refund.succeeded",
+        }:
+
+            customer_id = (
+                data.get("customer_id")
+                or (
+                    data.get("customer") or {}
+                ).get("customer_id")
+            )
+
+            if customer_id:
+                existing = get_customer(
+                    customer_id
+                )
+
+                save_customer(
+                    customer_id=customer_id,
+                    email=(
+                        existing.get("email")
+                        if existing
+                        else None
+                    ),
+                    plan="free",
+                    subscription_status="refunded",
+                )
+
+                logger.info(
+                    "Refund processed | customer=%s",
+                    customer_id,
+                )
+
+        # =================================================
         # OTHER EVENTS
-        # -------------------------------------------------
+        # =================================================
 
         else:
             logger.info(
-                "Dodo event acknowledged: %s",
+                "Dodo event acknowledged | type=%s",
                 event_type,
             )
 
-        return {
-            "received": True,
-            "event": event_type,
-        }
-
-    except Exception as error:
-
+    except Exception:
         logger.exception(
-            "Dodo webhook processing failed: %s",
-            str(error),
+            "Dodo webhook processing failed | type=%s",
+            event_type,
         )
 
         raise HTTPException(
             status_code=500,
             detail="Webhook processing failed",
-    )
+        )
+
+    return {
+        "success": True,
+        "received": True,
+        "event": event_type,
+    }
