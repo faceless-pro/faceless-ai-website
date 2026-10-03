@@ -1,56 +1,51 @@
 import os
-import time
-from collections import defaultdict, deque
 from datetime import datetime, timezone
 
+import requests
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from supabase import create_client
 from google import genai
 
 load_dotenv()
 
-# =========================
-# ENVIRONMENT
-# =========================
+# =========================================================
+# ENV
+# =========================================================
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
 SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")
 
-if not GEMINI_API_KEY:
-    raise RuntimeError("Missing GEMINI_API_KEY")
-
-if not SUPABASE_URL:
-    raise RuntimeError("Missing SUPABASE_URL")
-
-if not SUPABASE_SECRET_KEY:
-    raise RuntimeError("Missing SUPABASE_SECRET_KEY")
-
-# =========================
-# CLIENTS
-# =========================
-
-ai = genai.Client(api_key=GEMINI_API_KEY)
-supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
-
-MODEL = os.getenv(
-    "GEMINI_MODEL",
+PRIMARY_MODEL = os.getenv(
+    "PRIMARY_MODEL",
     "gemini-3.5-flash-lite"
 )
 
 FALLBACK_MODEL = os.getenv(
-    "GEMINI_FALLBACK_MODEL",
+    "FALLBACK_MODEL",
     "gemini-3.8-flash"
 )
 
-# =========================
-# APP
-# =========================
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY is missing")
 
-app = FastAPI(title="FacelessAI API")
+if not SUPABASE_URL:
+    raise RuntimeError("SUPABASE_URL is missing")
+
+if not SUPABASE_SECRET_KEY:
+    raise RuntimeError("SUPABASE_SECRET_KEY is missing")
+
+
+# =========================================================
+# APP
+# =========================================================
+
+app = FastAPI(
+    title="FacelessAI API",
+    version="1.0.0"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -64,15 +59,26 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# =========================
+
+# =========================================================
+# GEMINI
+# =========================================================
+
+gemini = genai.Client(
+    api_key=GEMINI_API_KEY
+)
+
+
+# =========================================================
 # PLANS
-# =========================
+# =========================================================
 
 PLAN_LIMITS = {
     "free": 3,
     "starter": 100,
     "pro": 500
 }
+
 
 VALID_MODES = {
     "offer",
@@ -84,136 +90,147 @@ VALID_MODES = {
     "campaign"
 }
 
-PRO_MODES = {
-    "campaign"
-}
 
-# =========================
+# =========================================================
 # REQUEST
-# =========================
+# =========================================================
 
 class GenerateRequest(BaseModel):
+
     mode: str = Field(
         ...,
-        min_length=1,
-        max_length=50
+        min_length=2,
+        max_length=30
     )
 
     niche: str = Field(
-        "Other",
-        min_length=1,
-        max_length=50
+        ...,
+        min_length=2,
+        max_length=100
     )
 
     prompt: str = Field(
         ...,
-        min_length=10,
-        max_length=2000
+        min_length=3,
+        max_length=4000
     )
 
-# =========================
-# RATE LIMIT
-# =========================
 
-rate_hits = defaultdict(deque)
+# =========================================================
+# SUPABASE HEADERS
+# =========================================================
 
-def rate_limit(key: str):
-    now = time.time()
-    queue = rate_hits[key]
+def supabase_headers():
+    return {
+        "apikey": SUPABASE_SECRET_KEY,
+        "Authorization": f"Bearer {SUPABASE_SECRET_KEY}",
+        "Content-Type": "application/json"
+    }
 
-    while queue and now - queue[0] > 60:
-        queue.popleft()
 
-    if len(queue) >= 15:
-        raise HTTPException(
-            status_code=429,
-            detail={
-                "error": "rate_limited",
-                "message": "Too many requests. Try again in a minute."
-            }
-        )
-
-    queue.append(now)
-
-# =========================
+# =========================================================
 # AUTH
-# =========================
+# =========================================================
 
-def get_user(request: Request):
-
-    authorization = request.headers.get(
-        "Authorization",
-        ""
-    )
-
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail={
-                "error": "missing_auth",
-                "message": "Login is required."
-            }
-        )
-
-    token = authorization[7:].strip()
+def verify_user(access_token: str):
 
     try:
-        response = supabase.auth.get_user(token)
-        user = response.user
 
-    except Exception:
-        raise HTTPException(
-            status_code=401,
-            detail={
-                "error": "invalid_auth",
-                "message": "Invalid or expired login session."
-            }
+        response = requests.get(
+            f"{SUPABASE_URL}/auth/v1/user",
+            headers={
+                "apikey": SUPABASE_SECRET_KEY,
+                "Authorization": f"Bearer {access_token}"
+            },
+            timeout=10
         )
 
-    if not user:
+    except requests.RequestException:
+
+        raise HTTPException(
+            status_code=503,
+            detail="Authentication service unavailable"
+        )
+
+    if response.status_code != 200:
+
         raise HTTPException(
             status_code=401,
-            detail={
-                "error": "invalid_auth",
-                "message": "Unable to verify account."
-            }
+            detail="Invalid or expired session"
+        )
+
+    try:
+        user = response.json()
+    except Exception:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication response"
+        )
+
+    user_id = user.get("id")
+
+    if not user_id:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid user"
         )
 
     return user
 
-# =========================
-# PLAN
-# =========================
 
-def get_plan(user_id: str):
+# =========================================================
+# USER PLAN
+# =========================================================
+
+def get_user_plan(user_id: str):
 
     try:
-        response = (
-            supabase
-            .table("profiles")
-            .select("plan")
-            .eq("id", user_id)
-            .maybe_single()
-            .execute()
+
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/profiles",
+            headers=supabase_headers(),
+            params={
+                "select": "plan",
+                "id": f"eq.{user_id}",
+                "limit": "1"
+            },
+            timeout=10
         )
 
-        plan = (
-            (response.data or {})
-            .get("plan", "free")
-            .lower()
+    except requests.RequestException:
+
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable"
         )
 
-        if plan not in PLAN_LIMITS:
-            return "free"
+    if response.status_code != 200:
 
-        return plan
+        raise HTTPException(
+            status_code=503,
+            detail="Could not read user plan"
+        )
 
-    except Exception:
+    rows = response.json()
+
+    if not rows:
         return "free"
 
-# =========================
-# MONTH
-# =========================
+    plan = str(
+        rows[0].get("plan", "free")
+    ).lower()
+
+    if plan not in PLAN_LIMITS:
+        return "free"
+
+    return plan
+
+
+# =========================================================
+# CURRENT MONTH
+# =========================================================
 
 def current_month():
 
@@ -221,161 +238,184 @@ def current_month():
         timezone.utc
     ).strftime("%Y-%m")
 
-# =========================
-# USAGE
-# =========================
 
-def get_usage(user_id: str, month: str):
+# =========================================================
+# GET USAGE
+# =========================================================
 
-    response = (
-        supabase
-        .table("monthly_usage")
-        .select("used")
-        .eq("user_id", user_id)
-        .eq("month", month)
-        .maybe_single()
-        .execute()
-    )
+def get_usage(
+    user_id: str,
+    month: str
+):
+
+    try:
+
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/monthly_usage",
+            headers=supabase_headers(),
+            params={
+                "select": "used",
+                "user_id": f"eq.{user_id}",
+                "month": f"eq.{month}",
+                "limit": "1"
+            },
+            timeout=10
+        )
+
+    except requests.RequestException:
+
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable"
+        )
+
+    if response.status_code != 200:
+
+        raise HTTPException(
+            status_code=503,
+            detail="Could not read usage"
+        )
+
+    rows = response.json()
+
+    if not rows:
+        return 0
 
     return int(
-        (response.data or {}).get(
-            "used",
-            0
-        )
+        rows[0].get("used", 0)
     )
 
-def add_usage(user_id: str, month: str):
 
-    current = get_usage(
+# =========================================================
+# UPDATE USAGE
+# =========================================================
+
+def increment_usage(
+    user_id: str,
+    month: str
+):
+
+    used = get_usage(
         user_id,
         month
     )
 
-    new_value = current + 1
+    new_used = used + 1
 
-    if current == 0:
+    try:
 
-        supabase.table(
-            "monthly_usage"
-        ).insert({
-            "user_id": user_id,
-            "month": month,
-            "used": new_value
-        }).execute()
+        response = requests.post(
+            f"{SUPABASE_URL}/rest/v1/monthly_usage",
+            headers={
+                **supabase_headers(),
+                "Prefer": "resolution=merge-duplicates"
+            },
+            json={
+                "user_id": user_id,
+                "month": month,
+                "used": new_used,
+                "updated_at": datetime.now(
+                    timezone.utc
+                ).isoformat()
+            },
+            timeout=10
+        )
 
-    else:
+    except requests.RequestException:
 
-        supabase.table(
-            "monthly_usage"
-        ).update({
-            "used": new_value,
-            "updated_at": datetime.now(
-                timezone.utc
-            ).isoformat()
-        }).eq(
-            "user_id",
-            user_id
-        ).eq(
-            "month",
-            month
-        ).execute()
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable"
+        )
 
-    return new_value
+    if response.status_code not in (
+        200,
+        201,
+        204
+    ):
 
-# =========================
-# AI GENERATION
-# =========================
+        raise HTTPException(
+            status_code=503,
+            detail="Could not update usage"
+        )
 
-def generate_content(
-    mode: str,
-    niche: str,
-    prompt: str
-):
+    return new_used
 
-    instructions = {
 
-        "offer":
-            "Create a strong realistic offer with positioning, benefits, deliverables and CTA.",
+# =========================================================
+# AI PROMPT
+# =========================================================
 
-        "landing":
-            "Create conversion-focused landing page copy with headline, benefits, objections, FAQ and CTA.",
+def create_ai_prompt(data: GenerateRequest):
 
-        "email":
-            "Create a natural professional cold email sequence with follow-ups and CTA.",
+    return f"""
+You are FacelessAI, an AI growth and marketing assistant.
 
-        "dm":
-            "Create a natural non-spammy sales DM sequence.",
+Mode:
+{data.mode}
 
-        "ads":
-            "Create ad hooks, copy, headlines, CTA, audience and creative angles.",
+Niche:
+{data.niche}
 
-        "content":
-            "Create useful content ideas, hooks, CTAs and a practical content plan.",
+User request:
+{data.prompt}
 
-        "campaign":
-            "Create a complete coordinated marketing campaign including offer, landing page, email, DM, ads and content."
-    }
+Create high-quality, practical content for the user.
 
-    instructions_text = instructions[mode]
-
-    prompt_text = f"""
-You are FacelessAI Growth Copilot.
-
-Create practical, useful marketing output.
-
-Never invent:
-- testimonials
-- customers
-- revenue
-- reviews
-- awards
-- fake statistics
-- guaranteed results
-
-MODE:
-{mode}
-
-NICHE:
-{niche}
-
-TASK:
-{instructions_text}
-
-USER REQUEST:
-{prompt}
+Rules:
+- Do not invent testimonials.
+- Do not invent customers.
+- Do not invent statistics.
+- Do not invent certifications.
+- Do not promise guaranteed results.
+- Do not create fake proof.
+- Use placeholders when information is missing.
+- Follow the requested mode.
+- Make the final answer ready to use.
 """
 
+
+# =========================================================
+# GEMINI GENERATION
+# =========================================================
+
+def generate_with_ai(prompt: str):
+
+    last_error = None
+
     for model in [
-        MODEL,
+        PRIMARY_MODEL,
         FALLBACK_MODEL
     ]:
 
         try:
 
-            result = ai.models.generate_content(
+            result = gemini.models.generate_content(
                 model=model,
-                contents=prompt_text
+                contents=prompt
             )
 
-            if result.text:
-                return result.text.strip()
+            text = (
+                getattr(result, "text", None)
+                or ""
+            ).strip()
+
+            if text:
+                return text
 
         except Exception as error:
 
-            print(
-                f"Gemini error ({model}):",
-                error
-            )
+            last_error = error
 
-            time.sleep(1)
+    raise HTTPException(
+        status_code=502,
+        detail="AI generation failed"
+    ) from last_error
 
-    raise RuntimeError(
-        "AI generation failed."
-    )
 
-# =========================
-# ROUTES
-# =========================
+# =========================================================
+# ROOT
+# =========================================================
 
 @app.get("/")
 def root():
@@ -385,76 +425,107 @@ def root():
         "status": "online"
     }
 
+
+# =========================================================
+# HEALTH
+# =========================================================
+
 @app.get("/health")
 def health():
 
     return {
-        "status": "ok"
+        "status": "ok",
+        "primary_model": PRIMARY_MODEL,
+        "fallback_model": FALLBACK_MODEL,
+        "plans": PLAN_LIMITS
     }
 
-# =========================
+
+# =========================================================
 # GENERATE
-# =========================
+# =========================================================
 
 @app.post("/generate")
 def generate(
     data: GenerateRequest,
-    request: Request
+    authorization: str | None = Header(default=None)
 ):
 
-    # IP rate limit
-    ip = (
-        request.client.host
-        if request.client
-        else "unknown"
-    )
+    # -----------------------------
+    # AUTH HEADER
+    # -----------------------------
 
-    rate_limit(
-        "ip:" + ip
-    )
+    if not authorization:
 
-    # Verify Supabase user
-    user = get_user(request)
+        raise HTTPException(
+            status_code=401,
+            detail="Login required"
+        )
 
-    user_id = str(user.id)
+    if not authorization.lower().startswith(
+        "bearer "
+    ):
 
-    # User rate limit
-    rate_limit(
-        "user:" + user_id
-    )
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization header"
+        )
 
-    # Validate mode
-    mode = data.mode.lower().strip()
+    token = authorization.split(
+        " ",
+        1
+    )[1].strip()
 
-    if mode not in VALID_MODES:
+    if not token:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Login required"
+        )
+
+    # -----------------------------
+    # VERIFY USER
+    # -----------------------------
+
+    user = verify_user(token)
+
+    user_id = user["id"]
+
+    # -----------------------------
+    # MODE CHECK
+    # -----------------------------
+
+    if data.mode not in VALID_MODES:
 
         raise HTTPException(
             status_code=400,
-            detail={
-                "error": "invalid_mode",
-                "message": "Invalid workflow."
-            }
+            detail="Invalid generation mode"
         )
 
-    # Get server-side plan
-    plan = get_plan(user_id)
+    # -----------------------------
+    # PLAN
+    # -----------------------------
 
-    # Pro-only workflow
+    plan = get_user_plan(user_id)
+
+    # -----------------------------
+    # PRO ONLY CAMPAIGN
+    # -----------------------------
+
     if (
-        mode in PRO_MODES
+        data.mode == "campaign"
         and plan != "pro"
     ):
 
         raise HTTPException(
             status_code=403,
-            detail={
-                "error": "pro_required",
-                "message": "Campaign Builder requires Pro.",
-                "plan": plan
-            }
+            detail="Campaign Builder requires Pro"
         )
 
-    # Usage
+    # -----------------------------
+    # USAGE
+    # -----------------------------
+
     month = current_month()
 
     used = get_usage(
@@ -467,91 +538,77 @@ def generate(
     if used >= limit:
 
         raise HTTPException(
-            status_code=403,
-            detail={
-                "error": "monthly_limit_reached",
-                "message": "Monthly generation limit reached.",
-                "plan": plan,
-                "used": used,
-                "limit": limit
-            }
+            status_code=429,
+            detail=(
+                f"Monthly limit reached. "
+                f"{plan} plan allows {limit} generations."
+            )
         )
 
-    # Generate
-    try:
+    # -----------------------------
+    # AI
+    # -----------------------------
 
-        result = generate_content(
-            mode,
-            data.niche.strip(),
-            data.prompt.strip()
-        )
+    prompt = create_ai_prompt(data)
 
-    except Exception as error:
+    output = generate_with_ai(prompt)
 
-        print(
-            "Generation failed:",
-            error
-        )
+    # -----------------------------
+    # COUNT
+    # -----------------------------
 
-        raise HTTPException(
-            status_code=502,
-            detail={
-                "error": "generation_failed",
-                "message": "AI is temporarily unavailable."
-            }
-        )
-
-    # Count successful generation
-    new_usage = add_usage(
+    new_used = increment_usage(
         user_id,
         month
     )
 
+    # -----------------------------
+    # RESPONSE
+    # -----------------------------
+
     return {
         "success": True,
-        "result": result,
-        "mode": mode,
+        "output": output,
         "plan": plan,
-        "usage": {
-            "used": new_usage,
-            "limit": limit,
-            "remaining": max(
-                limit - new_usage,
-                0
-            )
-        }
+        "used": new_used,
+        "limit": limit,
+        "remaining": max(
+            0,
+            limit - new_used
+        )
     }
 
-# =========================
-# VIDEO ENDPOINT
-# =========================
+
+# =========================================================
+# VIDEO
+# =========================================================
 
 @app.post("/generate-video")
 def generate_video():
 
     raise HTTPException(
-        status_code=410,
-        detail={
-            "error": "removed",
-            "message": "Video generation is not available."
-        }
+        status_code=501,
+        detail="Video generation is not enabled yet"
     )
 
-# =========================
+
+# =========================================================
 # START
-# =========================
+# =========================================================
 
 if __name__ == "__main__":
 
     import uvicorn
 
+    port = int(
+        os.getenv(
+            "PORT",
+            "10000"
+        )
+    )
+
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=int(
-            os.getenv(
-                "PORT",
-                "8000"
-            )
-        )
+        port=port
     )
