@@ -676,10 +676,6 @@
 <script>
 const BACKEND_URL = "https://faceless-ai-website.onrender.com";
 
-const SUPABASE_URL = "https://iedwfdmyjlbsdzdekklj.supabase.co";
-  
-const SUPABASE_ANON_KEY = "sb_publishable_UB5aTWaSwnumy47rals3uw_vOxqi4rQ";
-  
 const workflows = {
   offer: {
     name:"Offer Builder",
@@ -741,8 +737,8 @@ let campaignMode = false;
 let facelessSession = null;
 let currentPlan = "free";
 let supabaseClient = null;
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_PUBLISHABLE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
+const SUPABASE_URL = "https://iedwfdmyjlbsdzdekklj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_UB5aTWaSwnumy47rals3uw_vOxqi4rQ";
 
 const workflowNav = document.getElementById("workflowNav");
 const promptEl = document.getElementById("prompt");
@@ -916,7 +912,7 @@ function closeAuth(){document.getElementById("authModal").classList.remove("show
 
 async function loadSupabase(){
   if(supabaseClient) return supabaseClient;
-  if(!SUPABASE_URL || SUPABASE_URL.startsWith("YOUR_") || !SUPABASE_PUBLISHABLE_KEY || SUPABASE_PUBLISHABLE_KEY.startsWith("YOUR_")){
+  if(!SUPABASE_URL || SUPABASE_URL.startsWith("YOUR_") || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.startsWith("YOUR_")){
     throw new Error("Add your Supabase URL and publishable key in the frontend config first.");
   }
   if(!window.supabase){
@@ -927,7 +923,7 @@ async function loadSupabase(){
       document.head.appendChild(script);
     });
   }
-  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
   const {data}=await supabaseClient.auth.getSession();
   facelessSession=data.session||null;
   updateAuthUI();
