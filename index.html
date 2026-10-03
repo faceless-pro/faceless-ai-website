@@ -2477,6 +2477,1416 @@ buildQuickPrompts();
 updateCounter();
 
 </script>
+  <!-- =========================================================
+     FACELESSAI AUTH + SECURE GENERATION
+     PASTE BEFORE </body>
+========================================================= -->
+
+<script>
+(function(){
+
+"use strict";
+
+/* =========================================================
+   SUPABASE CONFIG
+   ========================================================= */
+
+const FACELESS_SUPABASE_URL =
+  "YOUR_SUPABASE_URL";
+
+const FACELESS_SUPABASE_ANON_KEY =
+  "YOUR_SUPABASE_ANON_KEY";
+
+let facelessSupabase = null;
+let facelessSession = null;
+let facelessUser = null;
+let facelessAuthMode = "login";
+
+
+/* =========================================================
+   LOAD SUPABASE
+========================================================= */
+
+function loadSupabase(){
+
+  return new Promise((resolve,reject)=>{
+
+    if(window.supabase){
+      resolve();
+      return;
+    }
+
+    const script =
+      document.createElement("script");
+
+    script.src =
+      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+
+    script.onload = resolve;
+
+    script.onerror = ()=>{
+      reject(
+        new Error(
+          "Authentication system could not load."
+        )
+      );
+    };
+
+    document.head.appendChild(script);
+
+  });
+
+}
+
+
+/* =========================================================
+   AUTH UI CSS
+========================================================= */
+
+function addAuthStyles(){
+
+  if(document.getElementById(
+    "faceless-auth-styles"
+  )) return;
+
+  const style =
+    document.createElement("style");
+
+  style.id =
+    "faceless-auth-styles";
+
+  style.textContent = `
+
+    .faceless-auth-overlay{
+      position:fixed;
+      inset:0;
+      z-index:10000;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:rgba(0,0,0,.72);
+      backdrop-filter:blur(14px);
+    }
+
+    .faceless-auth-overlay.show{
+      display:flex;
+    }
+
+    .faceless-auth-box{
+      width:min(420px,100%);
+      position:relative;
+      padding:27px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:22px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(25,25,36,.98),
+          rgba(10,10,16,.98)
+        );
+      box-shadow:
+        0 30px 100px rgba(0,0,0,.65);
+    }
+
+    .faceless-auth-close{
+      position:absolute;
+      top:14px;
+      right:14px;
+      width:32px;
+      height:32px;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:9px;
+      background:rgba(255,255,255,.04);
+      color:#aaa;
+      cursor:pointer;
+      font-size:18px;
+    }
+
+    .faceless-auth-logo{
+      width:43px;
+      height:43px;
+      display:grid;
+      place-items:center;
+      margin-bottom:17px;
+      border-radius:13px;
+      background:
+        linear-gradient(
+          135deg,
+          #7c3aed,
+          #22d3ee
+        );
+      color:white;
+      font-weight:800;
+    }
+
+    .faceless-auth-box h2{
+      margin:0 0 7px;
+      font-size:24px;
+      letter-spacing:-.7px;
+    }
+
+    .faceless-auth-sub{
+      margin:0 0 22px;
+      color:#9292a2;
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .faceless-auth-field{
+      margin-bottom:13px;
+    }
+
+    .faceless-auth-field label{
+      display:block;
+      margin-bottom:7px;
+      color:#9999a8;
+      font-size:11px;
+      font-weight:700;
+    }
+
+    .faceless-auth-field input{
+      width:100%;
+      height:46px;
+      box-sizing:border-box;
+      padding:0 13px;
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:11px;
+      outline:none;
+      background:#0b0b12;
+      color:white;
+      font-size:14px;
+    }
+
+    .faceless-auth-field input:focus{
+      border-color:rgba(139,92,246,.6);
+      box-shadow:
+        0 0 0 3px rgba(139,92,246,.08);
+    }
+
+    .faceless-auth-submit{
+      width:100%;
+      margin-top:7px;
+    }
+
+    .faceless-auth-submit:disabled{
+      opacity:.65;
+      cursor:not-allowed;
+    }
+
+    .faceless-auth-switch{
+      margin-top:17px;
+      text-align:center;
+      color:#777785;
+      font-size:12px;
+    }
+
+    .faceless-auth-switch button{
+      border:0;
+      background:none;
+      color:#c4b5fd;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .faceless-auth-message{
+      display:none;
+      padding:10px 12px;
+      margin-bottom:13px;
+      border-radius:9px;
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .faceless-auth-message.show{
+      display:block;
+    }
+
+    .faceless-auth-message.error{
+      color:#fecdd3;
+      background:rgba(251,113,133,.08);
+      border:1px solid rgba(251,113,133,.15);
+    }
+
+    .faceless-auth-message.success{
+      color:#a7f3d0;
+      background:rgba(52,211,153,.08);
+      border:1px solid rgba(52,211,153,.15);
+    }
+
+    .faceless-login-btn{
+      display:inline-flex;
+    }
+
+    .faceless-account{
+      display:none;
+      align-items:center;
+      gap:8px;
+    }
+
+    .faceless-account-email{
+      max-width:170px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      color:#aaa;
+      font-size:11px;
+    }
+
+    @media(max-width:620px){
+
+      .faceless-auth-overlay{
+        padding:12px;
+      }
+
+      .faceless-auth-box{
+        padding:22px;
+        border-radius:18px;
+      }
+
+      .faceless-account-email{
+        display:none;
+      }
+
+      .faceless-login-btn{
+        display:inline-flex !important;
+      }
+
+    }
+
+  `;
+
+  document.head.appendChild(style);
+
+}
+
+
+/* =========================================================
+   CREATE AUTH UI
+========================================================= */
+
+function createAuthUI(){
+
+  addAuthStyles();
+
+
+  /* ---------- NAV ---------- */
+
+  const navActions =
+    document.querySelector(".nav-actions");
+
+  if(navActions &&
+     !document.getElementById(
+       "facelessLoginBtn"
+     )){
+
+    const loginButton =
+      document.createElement("button");
+
+    loginButton.type =
+      "button";
+
+    loginButton.className =
+      "btn faceless-login-btn";
+
+    loginButton.id =
+      "facelessLoginBtn";
+
+    loginButton.textContent =
+      "Login";
+
+    loginButton.onclick =
+      ()=>{
+        openFacelessAuth("login");
+      };
+
+
+    const account =
+      document.createElement("div");
+
+    account.className =
+      "faceless-account";
+
+    account.id =
+      "facelessAccount";
+
+
+    account.innerHTML = `
+
+      <span
+        class="faceless-account-email"
+        id="facelessAccountEmail"
+      ></span>
+
+      <button
+        class="btn"
+        type="button"
+        id="facelessLogoutBtn"
+      >
+        Logout
+      </button>
+
+    `;
+
+
+    navActions.appendChild(
+      loginButton
+    );
+
+    navActions.appendChild(
+      account
+    );
+
+
+    document
+      .getElementById(
+        "facelessLogoutBtn"
+      )
+      .onclick =
+        facelessLogout;
+
+  }
+
+
+  /* ---------- MODAL ---------- */
+
+  if(document.getElementById(
+    "facelessAuthModal"
+  )) return;
+
+
+  const modal =
+    document.createElement("div");
+
+  modal.id =
+    "facelessAuthModal";
+
+  modal.className =
+    "faceless-auth-overlay";
+
+
+  modal.innerHTML = `
+
+    <div class="faceless-auth-box">
+
+      <button
+        class="faceless-auth-close"
+        type="button"
+        onclick="closeFacelessAuth()"
+      >
+        ×
+      </button>
+
+      <div class="faceless-auth-logo">
+        F
+      </div>
+
+      <h2 id="facelessAuthTitle">
+        Welcome back
+      </h2>
+
+      <p
+        class="faceless-auth-sub"
+        id="facelessAuthSubtitle"
+      >
+        Login to continue using FacelessAI.
+      </p>
+
+      <div
+        class="faceless-auth-message"
+        id="facelessAuthMessage"
+      ></div>
+
+      <div class="faceless-auth-field">
+
+        <label>EMAIL</label>
+
+        <input
+          id="facelessAuthEmail"
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com"
+        >
+
+      </div>
+
+      <div class="faceless-auth-field">
+
+        <label>PASSWORD</label>
+
+        <input
+          id="facelessAuthPassword"
+          type="password"
+          autocomplete="current-password"
+          placeholder="••••••••"
+        >
+
+      </div>
+
+      <button
+        class="btn btn-primary faceless-auth-submit"
+        id="facelessAuthSubmit"
+        type="button"
+        onclick="submitFacelessAuth()"
+      >
+        Login
+      </button>
+
+      <div class="faceless-auth-switch">
+
+        <span id="facelessAuthSwitchText">
+          Don't have an account?
+        </span>
+
+        <button
+          type="button"
+          id="facelessAuthSwitchButton"
+          onclick="toggleFacelessAuthMode()"
+        >
+          Create account
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  document.body.appendChild(
+    modal
+  );
+
+
+  modal.addEventListener(
+    "click",
+    function(event){
+
+      if(event.target === modal){
+        closeFacelessAuth();
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   OPEN MODAL
+========================================================= */
+
+window.openFacelessAuth =
+function(mode){
+
+  facelessAuthMode =
+    mode || "login";
+
+  updateAuthMode();
+
+  const modal =
+    document.getElementById(
+      "facelessAuthModal"
+    );
+
+  if(!modal) return;
+
+  modal.classList.add(
+    "show"
+  );
+
+  setTimeout(()=>{
+
+    document
+      .getElementById(
+        "facelessAuthEmail"
+      )
+      ?.focus();
+
+  },50);
+
+};
+
+
+/* =========================================================
+   CLOSE MODAL
+========================================================= */
+
+window.closeFacelessAuth =
+function(){
+
+  const modal =
+    document.getElementById(
+      "facelessAuthModal"
+    );
+
+  if(modal){
+
+    modal.classList.remove(
+      "show"
+    );
+
+  }
+
+};
+
+
+/* =========================================================
+   LOGIN / SIGNUP TOGGLE
+========================================================= */
+
+window.toggleFacelessAuthMode =
+function(){
+
+  facelessAuthMode =
+    facelessAuthMode === "login"
+      ? "signup"
+      : "login";
+
+  updateAuthMode();
+
+};
+
+
+/* =========================================================
+   UPDATE MODAL TEXT
+========================================================= */
+
+function updateAuthMode(){
+
+  const title =
+    document.getElementById(
+      "facelessAuthTitle"
+    );
+
+  const subtitle =
+    document.getElementById(
+      "facelessAuthSubtitle"
+    );
+
+  const submit =
+    document.getElementById(
+      "facelessAuthSubmit"
+    );
+
+  const switchText =
+    document.getElementById(
+      "facelessAuthSwitchText"
+    );
+
+  const switchButton =
+    document.getElementById(
+      "facelessAuthSwitchButton"
+    );
+
+
+  if(!title) return;
+
+
+  if(
+    facelessAuthMode ===
+    "login"
+  ){
+
+    title.textContent =
+      "Welcome back";
+
+    subtitle.textContent =
+      "Login to continue using FacelessAI.";
+
+    submit.textContent =
+      "Login";
+
+    switchText.textContent =
+      "Don't have an account?";
+
+    switchButton.textContent =
+      "Create account";
+
+  }else{
+
+    title.textContent =
+      "Create your account";
+
+    subtitle.textContent =
+      "Start using FacelessAI with your free account.";
+
+    submit.textContent =
+      "Create account";
+
+    switchText.textContent =
+      "Already have an account?";
+
+    switchButton.textContent =
+      "Login";
+
+  }
+
+
+  clearAuthMessage();
+
+}
+
+
+/* =========================================================
+   AUTH MESSAGE
+========================================================= */
+
+function showAuthMessage(
+  message,
+  type
+){
+
+  const box =
+    document.getElementById(
+      "facelessAuthMessage"
+    );
+
+  if(!box) return;
+
+  box.textContent =
+    message;
+
+  box.className =
+    "faceless-auth-message show " +
+    (type || "error");
+
+}
+
+
+function clearAuthMessage(){
+
+  const box =
+    document.getElementById(
+      "facelessAuthMessage"
+    );
+
+  if(!box) return;
+
+  box.textContent =
+    "";
+
+  box.className =
+    "faceless-auth-message";
+
+}
+
+
+/* =========================================================
+   LOGIN / SIGNUP
+========================================================= */
+
+window.submitFacelessAuth =
+async function(){
+
+  if(!facelessSupabase){
+
+    showAuthMessage(
+      "Authentication is still loading. Please try again."
+    );
+
+    return;
+
+  }
+
+
+  const email =
+    document
+      .getElementById(
+        "facelessAuthEmail"
+      )
+      .value
+      .trim();
+
+
+  const password =
+    document
+      .getElementById(
+        "facelessAuthPassword"
+      )
+      .value;
+
+
+  if(!email){
+
+    showAuthMessage(
+      "Please enter your email."
+    );
+
+    return;
+
+  }
+
+
+  if(password.length < 6){
+
+    showAuthMessage(
+      "Password must be at least 6 characters."
+    );
+
+    return;
+
+  }
+
+
+  const button =
+    document.getElementById(
+      "facelessAuthSubmit"
+    );
+
+
+  button.disabled =
+    true;
+
+
+  button.textContent =
+    facelessAuthMode === "login"
+      ? "Logging in..."
+      : "Creating account...";
+
+
+  try{
+
+    let result;
+
+
+    if(
+      facelessAuthMode ===
+      "login"
+    ){
+
+      result =
+        await facelessSupabase.auth
+          .signInWithPassword({
+            email:email,
+            password:password
+          });
+
+    }else{
+
+      result =
+        await facelessSupabase.auth
+          .signUp({
+            email:email,
+            password:password
+          });
+
+    }
+
+
+    if(result.error)
+      throw result.error;
+
+
+    facelessSession =
+      result.data.session;
+
+    facelessUser =
+      result.data.user;
+
+
+    /* Email confirmation enabled */
+
+    if(
+      facelessAuthMode ===
+      "signup" &&
+      !facelessSession
+    ){
+
+      showAuthMessage(
+        "Account created. Check your email to confirm your account.",
+        "success"
+      );
+
+      return;
+
+    }
+
+
+    closeFacelessAuth();
+
+    updateAuthUI();
+
+
+    if(
+      typeof showToast ===
+      "function"
+    ){
+
+      showToast(
+        facelessAuthMode === "login"
+          ? "Logged in successfully."
+          : "Account created successfully."
+      );
+
+    }
+
+
+    document
+      .getElementById(
+        "facelessAuthEmail"
+      )
+      .value =
+      "";
+
+    document
+      .getElementById(
+        "facelessAuthPassword"
+      )
+      .value =
+      "";
+
+
+  }catch(error){
+
+    console.error(
+      "FacelessAI Auth Error:",
+      error
+    );
+
+    showAuthMessage(
+      error.message ||
+      "Authentication failed."
+    );
+
+  }finally{
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      facelessAuthMode === "login"
+        ? "Login"
+        : "Create account";
+
+  }
+
+};
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+async function facelessLogout(){
+
+  if(!facelessSupabase)
+    return;
+
+
+  const {
+    error
+  } =
+    await facelessSupabase.auth
+      .signOut();
+
+
+  if(error){
+
+    if(
+      typeof showToast ===
+      "function"
+    ){
+
+      showToast(
+        "Logout failed."
+      );
+
+    }
+
+    return;
+
+  }
+
+
+  facelessSession =
+    null;
+
+  facelessUser =
+    null;
+
+
+  updateAuthUI();
+
+
+  if(
+    typeof showToast ===
+    "function"
+  ){
+
+    showToast(
+      "Logged out."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   UPDATE NAV
+========================================================= */
+
+function updateAuthUI(){
+
+  const loginButton =
+    document.getElementById(
+      "facelessLoginBtn"
+    );
+
+  const account =
+    document.getElementById(
+      "facelessAccount"
+    );
+
+  const email =
+    document.getElementById(
+      "facelessAccountEmail"
+    );
+
+
+  if(!loginButton ||
+     !account)
+    return;
+
+
+  if(facelessUser){
+
+    loginButton.style.display =
+      "none";
+
+    account.style.display =
+      "flex";
+
+    if(email){
+
+      email.textContent =
+        facelessUser.email ||
+        "Account";
+
+    }
+
+  }else{
+
+    loginButton.style.display =
+      "inline-flex";
+
+    account.style.display =
+      "none";
+
+  }
+
+}
+
+
+/* =========================================================
+   LOAD CURRENT SESSION
+========================================================= */
+
+async function loadSession(){
+
+  if(!facelessSupabase)
+    return;
+
+
+  const {
+    data,
+    error
+  } =
+    await facelessSupabase.auth
+      .getSession();
+
+
+  if(error){
+
+    console.error(
+      "Session error:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  facelessSession =
+    data.session;
+
+  facelessUser =
+    data.session?.user ||
+    null;
+
+
+  updateAuthUI();
+
+}
+
+
+/* =========================================================
+   AUTH STATE LISTENER
+========================================================= */
+
+function setupAuthListener(){
+
+  facelessSupabase.auth
+    .onAuthStateChange(
+      function(
+        event,
+        session
+      ){
+
+        facelessSession =
+          session;
+
+        facelessUser =
+          session?.user ||
+          null;
+
+        updateAuthUI();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   SECURE /generate REQUEST
+=========================================================
+
+   Existing generateAsset() is NOT changed.
+
+   This intercepts:
+
+   BACKEND_URL + "/generate"
+
+   and automatically adds:
+
+   Authorization: Bearer ACCESS_TOKEN
+
+========================================================= */
+
+function installSecureFetch(){
+
+  const originalFetch =
+    window.fetch.bind(
+      window
+    );
+
+
+  window.fetch =
+  async function(
+    input,
+    options
+  ){
+
+    let url = "";
+
+
+    try{
+
+      url =
+        typeof input === "string"
+          ? input
+          : input?.url || "";
+
+    }catch(error){
+
+      url = "";
+
+    }
+
+
+    const backend =
+      String(
+        typeof BACKEND_URL !==
+        "undefined"
+          ? BACKEND_URL
+          : ""
+      ).replace(
+        /\/$/,
+        ""
+      );
+
+
+    const cleanUrl =
+      url.replace(
+        /\/$/,
+        ""
+      );
+
+
+    const isGenerateRequest =
+      cleanUrl ===
+      backend + "/generate";
+
+
+    /* Other requests stay untouched */
+
+    if(!isGenerateRequest){
+
+      return originalFetch(
+        input,
+        options
+      );
+
+    }
+
+
+    /* -----------------------------------------------------
+       Check login
+    ----------------------------------------------------- */
+
+    if(!facelessSupabase){
+
+      throw new Error(
+        "Authentication is not ready."
+      );
+
+    }
+
+
+    let session =
+      facelessSession;
+
+
+    if(!session){
+
+      const result =
+        await facelessSupabase.auth
+          .getSession();
+
+      session =
+        result.data?.session ||
+        null;
+
+      facelessSession =
+        session;
+
+      facelessUser =
+        session?.user ||
+        null;
+
+    }
+
+
+    if(!session){
+
+      openFacelessAuth(
+        "login"
+      );
+
+
+      if(
+        typeof showToast ===
+        "function"
+      ){
+
+        showToast(
+          "Please login before generating."
+        );
+
+      }
+
+
+      throw new Error(
+        "Please login before generating."
+      );
+
+    }
+
+
+    /* -----------------------------------------------------
+       Add access token
+    ----------------------------------------------------- */
+
+    const nextOptions =
+      options
+        ? {...options}
+        : {};
+
+
+    const headers =
+      new Headers(
+        options?.headers ||
+        {}
+      );
+
+
+    headers.set(
+      "Authorization",
+      "Bearer " +
+      session.access_token
+    );
+
+
+    headers.set(
+      "Content-Type",
+      "application/json"
+    );
+
+
+    nextOptions.headers =
+      headers;
+
+
+    let response =
+      await originalFetch(
+        input,
+        nextOptions
+      );
+
+
+    /* -----------------------------------------------------
+       Refresh token if expired
+    ----------------------------------------------------- */
+
+    if(
+      response.status ===
+      401
+    ){
+
+      try{
+
+        const refresh =
+          await facelessSupabase.auth
+            .refreshSession();
+
+
+        const newSession =
+          refresh.data?.session ||
+          null;
+
+
+        if(newSession){
+
+          facelessSession =
+            newSession;
+
+          facelessUser =
+            newSession.user;
+
+          updateAuthUI();
+
+          /*
+           * Retry the original request
+           * with the fresh access token.
+           */
+
+          headers.set(
+            "Authorization",
+            "Bearer " +
+            newSession.access_token
+          );
+
+          nextOptions.headers =
+            headers;
+
+          response =
+            await originalFetch(
+              input,
+              nextOptions
+            );
+
+        }else{
+
+          facelessSession =
+            null;
+
+          facelessUser =
+            null;
+
+          updateAuthUI();
+
+          openFacelessAuth(
+            "login"
+          );
+
+        }
+
+      }catch(error){
+
+        console.error(
+          "Token refresh failed:",
+          error
+        );
+
+      }
+
+    }
+
+
+    return response;
+
+  };
+
+}
+
+
+/* =========================================================
+   ESC KEY
+========================================================= */
+
+document.addEventListener(
+  "keydown",
+  function(event){
+
+    if(event.key === "Escape"){
+
+      closeFacelessAuth();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   INITIALIZE FACELESSAI AUTH
+========================================================= */
+
+async function initFacelessAuth(){
+
+  try{
+
+    await loadSupabase();
+
+
+    facelessSupabase =
+      window.supabase.createClient(
+        FACELESS_SUPABASE_URL,
+        FACELESS_SUPABASE_ANON_KEY
+      );
+
+
+    createAuthUI();
+
+    setupAuthListener();
+
+    await loadSession();
+
+    installSecureFetch();
+
+
+  }catch(error){
+
+    console.error(
+      "FacelessAI Auth initialization failed:",
+      error
+    );
+
+  }
+
+}
+
+
+initFacelessAuth();
+
+})();
+</script>
+
+</body>
+</html>
 
 </body>
 </html>
