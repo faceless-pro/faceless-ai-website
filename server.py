@@ -1,49 +1,97 @@
 import os
-import time
-import random
-from collections import defaultdict, deque
+import logging
 from datetime import datetime, timezone
+from typing import Any
 
-import requests
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from google import genai
+from google.genai import types
+from dodopayments import DodoPayments
 
 
-# ============================================================
-# ENVIRONMENT
-# ============================================================
+# =========================================================
+# CONFIG
+# =========================================================
 
-load_dotenv()
-
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
-
-SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "").strip()
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
-
-PRIMARY_MODEL = os.getenv(
-    "GEMINI_MODEL",
-    "gemini-3.5-flash-lite"
-).strip()
-
-FALLBACK_MODEL = os.getenv(
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+GEMINI_FALLBACK_MODEL = os.getenv(
     "GEMINI_FALLBACK_MODEL",
-    "gemini-3.8-flash"
-).strip()
+    "gemini-3.8-flash",
+)
 
-IP_RATE_LIMIT = int(os.getenv("IP_RATE_LIMIT", "15"))
-IP_RATE_WINDOW = int(os.getenv("IP_RATE_WINDOW", "60"))
+DODO_PAYMENT_KEY = os.getenv("DODO_PAYMENT_KEY")
+DODO_WEBHOOK_SECRET = os.getenv("DODO_WEBHOOK_SECRET")
 
-USER_RATE_LIMIT = int(os.getenv("USER_RATE_LIMIT", "8"))
-USER_RATE_WINDOW = int(os.getenv("USER_RATE_WINDOW", "60"))
+DODO_STARTER_PRODUCT_ID = os.getenv(
+    "DODO_STARTER_PRODUCT_ID",
+    "pdt_0NoQXaM9rTHblSiCaXFqb",
+)
+
+DODO_PRO_PRODUCT_ID = os.getenv(
+    "DODO_PRO_PRODUCT_ID",
+    "pdt_0Nor4IRUyNeuBzfuxt6wI",
+)
 
 
-# ============================================================
-# PLAN LIMITS
-# ============================================================
+# =========================================================
+# LOGGING
+# =========================================================
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+
+logger = logging.getLogger("facelessai")
+
+
+# =========================================================
+# APP
+# =========================================================
+
+app = FastAPI(
+    title="FacelessAI Growth Copilot API",
+    version="6.0.0",
+)
+
+
+# Keep this simple because the frontend is currently public.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
+
+
+# =========================================================
+# CLIENTS
+# =========================================================
+
+gemini_client = None
+
+if GEMINI_API_KEY:
+    gemini_client = genai.Client(
+        api_key=GEMINI_API_KEY
+    )
+
+
+dodo_client = None
+
+if DODO_PAYMENT_KEY:
+    dodo_client = DodoPayments(
+        bearer_token=DODO_PAYMENT_KEY,
+        webhook_key=DODO_WEBHOOK_SECRET,
+    )
+
+
+# =========================================================
+# PLANS
+# =========================================================
 
 PLAN_LIMITS = {
     "free": 3,
@@ -52,841 +100,791 @@ PLAN_LIMITS = {
 }
 
 
-# ============================================================
-# VALID WORKFLOWS
-# ============================================================
-
-VALID_MODES = {
-    "offer",
-    "landing",
-    "email",
-    "dm",
-    "ads",
-    "content",
-    "campaign",
+PLAN_NAMES = {
+    "free": "Free",
+    "starter": "Starter",
+    "pro": "Pro",
 }
 
 
-# ============================================================
-# REQUIRED ENVIRONMENT
-# ============================================================
-
-if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is missing")
-
-if not SUPABASE_URL:
-    raise RuntimeError("SUPABASE_URL is missing")
-
-if not SUPABASE_ANON_KEY:
-    raise RuntimeError("SUPABASE_ANON_KEY is missing")
-
-if not SUPABASE_SERVICE_ROLE_KEY:
-    raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is missing")
+PRODUCT_TO_PLAN = {
+    DODO_STARTER_PRODUCT_ID: "starter",
+    DODO_PRO_PRODUCT_ID: "pro",
+}
 
 
-# ============================================================
-# GEMINI CLIENT
-# ============================================================
+# =========================================================
+# WORKFLOWS
+# =========================================================
 
-gemini_client = genai.Client(api_key=GEMINI_API_KEY)
-
-
-# ============================================================
-# FASTAPI
-# ============================================================
-
-app = FastAPI(
-    title="FacelessAI Growth Copilot API",
-    version="5.0.0"
-)
+WORKFLOW_NAMES = {
+    "offer": "Offer Builder",
+    "landing": "Landing Page",
+    "email": "Cold Email",
+    "dm": "Sales DM",
+    "ads": "Ad Campaign",
+    "content": "Content Pack",
+    "campaign": "Campaign Builder",
+}
 
 
-# ============================================================
-# CORS
-# ============================================================
+WORKFLOW_INSTRUCTIONS = {
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://faceless-ai-website.vercel.app",
-        "http://localhost:3000",
-        "http://localhost:5173",
-    ],
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
-)
+    "offer": """
+Create a clear, specific, compelling offer.
 
+Return:
+1. Offer name
+2. Core promise
+3. Target customer
+4. Main pain point
+5. Desired outcome
+6. What is included
+7. Why this offer is different
+8. Suggested CTA
 
-# ============================================================
-# RATE LIMIT STORAGE
-# ============================================================
+Keep it practical and conversion-focused.
+""",
 
-ip_requests = defaultdict(deque)
-user_requests = defaultdict(deque)
+    "landing": """
+Create conversion-focused landing-page copy.
 
+Return:
+1. Hero headline
+2. Supporting subheadline
+3. Problem
+4. Solution
+5. Benefits
+6. How it works
+7. Offer
+8. Social-proof placeholder
+9. FAQ
+10. Final CTA
 
-def check_rate_limit(store, key, limit, window):
-    now = time.time()
-    bucket = store[key]
+Do not invent fake testimonials, customer counts,
+revenue numbers, guarantees, or credentials.
+""",
 
-    while bucket and now - bucket[0] > window:
-        bucket.popleft()
+    "email": """
+Create a natural B2B cold-email sequence.
 
-    if len(bucket) >= limit:
-        raise HTTPException(
-            status_code=429,
-            detail="Too many requests. Please wait a moment and try again."
-        )
+Return:
+1. Subject line
+2. Initial email
+3. Follow-up 1
+4. Follow-up 2
+5. Final follow-up
 
-    bucket.append(now)
+Keep it concise, human and non-spammy.
+Avoid fake personalization.
+""",
 
+    "dm": """
+Create a natural sales DM sequence.
 
-def get_client_ip(request: Request) -> str:
-    forwarded = request.headers.get("x-forwarded-for", "")
+Return:
+1. Opening message
+2. Value message
+3. Qualification question
+4. Offer/message
+5. Follow-up
 
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+Keep it conversational and not aggressive.
+""",
 
-    if request.client:
-        return request.client.host
+    "ads": """
+Create an ad campaign concept.
 
-    return "unknown"
+Return:
+1. Campaign angle
+2. Target audience
+3. 5 hooks
+4. 3 primary texts
+5. 3 headlines
+6. 3 CTAs
+7. Creative concepts
+8. Testing ideas
 
+Do not invent performance claims.
+""",
 
-# ============================================================
-# AUTHENTICATION
-# ============================================================
+    "content": """
+Create a useful content pack.
 
-def get_bearer_token(request: Request) -> str:
-    authorization = request.headers.get("authorization", "")
+Return:
+1. 10 content ideas
+2. Hook for each
+3. Short outline
+4. CTA
+5. Suggested platform
 
-    if not authorization.lower().startswith("bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail="Login required. Please log in before generating."
-        )
+Make the ideas specific to the user's business.
+""",
 
-    token = authorization[7:].strip()
+    "campaign": """
+Create a complete campaign plan.
 
-    if not token:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication token."
-        )
+Return:
+1. Campaign objective
+2. Target audience
+3. Offer
+4. Messaging angle
+5. Channel strategy
+6. Content plan
+7. Outreach plan
+8. Ad concepts
+9. CTA
+10. 7-day execution plan
 
-    return token
-
-
-def get_authenticated_user(request: Request) -> dict:
-    token = get_bearer_token(request)
-
-    try:
-        response = requests.get(
-            f"{SUPABASE_URL}/auth/v1/user",
-            headers={
-                "apikey": SUPABASE_ANON_KEY,
-                "Authorization": f"Bearer {token}",
-            },
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        print(
-            f"AUTH SERVICE ERROR: {type(exc).__name__}: {exc}",
-            flush=True,
-        )
-
-        raise HTTPException(
-            status_code=503,
-            detail="Authentication service is temporarily unavailable."
-        ) from exc
-
-    if response.status_code != 200:
-        raise HTTPException(
-            status_code=401,
-            detail="Your login session is invalid or expired. Please log in again."
-        )
-
-    try:
-        user = response.json()
-    except Exception as exc:
-        raise HTTPException(
-            status_code=503,
-            detail="Invalid authentication response."
-        ) from exc
-
-    user_id = user.get("id")
-
-    if not user_id:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid user session."
-        )
-
-    return user
+This workflow is available only to Pro.
+""",
+}
 
 
-# ============================================================
-# SUPABASE HELPERS
-# ============================================================
+# =========================================================
+# REQUEST MODEL
+# =========================================================
 
-def supabase_headers():
-    return {
-        "apikey": SUPABASE_SERVICE_ROLE_KEY,
-        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
-        "Content-Type": "application/json",
-    }
+class GenerateRequest(BaseModel):
+    mode: str = Field(min_length=1, max_length=50)
+    prompt: str = Field(min_length=1, max_length=2000)
 
 
-def get_user_plan(user_id: str) -> str:
-    try:
-        response = requests.get(
-            f"{SUPABASE_URL}/rest/v1/profiles",
-            headers=supabase_headers(),
-            params={
-                "id": f"eq.{user_id}",
-                "select": "plan",
-                "limit": "1",
-            },
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        print(
-            f"PLAN LOOKUP ERROR: {type(exc).__name__}: {exc}",
-            flush=True,
-        )
+# =========================================================
+# ANONYMOUS USAGE
+# =========================================================
+#
+# IMPORTANT:
+# This is process memory only.
+# It resets if Render restarts/redeploys and is not a
+# persistent per-customer billing database.
+#
+# Since the frontend currently has NO login/device identity,
+# there is no secure way to permanently associate a browser
+# with a Dodo customer here.
+#
 
-        raise HTTPException(
-            status_code=503,
-            detail="Account service is temporarily unavailable."
-        ) from exc
-
-    if response.status_code != 200:
-        print(
-            f"PLAN LOOKUP HTTP {response.status_code}: {response.text}",
-            flush=True,
-        )
-
-        raise HTTPException(
-            status_code=503,
-            detail="Could not verify your account plan."
-        )
-
-    try:
-        rows = response.json()
-    except Exception as exc:
-        raise HTTPException(
-            status_code=503,
-            detail="Invalid account response."
-        ) from exc
-
-    if not rows:
-        return "free"
-
-    plan = str(rows[0].get("plan", "free")).lower()
-
-    if plan not in PLAN_LIMITS:
-        return "free"
-
-    return plan
+anonymous_usage: dict[str, int] = {}
 
 
 def current_month() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m")
 
 
-def get_monthly_usage(user_id: str) -> int:
-    month = current_month()
+def get_anonymous_key(request: Request) -> str:
+    """
+    Temporary anonymous bucket.
 
-    try:
-        response = requests.get(
-            f"{SUPABASE_URL}/rest/v1/monthly_usage",
-            headers=supabase_headers(),
-            params={
-                "user_id": f"eq.{user_id}",
-                "month": f"eq.{month}",
-                "select": "used",
-                "limit": "1",
-            },
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=503,
-            detail="Usage service is temporarily unavailable."
-        ) from exc
+    We deliberately do NOT use a device-ID system or
+    IP-rate-limit system here, based on the current
+    architecture.
 
-    if response.status_code != 200:
-        print(
-            f"USAGE READ ERROR {response.status_code}: {response.text}",
-            flush=True,
-        )
+    This fallback is intentionally process-local.
+    """
 
-        raise HTTPException(
-            status_code=503,
-            detail="Could not verify usage."
-        )
+    # A single public bucket for the current anonymous setup.
+    return "anonymous"
 
-    rows = response.json()
 
-    if not rows:
-        return 0
+def get_usage(key: str) -> int:
+    return anonymous_usage.get(key, 0)
 
-    return int(rows[0].get("used", 0))
 
+def increment_usage(key: str) -> int:
+    anonymous_usage[key] = get_usage(key) + 1
+    return anonymous_usage[key]
 
-def increment_monthly_usage(user_id: str) -> int:
-    month = current_month()
 
-    current_used = get_monthly_usage(user_id)
-    new_used = current_used + 1
+# =========================================================
+# DODO CUSTOMER ENTITLEMENTS
+# =========================================================
+#
+# Keyed by Dodo customer_id, NOT by a global current_plan.
+#
+# This prevents one customer's payment from changing the
+# plan for every other customer.
+#
 
-    try:
-        response = requests.post(
-            f"{SUPABASE_URL}/rest/v1/monthly_usage",
-            headers={
-                **supabase_headers(),
-                "Prefer": "resolution=merge-duplicates,return=representation",
-            },
-            json={
-                "user_id": user_id,
-                "month": month,
-                "used": new_used,
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-            },
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=503,
-            detail="Usage service is temporarily unavailable."
-        ) from exc
+customer_entitlements: dict[str, dict[str, Any]] = {}
 
-    if response.status_code not in (200, 201):
-        print(
-            f"USAGE WRITE ERROR {response.status_code}: {response.text}",
-            flush=True,
-        )
 
-        raise HTTPException(
-            status_code=503,
-            detail="Could not update usage."
-        )
+def set_customer_plan(
+    customer_id: str,
+    plan: str,
+    subscription_id: str | None = None,
+) -> None:
 
-    return new_used
+    if plan not in PLAN_LIMITS:
+        return
 
-
-def check_and_consume_usage(user_id: str, plan: str):
-    limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])
-
-    used = get_monthly_usage(user_id)
-
-    if used >= limit:
-        raise HTTPException(
-            status_code=402,
-            detail=(
-                f"Monthly {plan} limit reached: "
-                f"{used}/{limit} generations used. "
-                "Your allowance resets next month."
-            ),
-        )
-
-    new_used = increment_monthly_usage(user_id)
-
-    return new_used, limit
-
-
-# ============================================================
-# REQUEST MODEL
-# ============================================================
-
-class GenerateRequest(BaseModel):
-    mode: str = Field(..., min_length=1, max_length=30)
-    prompt: str = Field(..., min_length=10, max_length=2000)
-
-
-# ============================================================
-# WORKFLOW INSTRUCTIONS
-# ============================================================
-
-WORKFLOW_INSTRUCTIONS = {
-
-    "offer": """
-Create a strong, specific business offer.
-
-Include:
-- Clear offer name
-- Target customer
-- Core problem
-- Desired outcome
-- Main value proposition
-- Deliverables
-- Differentiation
-- Pricing/packaging suggestion if useful
-- Risk reversal or guarantee idea only if appropriate
-- Strong CTA
-
-Make it practical and easy to understand.
-Do not invent fake testimonials, fake customers, fake statistics, or guaranteed results.
-""",
-
-    "landing": """
-Create conversion-focused landing page copy.
-
-Include:
-- Hero headline
-- Subheadline
-- Problem
-- Solution
-- Benefits
-- How it works
-- Features where useful
-- Objection handling
-- Social-proof placeholders only when appropriate
-- CTA
-- FAQ ideas
-
-Make the copy specific to the user's business.
-Do not invent fake testimonials, fake statistics, or fake claims.
-""",
-
-    "email": """
-Create a natural B2B cold email sequence.
-
-Include:
-- Subject line options
-- Initial email
-- Follow-up 1
-- Follow-up 2
-- Simple CTA
-
-Keep it concise, human and non-spammy.
-Avoid manipulative claims.
-Personalization should be based only on information provided by the user.
-""",
-
-    "dm": """
-Create a conversational sales DM sequence.
-
-Include:
-- Opening message
-- Follow-up
-- Value message
-- Soft CTA
-- Optional final follow-up
-
-Make it natural and not pushy.
-Avoid spammy language and unrealistic claims.
-""",
-
-    "ads": """
-Create a practical paid-ad campaign concept.
-
-Include:
-- Campaign objective
-- Target audience
-- 3-5 hooks
-- Primary text variations
-- Headline variations
-- CTA options
-- Creative concepts
-- Testing ideas
-
-Do not claim guaranteed performance.
-Do not invent performance statistics.
-""",
-
-    "content": """
-Create a practical content pack.
-
-Include:
-- Content strategy
-- Strong hooks
-- Post/video ideas
-- Short explanations
-- CTA ideas
-- A 7-day content outline
-
-Make the content useful rather than generic.
-Keep it relevant to the user's business and audience.
-""",
-
-    "campaign": """
-Create a coordinated marketing campaign from the user's brief.
-
-Include:
-- Campaign positioning
-- Offer
-- Landing-page angle
-- Cold-email angle
-- Sales-DM angle
-- Ad angles
-- Content ideas
-- CTA
-- Suggested execution order
-
-Make the assets consistent with one another.
-Do not invent fake proof, statistics or guaranteed outcomes.
-""",
-}
-
-
-# ============================================================
-# GEMINI ERROR DETECTION
-# ============================================================
-
-def is_temporary_error(error: Exception) -> bool:
-    text = str(error).upper()
-
-    temporary_signals = [
-        "429",
-        "500",
-        "502",
-        "503",
-        "504",
-        "UNAVAILABLE",
-        "RESOURCE_EXHAUSTED",
-        "TIMEOUT",
-        "DEADLINE",
-        "INTERNAL",
-    ]
-
-    return any(signal in text for signal in temporary_signals)
-
-
-# ============================================================
-# GEMINI GENERATION
-# ============================================================
-
-def generate_marketing_asset(mode: str, user_prompt: str) -> str:
-
-    workflow = WORKFLOW_INSTRUCTIONS.get(mode)
-
-    if not workflow:
-        raise HTTPException(
-            status_code=400,
-            detail="Unsupported workflow."
-        )
-
-    system_prompt = f"""
-You are the AI engine for FacelessAI Growth Copilot.
-
-FacelessAI helps creators, freelancers, agencies and businesses
-turn a business idea into useful marketing assets.
-
-Current workflow:
-{mode}
-
-Workflow requirements:
-{workflow}
-
-User brief:
-{user_prompt}
-
-General requirements:
-
-- Be specific.
-- Be practical.
-- Write copy that can actually be used.
-- Understand the user's business before writing.
-- Avoid generic filler.
-- Do not mention that you are an AI unless necessary.
-- Do not invent testimonials.
-- Do not invent customer counts.
-- Do not invent revenue figures.
-- Do not invent case studies.
-- Do not guarantee sales, leads, virality or conversion rates.
-- Use clear headings.
-- Use concise sections.
-- Use Markdown.
-- Return only the finished marketing asset.
-"""
-
-    models = [
-        PRIMARY_MODEL,
-        FALLBACK_MODEL,
-    ]
-
-    errors = []
-
-    for model in models:
-
-        for attempt in range(3):
-
-            try:
-                print(
-                    f"GENERATION: model={model} "
-                    f"attempt={attempt + 1}/3 "
-                    f"mode={mode}",
-                    flush=True,
-                )
-
-                response = gemini_client.models.generate_content(
-                    model=model,
-                    contents=system_prompt,
-                )
-
-                result = (response.text or "").strip()
-
-                if not result:
-                    raise RuntimeError(
-                        f"{model} returned an empty response."
-                    )
-
-                print(
-                    f"GENERATION SUCCESS: model={model} "
-                    f"characters={len(result)}",
-                    flush=True,
-                )
-
-                return result
-
-            except Exception as exc:
-
-                print(
-                    f"GENERATION ERROR: "
-                    f"model={model} "
-                    f"attempt={attempt + 1} "
-                    f"error={type(exc).__name__}: {exc}",
-                    flush=True,
-                )
-
-                errors.append(
-                    f"{model}: {type(exc).__name__}: {exc}"
-                )
-
-                if not is_temporary_error(exc):
-                    break
-
-                if attempt < 2:
-                    delay = (2 ** attempt) + random.uniform(
-                        0.3,
-                        1.0
-                    )
-
-                    time.sleep(delay)
-
-    raise RuntimeError(
-        "Gemini could not generate the requested asset. "
-        + " | ".join(errors[-4:])
-    )
-
-
-# ============================================================
-# ROOT
-# ============================================================
-
-@app.get("/")
-def root():
-    return {
-        "success": True,
-        "service": "FacelessAI Growth Copilot API",
-        "status": "running",
-        "version": "5.0.0",
-        "primary_model": PRIMARY_MODEL,
-        "fallback_model": FALLBACK_MODEL,
+    customer_entitlements[customer_id] = {
+        "plan": plan,
+        "subscription_id": subscription_id,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
     }
 
-
-# ============================================================
-# HEALTH
-# ============================================================
-
-@app.get("/health")
-def health():
-    return {
-        "status": "ok",
-        "primary_model": PRIMARY_MODEL,
-        "fallback_model": FALLBACK_MODEL,
-        "plans": {
-            "free": 3,
-            "starter": 100,
-            "pro": 500,
-        },
-    }
-
-
-# ============================================================
-# GENERATE
-# ============================================================
-
-@app.post("/generate")
-def generate(
-    request: Request,
-    payload: GenerateRequest,
-):
-
-    print(
-        f"REQUEST /generate mode={payload.mode}",
-        flush=True,
-    )
-
-    # --------------------------------------------------------
-    # IP RATE LIMIT
-    # --------------------------------------------------------
-
-    ip = get_client_ip(request)
-
-    check_rate_limit(
-        ip_requests,
-        ip,
-        IP_RATE_LIMIT,
-        IP_RATE_WINDOW,
-    )
-
-    # --------------------------------------------------------
-    # AUTH
-    # --------------------------------------------------------
-
-    user = get_authenticated_user(request)
-
-    user_id = user["id"]
-
-    # --------------------------------------------------------
-    # USER RATE LIMIT
-    # --------------------------------------------------------
-
-    check_rate_limit(
-        user_requests,
-        user_id,
-        USER_RATE_LIMIT,
-        USER_RATE_WINDOW,
-    )
-
-    # --------------------------------------------------------
-    # VALIDATE MODE
-    # --------------------------------------------------------
-
-    mode = payload.mode.strip().lower()
-
-    if mode not in VALID_MODES:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Invalid workflow. Supported workflows: "
-                + ", ".join(sorted(VALID_MODES))
-            ),
-        )
-
-    # --------------------------------------------------------
-    # VALIDATE PROMPT
-    # --------------------------------------------------------
-
-    prompt = payload.prompt.strip()
-
-    if len(prompt) < 10:
-        raise HTTPException(
-            status_code=400,
-            detail="Please provide a little more detail."
-        )
-
-    if len(prompt) > 2000:
-        raise HTTPException(
-            status_code=400,
-            detail="Prompt must be 2000 characters or less."
-        )
-
-    # --------------------------------------------------------
-    # PLAN
-    # --------------------------------------------------------
-
-    plan = get_user_plan(user_id)
-
-    print(
-        f"AUTH OK user={user_id[:8]}... "
-        f"plan={plan} mode={mode}",
-        flush=True,
-    )
-
-    # --------------------------------------------------------
-    # PRO CAMPAIGN BUILDER
-    # --------------------------------------------------------
-
-    if mode == "campaign" and plan != "pro":
-        raise HTTPException(
-            status_code=403,
-            detail=(
-                "Campaign Builder is available on the Pro plan. "
-                "Upgrade to Pro to use it."
-            ),
-        )
-
-    # --------------------------------------------------------
-    # USAGE
-    # --------------------------------------------------------
-
-    used, limit = check_and_consume_usage(
-        user_id,
+    logger.info(
+        "Dodo entitlement updated | customer=%s | plan=%s",
+        customer_id,
         plan,
     )
 
-    print(
-        f"USAGE user={user_id[:8]}... "
-        f"plan={plan} "
-        f"used={used}/{limit}",
-        flush=True,
+
+def get_customer_plan(customer_id: str) -> str:
+    record = customer_entitlements.get(customer_id)
+
+    if not record:
+        return "free"
+
+    return record.get("plan", "free")
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+
+def product_id_from_event(event_data: Any) -> str | None:
+
+    product_cart = getattr(
+        event_data,
+        "product_cart",
+        None,
     )
 
-    # --------------------------------------------------------
-    # GENERATE
-    # --------------------------------------------------------
+    if not product_cart:
+        return None
 
     try:
+        first_item = product_cart[0]
+        return getattr(first_item, "product_id", None)
+    except Exception:
+        return None
 
-        result = generate_marketing_asset(
-            mode,
-            prompt,
+
+def customer_id_from_event(event_data: Any) -> str | None:
+
+    customer = getattr(
+        event_data,
+        "customer",
+        None,
+    )
+
+    if customer:
+        return getattr(
+            customer,
+            "customer_id",
+            None,
         )
 
-    except HTTPException:
-        raise
+    return getattr(
+        event_data,
+        "customer_id",
+        None,
+    )
 
-    except Exception as exc:
 
-        print(
-            f"FINAL GENERATION ERROR: "
-            f"{type(exc).__name__}: {exc}",
-            flush=True,
+def subscription_id_from_event(event_data: Any) -> str | None:
+
+    return getattr(
+        event_data,
+        "subscription_id",
+        None,
+    )
+
+
+def plan_from_product(product_id: str | None) -> str | None:
+
+    if not product_id:
+        return None
+
+    return PRODUCT_TO_PLAN.get(product_id)
+
+
+# =========================================================
+# DODO WEBHOOK
+# =========================================================
+
+@app.post("/webhook/dodo")
+async def dodo_webhook(request: Request):
+
+    if not dodo_client:
+        logger.error("Dodo client is not configured.")
+        raise HTTPException(
+            status_code=500,
+            detail="Dodo webhook is not configured.",
+        )
+
+    # IMPORTANT:
+    # Read RAW bytes. Do not request.json() before verification.
+    raw_body = await request.body()
+
+    headers = {
+        "webhook-id": request.headers.get(
+            "webhook-id",
+            "",
+        ),
+        "webhook-signature": request.headers.get(
+            "webhook-signature",
+            "",
+        ),
+        "webhook-timestamp": request.headers.get(
+            "webhook-timestamp",
+            "",
+        ),
+    }
+
+    if not all(headers.values()):
+        logger.warning(
+            "Dodo webhook rejected: missing signature headers."
         )
 
         raise HTTPException(
-            status_code=500,
-            detail=(
-                "The AI could not generate the asset right now. "
-                "Please try again."
-            ),
-        ) from exc
+            status_code=400,
+            detail="Missing webhook signature headers.",
+        )
 
-    # --------------------------------------------------------
-    # RESPONSE
-    # --------------------------------------------------------
+    try:
+
+        event = dodo_client.webhooks.unwrap(
+            raw_body.decode("utf-8"),
+            headers=headers,
+        )
+
+    except Exception as error:
+
+        logger.warning(
+            "Dodo webhook signature verification failed: %s",
+            str(error),
+        )
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid webhook signature.",
+        )
+
+    event_type = getattr(
+        event,
+        "type",
+        None,
+    )
+
+    event_data = getattr(
+        event,
+        "data",
+        None,
+    )
+
+    logger.info(
+        "Verified Dodo webhook | type=%s",
+        event_type,
+    )
+
+    # -----------------------------------------------------
+    # PAYMENT SUCCEEDED
+    # -----------------------------------------------------
+
+    if event_type == "payment.succeeded":
+
+        customer_id = customer_id_from_event(
+            event_data
+        )
+
+        product_id = product_id_from_event(
+            event_data
+        )
+
+        plan = plan_from_product(
+            product_id
+        )
+
+        status = getattr(
+            event_data,
+            "status",
+            None,
+        )
+
+        if (
+            customer_id
+            and plan
+            and status == "succeeded"
+        ):
+
+            set_customer_plan(
+                customer_id=customer_id,
+                plan=plan,
+                subscription_id=subscription_id_from_event(
+                    event_data
+                ),
+            )
+
+            logger.info(
+                "Payment succeeded | customer=%s | product=%s | plan=%s",
+                customer_id,
+                product_id,
+                plan,
+            )
+
+    # -----------------------------------------------------
+    # SUBSCRIPTION ACTIVE / RENEWED
+    # -----------------------------------------------------
+
+    elif event_type in {
+        "subscription.active",
+        "subscription.renewed",
+        "subscription.updated",
+        "subscription.plan_changed",
+        "subscription.unpaused",
+    }:
+
+        customer_id = customer_id_from_event(
+            event_data
+        )
+
+        product_id = getattr(
+            event_data,
+            "product_id",
+            None,
+        )
+
+        plan = plan_from_product(
+            product_id
+        )
+
+        if customer_id and plan:
+
+            set_customer_plan(
+                customer_id=customer_id,
+                plan=plan,
+                subscription_id=subscription_id_from_event(
+                    event_data
+                ),
+            )
+
+    # -----------------------------------------------------
+    # SUBSCRIPTION CANCELLED / EXPIRED / FAILED / PAUSED
+    # -----------------------------------------------------
+
+    elif event_type in {
+        "subscription.cancelled",
+        "subscription.expired",
+        "subscription.failed",
+        "subscription.paused",
+        "subscription.on_hold",
+        "subscription.past_due",
+    }:
+
+        customer_id = customer_id_from_event(
+            event_data
+        )
+
+        if customer_id:
+
+            customer_entitlements.pop(
+                customer_id,
+                None,
+            )
+
+            logger.info(
+                "Dodo entitlement removed | customer=%s | event=%s",
+                customer_id,
+                event_type,
+            )
+
+    # -----------------------------------------------------
+    # REFUND
+    # -----------------------------------------------------
+
+    elif event_type in {
+        "refund.succeeded",
+        "refund.failed",
+    }:
+
+        logger.info(
+            "Dodo refund event received | type=%s",
+            event_type,
+        )
+
+    # -----------------------------------------------------
+    # OTHER PAYMENT EVENTS
+    # -----------------------------------------------------
+
+    elif event_type in {
+        "payment.failed",
+        "payment.processing",
+        "payment.cancelled",
+    }:
+
+        logger.info(
+            "Dodo payment status event | type=%s",
+            event_type,
+        )
+
+    return {
+        "received": True,
+        "type": event_type,
+    }
+
+
+# =========================================================
+# HEALTH
+# =========================================================
+
+@app.get("/")
+async def root():
+
+    return {
+        "service": "FacelessAI Growth Copilot API",
+        "status": "running",
+        "version": "6.0.0",
+        "primary_model": GEMINI_MODEL,
+        "fallback_model": GEMINI_FALLBACK_MODEL,
+    }
+
+
+@app.get("/health")
+async def health():
+
+    return {
+        "status": "ok",
+        "gemini_configured": bool(GEMINI_API_KEY),
+        "dodo_configured": bool(DODO_PAYMENT_KEY),
+        "webhook_configured": bool(DODO_WEBHOOK_SECRET),
+    }
+
+
+# =========================================================
+# GEMINI GENERATION
+# =========================================================
+
+def build_ai_prompt(
+    mode: str,
+    user_prompt: str,
+) -> str:
+
+    workflow_name = WORKFLOW_NAMES[mode]
+    instructions = WORKFLOW_INSTRUCTIONS[mode]
+
+    return f"""
+You are FacelessAI Growth Copilot.
+
+Workflow:
+{workflow_name}
+
+User's business/request:
+{user_prompt}
+
+Instructions:
+{instructions}
+
+Rules:
+- Give useful, specific output.
+- Do not invent facts about the user's business.
+- Do not invent testimonials, statistics, revenue numbers,
+  customers, certifications, or guarantees.
+- Use the information supplied by the user.
+- Avoid unnecessary filler.
+- Make the output easy to copy and use.
+"""
+
+
+def generate_with_model(
+    model_name: str,
+    prompt: str,
+) -> str:
+
+    if not gemini_client:
+        raise RuntimeError(
+            "Gemini API is not configured."
+        )
+
+    response = gemini_client.models.generate_content(
+        model=model_name,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            temperature=0.7,
+            max_output_tokens=5000,
+        ),
+    )
+
+    text = getattr(
+        response,
+        "text",
+        None,
+    )
+
+    if not text:
+        raise RuntimeError(
+            "Gemini returned an empty response."
+        )
+
+    return text.strip()
+
+
+def generate_ai_output(prompt: str) -> str:
+
+    try:
+
+        return generate_with_model(
+            GEMINI_MODEL,
+            prompt,
+        )
+
+    except Exception as primary_error:
+
+        logger.warning(
+            "Primary Gemini model failed | model=%s | error=%s",
+            GEMINI_MODEL,
+            str(primary_error),
+        )
+
+        if (
+            GEMINI_FALLBACK_MODEL
+            and GEMINI_FALLBACK_MODEL != GEMINI_MODEL
+        ):
+
+            return generate_with_model(
+                GEMINI_FALLBACK_MODEL,
+                prompt,
+            )
+
+        raise
+
+
+# =========================================================
+# GENERATE
+# =========================================================
+
+@app.post("/generate")
+async def generate(
+    payload: GenerateRequest,
+    request: Request,
+):
+
+    mode = payload.mode.strip().lower()
+    user_prompt = payload.prompt.strip()
+
+    if mode not in WORKFLOW_NAMES:
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_mode",
+                "message": "Unknown workflow mode.",
+            },
+        )
+
+    if not user_prompt:
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_prompt",
+                "message": "Prompt cannot be empty.",
+            },
+        )
+
+    # Campaign Builder is Pro only.
+    #
+    # Because the current frontend has no authentication or
+    # customer identity, this endpoint cannot securely know
+    # that an anonymous browser belongs to a Dodo Pro customer.
+    #
+    # Do not trust a plan value sent from the browser.
+    #
+    if mode == "campaign":
+
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "pro_required",
+                "message": (
+                    "Campaign Builder is available "
+                    "on the Pro plan."
+                ),
+                "plan": "free",
+                "plan_name": "Free",
+                "upgrade_plan": "pro",
+                "used": 0,
+                "limit": PLAN_LIMITS["free"],
+                "remaining": PLAN_LIMITS["free"],
+            },
+        )
+
+    anonymous_key = get_anonymous_key(request)
+
+    used_before = get_usage(
+        anonymous_key
+    )
+
+    limit = PLAN_LIMITS["free"]
+
+    if used_before >= limit:
+
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "monthly_limit_reached",
+                "message": (
+                    "You've reached your Free "
+                    "monthly limit."
+                ),
+                "plan": "free",
+                "plan_name": "Free",
+                "used": used_before,
+                "limit": limit,
+                "remaining": 0,
+                "upgrade_plan": "starter",
+                "reset_month": current_month(),
+            },
+        )
+
+    ai_prompt = build_ai_prompt(
+        mode=mode,
+        user_prompt=user_prompt,
+    )
+
+    try:
+
+        result = generate_ai_output(
+            ai_prompt
+        )
+
+    except Exception as error:
+
+        logger.exception(
+            "Generation failed | mode=%s | error=%s",
+            mode,
+            str(error),
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "ai_unavailable",
+                "message": (
+                    "AI generation is temporarily "
+                    "unavailable. Please try again."
+                ),
+            },
+        )
+
+    used = increment_usage(
+        anonymous_key
+    )
+
+    remaining = max(
+        limit - used,
+        0,
+    )
 
     return {
         "success": True,
         "result": result,
         "mode": mode,
-        "plan": plan,
+        "plan": "free",
         "usage": {
             "used": used,
             "limit": limit,
-            "remaining": max(limit - used, 0),
+            "remaining": remaining,
         },
-    }
-
-
-# ============================================================
-# STARTUP
-# ============================================================
-
-@app.on_event("startup")
-def startup_event():
-
-    print("=" * 60)
-    print("FacelessAI Growth Copilot API")
-    print("=" * 60)
-    print(f"Primary model : {PRIMARY_MODEL}")
-    print(f"Fallback model: {FALLBACK_MODEL}")
-    print("Plans         : Free 3 | Starter 100 | Pro 500")
-    print("Endpoint      : POST /generate")
-    print("Health        : GET /health")
-    print("=" * 60)
+}
