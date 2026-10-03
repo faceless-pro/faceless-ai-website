@@ -1,6 +1,6 @@
 fastapi
 uvicorn[standard]
-supabase
 google-genai
-pydantic 
+pydantic
+dodopayments 
 
