@@ -5,9 +5,18 @@ from datetime import datetime, timezone
 from typing import Dict, Deque
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, HTTPException
+
+from fastapi import (
+    FastAPI,
+    Request,
+    HTTPException,
+)
+
 from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import BaseModel, Field
+
+from supabase import create_client, Client
 
 from google import genai
 from google.genai import types
@@ -19,7 +28,19 @@ from google.genai import types
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+GEMINI_API_KEY = os.getenv(
+    "GEMINI_API_KEY"
+)
+
+SUPABASE_URL = os.getenv(
+    "SUPABASE_URL"
+)
+
+SUPABASE_SERVICE_ROLE_KEY = os.getenv(
+    "SUPABASE_SERVICE_ROLE_KEY"
+)
+
 
 PRIMARY_MODEL = os.getenv(
     "GEMINI_MODEL",
@@ -31,11 +52,44 @@ FALLBACK_MODEL = os.getenv(
     "gemini-3.8-flash"
 )
 
-if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is missing.")
 
-client = genai.Client(
+if not GEMINI_API_KEY:
+
+    raise RuntimeError(
+        "GEMINI_API_KEY is missing."
+    )
+
+
+if not SUPABASE_URL:
+
+    raise RuntimeError(
+        "SUPABASE_URL is missing."
+    )
+
+
+if not SUPABASE_SERVICE_ROLE_KEY:
+
+    raise RuntimeError(
+        "SUPABASE_SERVICE_ROLE_KEY is missing."
+    )
+
+
+# ============================================================
+# CLIENTS
+# ============================================================
+
+gemini_client = genai.Client(
     api_key=GEMINI_API_KEY
+)
+
+
+# IMPORTANT:
+# This key is SERVER ONLY.
+# NEVER put this key inside index.html.
+
+supabase: Client = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY
 )
 
 
@@ -45,7 +99,7 @@ client = genai.Client(
 
 app = FastAPI(
     title="FacelessAI Growth Copilot API",
-    version="3.0.0"
+    version="4.0.0"
 )
 
 
@@ -55,16 +109,29 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
+
     allow_origins=[
         "https://faceless-ai-website.vercel.app",
+
         "http://localhost:3000",
         "http://localhost:5173",
+
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
     ],
+
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+
+    allow_methods=[
+        "GET",
+        "POST",
+        "OPTIONS",
+    ],
+
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+    ],
 )
 
 
@@ -76,6 +143,13 @@ PLAN_LIMITS = {
     "free": 3,
     "starter": 100,
     "pro": 500,
+}
+
+
+VALID_PLANS = {
+    "free",
+    "starter",
+    "pro",
 }
 
 
@@ -120,6 +194,15 @@ VALID_MODES = {
 
 
 # ============================================================
+# PRO ONLY
+# ============================================================
+
+PRO_ONLY_MODES = {
+    "campaign",
+}
+
+
+# ============================================================
 # MODE INSTRUCTIONS
 # ============================================================
 
@@ -129,6 +212,7 @@ MODE_INSTRUCTIONS = {
 Create a strong, realistic offer.
 
 Include:
+
 1. Offer name
 2. Target customer
 3. Core problem
@@ -147,6 +231,7 @@ logos, awards, reviews or guaranteed results.
 Create structured landing-page copy.
 
 Include:
+
 1. Headline
 2. Subheadline
 3. Problem
@@ -165,6 +250,7 @@ Keep all claims realistic.
 Create a concise professional cold-email sequence.
 
 Include:
+
 1. Subject
 2. Opening
 3. Problem
@@ -180,6 +266,7 @@ Never pretend to know information that was not provided.
 Create a natural sales DM sequence.
 
 Include:
+
 1. First message
 2. Follow-up
 3. Objection response
@@ -192,6 +279,7 @@ Avoid spammy language and fake urgency.
 Create an advertising campaign concept.
 
 Include:
+
 1. Campaign angle
 2. Target audience
 3. Hook
@@ -208,6 +296,7 @@ Never invent statistics or guaranteed results.
 Create a practical content engine.
 
 Include:
+
 1. Content pillars
 2. 10 content ideas
 3. Hooks
@@ -223,6 +312,7 @@ Do not promise virality.
 Create a complete marketing campaign.
 
 Include:
+
 1. Objective
 2. Audience
 3. Offer
@@ -276,7 +366,9 @@ Rules:
 # ============================================================
 
 RATE_LIMIT_WINDOW = 60
+
 RATE_LIMIT_REQUESTS = 15
+
 
 request_log: Dict[
     str,
@@ -294,7 +386,11 @@ def get_client_ip(
 
     if forwarded_for:
 
-        return forwarded_for.split(",")[0].strip()
+        return (
+            forwarded_for
+            .split(",")[0]
+            .strip()
+        )
 
     if request.client:
 
@@ -304,12 +400,12 @@ def get_client_ip(
 
 
 def check_rate_limit(
-    ip: str
+    key: str
 ):
 
     now = time.time()
 
-    timestamps = request_log[ip]
+    timestamps = request_log[key]
 
     while (
         timestamps
@@ -320,6 +416,7 @@ def check_rate_limit(
 
         timestamps.popleft()
 
+
     if (
         len(timestamps)
         >= RATE_LIMIT_REQUESTS
@@ -327,101 +424,401 @@ def check_rate_limit(
 
         raise HTTPException(
             status_code=429,
+
             detail={
-                "error": "rate_limited",
+                "error":
+                    "rate_limited",
+
                 "message":
                     "Too many requests. Please wait a minute."
             }
         )
 
-    timestamps.append(now)
+
+    timestamps.append(
+        now
+    )
 
 
 # ============================================================
-# TEMPORARY USAGE
+# AUTHORIZATION
 # ============================================================
-#
-# IMPORTANT:
-# This is only the temporary Free-plan fallback.
-# Production paid subscriptions must use Supabase.
-#
 
-usage_store = {}
+def get_bearer_token(
+    request: Request
+) -> str:
 
+    authorization =
+        request.headers.get(
+            "Authorization"
+        )
+
+
+    if not authorization:
+
+        raise HTTPException(
+            status_code=401,
+
+            detail={
+                "error":
+                    "missing_auth",
+
+                "message":
+                    "Login is required."
+            }
+        )
+
+
+    parts =
+        authorization.split(
+            " ",
+            1
+        )
+
+
+    if (
+        len(parts) != 2
+        or
+        parts[0].lower() != "bearer"
+    ):
+
+        raise HTTPException(
+            status_code=401,
+
+            detail={
+                "error":
+                    "invalid_auth",
+
+                "message":
+                    "Invalid authorization header."
+            }
+        )
+
+
+    token =
+        parts[1].strip()
+
+
+    if not token:
+
+        raise HTTPException(
+            status_code=401,
+
+            detail={
+                "error":
+                    "invalid_auth",
+
+                "message":
+                    "Missing access token."
+            }
+        )
+
+
+    return token
+
+
+def get_authenticated_user(
+    request: Request
+):
+
+    token =
+        get_bearer_token(
+            request
+        )
+
+
+    try:
+
+        response =
+            supabase.auth.get_user(
+                token
+            )
+
+    except Exception as error:
+
+        print(
+            f"[Auth Error] {error}"
+        )
+
+        raise HTTPException(
+            status_code=401,
+
+            detail={
+                "error":
+                    "invalid_auth",
+
+                "message":
+                    "Your login session is invalid or expired."
+            }
+        )
+
+
+    user =
+        getattr(
+            response,
+            "user",
+            None
+        )
+
+
+    if not user:
+
+        raise HTTPException(
+            status_code=401,
+
+            detail={
+                "error":
+                    "invalid_auth",
+
+                "message":
+                    "Unable to verify your account."
+            }
+        )
+
+
+    return user
+
+
+# ============================================================
+# CURRENT MONTH
+# ============================================================
 
 def current_month():
 
     return datetime.now(
         timezone.utc
-    ).strftime("%Y-%m")
-
-
-def get_free_usage(
-    ip: str
-):
-
-    month = current_month()
-
-    record = usage_store.get(ip)
-
-    if not record:
-
-        usage_store[ip] = {
-            "month": month,
-            "used": 0,
-        }
-
-        return 0
-
-    if record["month"] != month:
-
-        usage_store[ip] = {
-            "month": month,
-            "used": 0,
-        }
-
-        return 0
-
-    return int(
-        record["used"]
+    ).strftime(
+        "%Y-%m"
     )
 
 
-def increment_free_usage(
-    ip: str
-):
+# ============================================================
+# GET USER PLAN
+# ============================================================
 
-    month = current_month()
+def get_user_plan(
+    user_id: str
+) -> str:
 
-    record = usage_store.get(ip)
+    try:
 
-    if (
-        not record
-        or
-        record["month"] != month
-    ):
+        response = (
+            supabase
+            .table("profiles")
+            .select("plan")
+            .eq("id", user_id)
+            .maybe_single()
+            .execute()
+        )
 
-        usage_store[ip] = {
-            "month": month,
-            "used": 1,
-        }
+        row =
+            response.data
 
-        return 1
 
-    record["used"] += 1
+        if row:
 
-    return record["used"]
+            plan =
+                str(
+                    row.get(
+                        "plan",
+                        "free"
+                    )
+                ).lower()
+
+            if plan in VALID_PLANS:
+
+                return plan
+
+    except Exception as error:
+
+        print(
+            f"[Plan Lookup Error] {error}"
+        )
+
+
+    # New users default to Free.
+
+    return "free"
 
 
 # ============================================================
-# GEMINI
+# GET USAGE
+# ============================================================
+
+def get_usage(
+    user_id: str,
+    month: str
+) -> int:
+
+    try:
+
+        response = (
+            supabase
+            .table("monthly_usage")
+            .select("used")
+            .eq("user_id", user_id)
+            .eq("month", month)
+            .maybe_single()
+            .execute()
+        )
+
+        row =
+            response.data
+
+
+        if not row:
+
+            return 0
+
+
+        return int(
+            row.get(
+                "used",
+                0
+            )
+        )
+
+
+    except Exception as error:
+
+        print(
+            f"[Usage Read Error] {error}"
+        )
+
+        raise HTTPException(
+            status_code=503,
+
+            detail={
+                "error":
+                    "usage_unavailable",
+
+                "message":
+                    "Usage service is temporarily unavailable."
+            }
+        )
+
+
+# ============================================================
+# INCREMENT USAGE
+# ============================================================
+
+def increment_usage(
+    user_id: str,
+    month: str
+) -> int:
+
+    try:
+
+        existing = (
+            supabase
+            .table("monthly_usage")
+            .select("used")
+            .eq("user_id", user_id)
+            .eq("month", month)
+            .maybe_single()
+            .execute()
+        )
+
+
+        row =
+            existing.data
+
+
+        if not row:
+
+            result = (
+                supabase
+                .table("monthly_usage")
+                .insert({
+                    "user_id":
+                        user_id,
+
+                    "month":
+                        month,
+
+                    "used":
+                        1,
+                })
+                .select("used")
+                .single()
+                .execute()
+            )
+
+            return int(
+                result.data["used"]
+            )
+
+
+        new_used =
+            int(
+                row.get(
+                    "used",
+                    0
+                )
+            ) + 1
+
+
+        result = (
+            supabase
+            .table("monthly_usage")
+            .update({
+                "used":
+                    new_used,
+
+                "updated_at":
+                    datetime.now(
+                        timezone.utc
+                    ).isoformat(),
+            })
+            .eq(
+                "user_id",
+                user_id
+            )
+            .eq(
+                "month",
+                month
+            )
+            .select("used")
+            .single()
+            .execute()
+        )
+
+
+        return int(
+            result.data["used"]
+        )
+
+
+    except Exception as error:
+
+        print(
+            f"[Usage Write Error] {error}"
+        )
+
+        raise HTTPException(
+            status_code=503,
+
+            detail={
+                "error":
+                    "usage_unavailable",
+
+                "message":
+                    "Usage service is temporarily unavailable."
+            }
+        )
+
+
+# ============================================================
+# GEMINI RETRY
 # ============================================================
 
 def is_retryable_error(
     error: Exception
 ):
 
-    message = str(error).lower()
+    message =
+        str(error).lower()
+
 
     retryable = [
         "429",
@@ -437,6 +834,7 @@ def is_retryable_error(
         "deadline",
     ]
 
+
     return any(
         word in message
         for word in retryable
@@ -451,6 +849,7 @@ def generate_with_model(
 ):
 
     full_prompt = f"""
+
 {SYSTEM_PROMPT}
 
 MODE:
@@ -468,26 +867,41 @@ USER REQUEST:
 Return a polished answer the user can directly use.
 """
 
-    response = client.models.generate_content(
-        model=model_name,
-        contents=full_prompt,
-        config=types.GenerateContentConfig(
-            temperature=0.75,
-            max_output_tokens=5000,
-        ),
-    )
 
-    text = getattr(
-        response,
-        "text",
-        None
-    )
+    response =
+        gemini_client
+        .models
+        .generate_content(
+
+            model=model_name,
+
+            contents=full_prompt,
+
+            config=
+                types.GenerateContentConfig(
+
+                    temperature=0.75,
+
+                    max_output_tokens=5000,
+
+                ),
+        )
+
+
+    text =
+        getattr(
+            response,
+            "text",
+            None
+        )
+
 
     if not text:
 
         raise RuntimeError(
             "Gemini returned an empty response."
         )
+
 
     return text.strip()
 
@@ -503,38 +917,56 @@ def generate_ai_result(
         FALLBACK_MODEL,
     ]
 
+
     last_error = None
+
 
     for model_name in models:
 
         if not model_name:
             continue
 
+
         for attempt in range(3):
 
             try:
 
-                result = generate_with_model(
-                    model_name=model_name,
-                    mode=mode,
-                    niche=niche,
-                    user_prompt=user_prompt,
-                )
+                result =
+                    generate_with_model(
+
+                        model_name=
+                            model_name,
+
+                        mode=
+                            mode,
+
+                        niche=
+                            niche,
+
+                        user_prompt=
+                            user_prompt,
+                    )
+
 
                 if result:
 
                     return result
 
+
             except Exception as error:
 
-                last_error = error
+                last_error =
+                    error
+
 
                 print(
                     f"[Gemini Error] "
                     f"{model_name} "
-                    f"attempt={attempt + 1}/3: "
+                    f"attempt="
+                    f"{attempt + 1}/3: "
                     f"{error}"
                 )
+
 
                 if not is_retryable_error(
                     error
@@ -542,9 +974,12 @@ def generate_ai_result(
 
                     break
 
+
                 time.sleep(
-                    1.5 * (attempt + 1)
+                    1.5 *
+                    (attempt + 1)
                 )
+
 
     raise RuntimeError(
         f"AI generation failed: {last_error}"
@@ -559,6 +994,7 @@ def generate_ai_result(
 async def root():
 
     return {
+
         "name":
             "FacelessAI Growth Copilot API",
 
@@ -566,7 +1002,8 @@ async def root():
             "online",
 
         "version":
-            "3.0.0",
+            "4.0.0",
+
     }
 
 
@@ -578,6 +1015,7 @@ async def root():
 async def health():
 
     return {
+
         "status":
             "ok",
 
@@ -589,6 +1027,7 @@ async def health():
 
         "plans":
             PLAN_LIMITS,
+
     }
 
 
@@ -602,38 +1041,131 @@ async def generate(
     request: Request,
 ):
 
-    ip = get_client_ip(request)
+    # --------------------------------------------------------
+    # IP RATE LIMIT
+    # --------------------------------------------------------
 
-    check_rate_limit(ip)
+    ip =
+        get_client_ip(
+            request
+        )
+
+
+    check_rate_limit(
+        "ip:" + ip
+    )
+
+
+    # --------------------------------------------------------
+    # AUTHENTICATE USER
+    # --------------------------------------------------------
+
+    user =
+        get_authenticated_user(
+            request
+        )
+
+
+    user_id =
+        str(
+            user.id
+        )
+
+
+    # --------------------------------------------------------
+    # USER RATE LIMIT
+    # --------------------------------------------------------
+
+    check_rate_limit(
+        "user:" + user_id
+    )
+
+
+    # --------------------------------------------------------
+    # PLAN
+    # --------------------------------------------------------
+
+    plan =
+        get_user_plan(
+            user_id
+        )
+
+
+    limit =
+        PLAN_LIMITS.get(
+            plan,
+            PLAN_LIMITS["free"]
+        )
+
 
     # --------------------------------------------------------
     # MODE
     # --------------------------------------------------------
 
-    mode = payload.mode.strip().lower()
+    mode =
+        payload.mode.strip().lower()
+
 
     if mode not in VALID_MODES:
 
         raise HTTPException(
+
             status_code=400,
+
             detail={
+
                 "error":
                     "invalid_mode",
 
                 "message":
                     f"Invalid mode '{mode}'."
+
             }
         )
 
+
     # --------------------------------------------------------
+    # PRO MODE
+    # --------------------------------------------------------
+
+    if (
+        mode in PRO_ONLY_MODES
+        and
+        plan != "pro"
+    ):
+
+        raise HTTPException(
+
+            status_code=403,
+
+            detail={
+
+                "error":
+                    "pro_required",
+
+                "message":
+                    "Campaign Builder requires the Pro plan.",
+
+                "plan":
+                    plan,
+
+            }
+        )
+
+
+    # --------------------------------------------------------
+    # NICHE
+    # --------------------------------------------------------
+
+        # --------------------------------------------------------
     # NICHE
     # --------------------------------------------------------
 
     niche = payload.niche.strip()
 
     if not niche:
-
         niche = "Other"
+
 
     # --------------------------------------------------------
     # PROMPT
@@ -642,51 +1174,51 @@ async def generate(
     user_prompt = payload.prompt.strip()
 
     if len(user_prompt) < 10:
-
         raise HTTPException(
             status_code=400,
             detail={
-                "error":
-                    "prompt_too_short",
-
-                "message":
-                    "Please enter at least 10 characters."
+                "error": "prompt_too_short",
+                "message": "Please enter at least 10 characters."
             }
         )
 
+    if len(user_prompt) > 2000:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "prompt_too_long",
+                "message": "Prompt must be 2000 characters or less."
+            }
+        )
+
+
     # --------------------------------------------------------
-    # TEMPORARY FREE LIMIT
+    # USAGE
     # --------------------------------------------------------
 
-    used_before = get_free_usage(ip)
+    month = current_month()
 
-    if used_before >= PLAN_LIMITS["free"]:
+    used_before = get_usage(
+        user_id,
+        month
+    )
 
+    if used_before >= limit:
         raise HTTPException(
             status_code=403,
             detail={
-                "error":
-                    "monthly_limit_reached",
-
-                "message":
-                    "You have used all 3 Free generations this month.",
-
-                "plan":
-                    "free",
-
-                "used":
-                    used_before,
-
-                "limit":
-                    3,
-
-                "remaining":
-                    0,
+                "error": "monthly_limit_reached",
+                "message": "You have reached your monthly generation limit.",
+                "plan": plan,
+                "used": used_before,
+                "limit": limit,
+                "remaining": 0
             }
         )
 
+
     # --------------------------------------------------------
-    # AI
+    # AI GENERATION
     # --------------------------------------------------------
 
     try:
@@ -694,7 +1226,7 @@ async def generate(
         result = generate_ai_result(
             mode=mode,
             niche=niche,
-            user_prompt=user_prompt,
+            user_prompt=user_prompt
         )
 
     except Exception as error:
@@ -706,58 +1238,51 @@ async def generate(
         raise HTTPException(
             status_code=502,
             detail={
-                "error":
-                    "generation_failed",
-
-                "message":
-                    "AI generation is temporarily unavailable. Please try again."
+                "error": "generation_failed",
+                "message": (
+                    "AI generation is temporarily unavailable. "
+                    "Please try again."
+                )
             }
         )
 
+
     # --------------------------------------------------------
-    # COUNT SUCCESS
+    # COUNT ONLY SUCCESSFUL GENERATIONS
     # --------------------------------------------------------
 
-    used_after = increment_free_usage(ip)
+    used_after = increment_usage(
+        user_id=user_id,
+        month=month
+    )
 
     remaining = max(
-        PLAN_LIMITS["free"]
-        - used_after,
+        limit - used_after,
         0
     )
 
+
+    # --------------------------------------------------------
+    # RESPONSE
+    # --------------------------------------------------------
+
     return {
-
-        "success":
-            True,
-
-        "result":
-            result,
-
-        "mode":
-            mode,
-
-        "plan":
-            "free",
+        "success": True,
+        "result": result,
+        "mode": mode,
+        "plan": plan,
 
         "usage": {
-
-            "used":
-                used_after,
-
-            "limit":
-                PLAN_LIMITS["free"],
-
-            "remaining":
-                remaining,
-
-            "month":
-                current_month(),
+            "used": used_after,
+            "limit": limit,
+            "remaining": remaining,
+            "month": month
         },
 
-        "message":
+        "message": (
             f"{remaining} generation(s) remaining "
-            "on your Free plan this month.",
+            f"on your {plan.capitalize()} plan this month."
+        )
     }
 
 
@@ -771,12 +1296,11 @@ async def generate_video():
     raise HTTPException(
         status_code=410,
         detail={
-            "error":
-                "endpoint_removed",
-
-            "message":
+            "error": "endpoint_removed",
+            "message": (
                 "Video generation is no longer part of "
                 "FacelessAI Growth Copilot."
+            )
         }
     )
 
@@ -790,9 +1314,7 @@ async def startup_event():
 
     print("=" * 60)
 
-    print(
-        "FacelessAI Growth Copilot API"
-    )
+    print("FacelessAI Growth Copilot API")
 
     print("=" * 60)
 
@@ -822,6 +1344,10 @@ async def startup_event():
         f"{RATE_LIMIT_WINDOW}s"
     )
 
+    print("Supabase auth : ENABLED")
+
+    print("Persistent usage: ENABLED")
+
     print("=" * 60)
 
 
@@ -842,5 +1368,5 @@ if __name__ == "__main__":
                 "8000"
             )
         ),
-        reload=False,
-        )
+        reload=False
+    )
