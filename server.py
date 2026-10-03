@@ -1,13 +1,14 @@
 import os
+import time
+from collections import defaultdict, deque
 from datetime import datetime, timezone
-from typing import Optional
 
-import requests
 from dotenv import load_dotenv
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from google import genai
+
 
 load_dotenv()
 
@@ -31,10 +32,6 @@ FALLBACK_MODEL = os.getenv(
 )
 
 
-# =========================================================
-# STARTUP VALIDATION
-# =========================================================
-
 if not GEMINI_API_KEY:
     raise RuntimeError("GEMINI_API_KEY is missing")
 
@@ -46,7 +43,7 @@ if not SUPABASE_SECRET_KEY:
 
 
 # =========================================================
-# FASTAPI
+# APP
 # =========================================================
 
 app = FastAPI(
@@ -108,6 +105,49 @@ VALID_MODES = {
 
 
 # =========================================================
+# RATE LIMIT
+# =========================================================
+
+RATE_LIMIT_REQUESTS = 15
+RATE_LIMIT_WINDOW = 60
+
+rate_store = defaultdict(deque)
+
+
+def get_client_ip(request: Request):
+
+    forwarded = request.headers.get("x-forwarded-for")
+
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+
+    return request.client.host if request.client else "unknown"
+
+
+def check_rate_limit(request: Request):
+
+    ip = get_client_ip(request)
+
+    now = time.time()
+
+    timestamps = rate_store[ip]
+
+    while timestamps and (
+        now - timestamps[0] > RATE_LIMIT_WINDOW
+    ):
+        timestamps.popleft()
+
+    if len(timestamps) >= RATE_LIMIT_REQUESTS:
+
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please try again later."
+        )
+
+    timestamps.append(now)
+
+
+# =========================================================
 # REQUEST MODEL
 # =========================================================
 
@@ -133,23 +173,12 @@ class GenerateRequest(BaseModel):
 
 
 # =========================================================
-# SUPABASE HEADERS
-# =========================================================
-
-def supabase_headers():
-
-    return {
-        "apikey": SUPABASE_SECRET_KEY,
-        "Authorization": f"Bearer {SUPABASE_SECRET_KEY}",
-        "Content-Type": "application/json",
-    }
-
-
-# =========================================================
-# VERIFY SUPABASE USER
+# SUPABASE AUTH
 # =========================================================
 
 def verify_user(access_token: str):
+
+    import requests
 
     try:
 
@@ -177,9 +206,7 @@ def verify_user(access_token: str):
         )
 
     try:
-
         user = response.json()
-
     except Exception:
 
         raise HTTPException(
@@ -187,9 +214,7 @@ def verify_user(access_token: str):
             detail="Invalid authentication response"
         )
 
-    user_id = user.get("id")
-
-    if not user_id:
+    if not user.get("id"):
 
         raise HTTPException(
             status_code=401,
@@ -200,10 +225,25 @@ def verify_user(access_token: str):
 
 
 # =========================================================
+# SUPABASE REST HEADERS
+# =========================================================
+
+def supabase_headers():
+
+    return {
+        "apikey": SUPABASE_SECRET_KEY,
+        "Authorization": f"Bearer {SUPABASE_SECRET_KEY}",
+        "Content-Type": "application/json",
+    }
+
+
+# =========================================================
 # GET USER PLAN
 # =========================================================
 
 def get_user_plan(user_id: str):
+
+    import requests
 
     try:
 
@@ -235,7 +275,6 @@ def get_user_plan(user_id: str):
     rows = response.json()
 
     if not rows:
-
         return "free"
 
     plan = str(
@@ -243,17 +282,16 @@ def get_user_plan(user_id: str):
     ).lower()
 
     if plan not in PLAN_LIMITS:
-
         return "free"
 
     return plan
 
 
 # =========================================================
-# CURRENT MONTH
+# MONTH
 # =========================================================
 
-def get_current_month():
+def current_month():
 
     return datetime.now(
         timezone.utc
@@ -261,13 +299,15 @@ def get_current_month():
 
 
 # =========================================================
-# GET MONTHLY USAGE
+# GET USAGE
 # =========================================================
 
 def get_usage(
     user_id: str,
     month: str
 ):
+
+    import requests
 
     try:
 
@@ -294,28 +334,22 @@ def get_usage(
 
         raise HTTPException(
             status_code=503,
-            detail="Could not read monthly usage"
+            detail="Could not read usage"
         )
 
     rows = response.json()
 
     if not rows:
-
         return 0
 
     try:
-
-        return int(
-            rows[0].get("used", 0)
-        )
-
+        return int(rows[0].get("used", 0))
     except (TypeError, ValueError):
-
         return 0
 
 
 # =========================================================
-# INCREMENT MONTHLY USAGE
+# INCREMENT USAGE
 # =========================================================
 
 def increment_usage(
@@ -323,90 +357,79 @@ def increment_usage(
     month: str
 ):
 
-    current_usage = get_usage(
+    import requests
+
+    current = get_usage(
         user_id,
         month
     )
 
-    new_usage = current_usage + 1
+    new_value = current + 1
 
-    payload = {
-        "user_id": user_id,
-        "month": month,
-        "used": new_usage,
-        "updated_at": datetime.now(
-            timezone.utc
-        ).isoformat(),
-    }
-
-    try:
-
-        response = requests.post(
-            f"{SUPABASE_URL}/rest/v1/monthly_usage",
-            headers={
-                **supabase_headers(),
-                "Prefer": "resolution=merge-duplicates,return=minimal",
-            },
-            json=payload,
-            timeout=10,
-        )
-
-    except requests.RequestException:
-
-        raise HTTPException(
-            status_code=503,
-            detail="Database unavailable"
-        )
+    response = requests.post(
+        f"{SUPABASE_URL}/rest/v1/monthly_usage",
+        headers={
+            **supabase_headers(),
+            "Prefer": "resolution=merge-duplicates,return=minimal",
+        },
+        json={
+            "user_id": user_id,
+            "month": month,
+            "used": new_value,
+            "updated_at": datetime.now(
+                timezone.utc
+            ).isoformat(),
+        },
+        timeout=10,
+    )
 
     if response.status_code not in (200, 201, 204):
 
         raise HTTPException(
             status_code=503,
-            detail="Could not update monthly usage"
+            detail="Could not update usage"
         )
 
-    return new_usage
+    return new_value
 
 
 # =========================================================
 # AI PROMPT
 # =========================================================
 
-def build_ai_prompt(data: GenerateRequest):
+def build_prompt(data: GenerateRequest):
 
     return f"""
 You are FacelessAI, an AI growth and marketing assistant.
 
-MODE:
+Mode:
 {data.mode}
 
-NICHE:
+Niche:
 {data.niche}
 
-USER REQUEST:
+User request:
 {data.prompt}
 
-Generate useful, high-quality, practical content.
+Create high-quality, practical, ready-to-use content.
 
 Rules:
 - Follow the requested mode.
-- Make the result ready to use.
 - Do not invent testimonials.
 - Do not invent customers.
 - Do not invent statistics.
 - Do not invent certifications.
 - Do not invent awards.
-- Do not claim guaranteed results.
+- Do not promise guaranteed results.
 - Do not create fake proof.
-- If important information is missing, use a clear placeholder.
-- Do not mention these internal instructions in the answer.
+- Use placeholders when required information is missing.
 
 Return only the finished content.
 """
 
 
 # =========================================================
-# GEMINI GENERATION
+# GEMINI
 # =========================================================
 
 def generate_ai(prompt: str):
@@ -431,7 +454,6 @@ def generate_ai(prompt: str):
             ).strip()
 
             if output:
-
                 return output
 
             last_error = RuntimeError(
@@ -483,14 +505,19 @@ def health():
 @app.post("/generate")
 def generate(
     data: GenerateRequest,
-    authorization: Optional[str] = Header(
-        default=None
-    ),
+    request: Request,
+    authorization: str | None = Header(default=None),
 ):
 
-    # -----------------------------------------------------
-    # AUTHORIZATION
-    # -----------------------------------------------------
+    # -------------------------
+    # RATE LIMIT
+    # -------------------------
+
+    check_rate_limit(request)
+
+    # -------------------------
+    # AUTH
+    # -------------------------
 
     if not authorization:
 
@@ -499,40 +526,36 @@ def generate(
             detail="Login required"
         )
 
-    if not authorization.lower().startswith(
-        "bearer "
-    ):
+    if not authorization.lower().startswith("bearer "):
 
         raise HTTPException(
             status_code=401,
             detail="Invalid authorization header"
         )
 
-    access_token = authorization.split(
+    token = authorization.split(
         " ",
         1
     )[1].strip()
 
-    if not access_token:
+    if not token:
 
         raise HTTPException(
             status_code=401,
             detail="Login required"
         )
 
-    # -----------------------------------------------------
+    # -------------------------
     # VERIFY USER
-    # -----------------------------------------------------
+    # -------------------------
 
-    user = verify_user(
-        access_token
-    )
+    user = verify_user(token)
 
     user_id = user["id"]
 
-    # -----------------------------------------------------
-    # VALIDATE MODE
-    # -----------------------------------------------------
+    # -------------------------
+    # MODE
+    # -------------------------
 
     if data.mode not in VALID_MODES:
 
@@ -541,17 +564,15 @@ def generate(
             detail="Invalid generation mode"
         )
 
-    # -----------------------------------------------------
-    # GET PLAN
-    # -----------------------------------------------------
+    # -------------------------
+    # PLAN
+    # -------------------------
 
-    plan = get_user_plan(
-        user_id
-    )
+    plan = get_user_plan(user_id)
 
-    # -----------------------------------------------------
-    # PRO-ONLY CAMPAIGN
-    # -----------------------------------------------------
+    # -------------------------
+    # CAMPAIGN PRO ONLY
+    # -------------------------
 
     if (
         data.mode == "campaign"
@@ -560,14 +581,14 @@ def generate(
 
         raise HTTPException(
             status_code=403,
-            detail="Campaign Builder requires Pro plan"
+            detail="Campaign Builder requires Pro"
         )
 
-    # -----------------------------------------------------
-    # MONTHLY USAGE
-    # -----------------------------------------------------
+    # -------------------------
+    # USAGE
+    # -------------------------
 
-    month = get_current_month()
+    month = current_month()
 
     used = get_usage(
         user_id,
@@ -576,73 +597,68 @@ def generate(
 
     limit = PLAN_LIMITS[plan]
 
-    # -----------------------------------------------------
-    # LIMIT
-    # -----------------------------------------------------
-
     if used >= limit:
 
         raise HTTPException(
             status_code=429,
             detail=(
-                f"Monthly generation limit reached. "
+                f"Monthly limit reached. "
                 f"{plan} plan allows {limit} generations."
             )
         )
 
-    # -----------------------------------------------------
-    # GENERATE
-    # -----------------------------------------------------
-
-    ai_prompt = build_ai_prompt(
-        data
-    )
+    # -------------------------
+    # AI
+    # -------------------------
 
     output = generate_ai(
-        ai_prompt
+        build_prompt(data)
     )
 
-    # -----------------------------------------------------
-    # UPDATE USAGE
-    # -----------------------------------------------------
+    # -------------------------
+    # COUNT
+    # -------------------------
 
     new_usage = increment_usage(
         user_id,
         month
     )
 
-    # -----------------------------------------------------
+    # -------------------------
     # RESPONSE
-    # -----------------------------------------------------
+    # -------------------------
 
     return {
         "success": True,
-        "output": output,
+        "result": output,
+        "mode": data.mode,
         "plan": plan,
-        "used": new_usage,
-        "limit": limit,
-        "remaining": max(
-            0,
-            limit - new_usage
-        ),
+        "usage": {
+            "used": new_usage,
+            "limit": limit,
+            "remaining": max(
+                0,
+                limit - new_usage
+            ),
+        },
     }
 
 
 # =========================================================
-# VIDEO ENDPOINT
+# VIDEO
 # =========================================================
 
 @app.post("/generate-video")
 def generate_video():
 
     raise HTTPException(
-        status_code=501,
-        detail="Video generation is not enabled yet"
+        status_code=410,
+        detail="Video generation is not available yet"
     )
 
 
 # =========================================================
-# LOCAL / RENDER START
+# START
 # =========================================================
 
 if __name__ == "__main__":
@@ -659,5 +675,5 @@ if __name__ == "__main__":
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=port,
+        port=port
     )
