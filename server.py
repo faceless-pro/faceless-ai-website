@@ -1,51 +1,49 @@
 import os
 import time
-import logging
+import random
 from collections import defaultdict, deque
-from typing import Optional, Any
+from datetime import datetime, timezone
 
+import requests
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request, Header
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 from google import genai
-from google.genai import types
-from supabase import create_client, Client
 
 
 # ============================================================
-# CONFIG
+# ENVIRONMENT
 # ============================================================
 
 load_dotenv()
 
-APP_NAME = "FacelessAI Growth Copilot"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "").strip()
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 
 PRIMARY_MODEL = os.getenv(
     "GEMINI_MODEL",
     "gemini-3.5-flash-lite"
-)
+).strip()
 
 FALLBACK_MODEL = os.getenv(
     "GEMINI_FALLBACK_MODEL",
     "gemini-3.8-flash"
-)
+).strip()
 
-FRONTEND_URL = os.getenv(
-    "FRONTEND_URL",
-    "https://faceless-ai-website.vercel.app"
-)
+IP_RATE_LIMIT = int(os.getenv("IP_RATE_LIMIT", "15"))
+IP_RATE_WINDOW = int(os.getenv("IP_RATE_WINDOW", "60"))
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")
+USER_RATE_LIMIT = int(os.getenv("USER_RATE_LIMIT", "8"))
+USER_RATE_WINDOW = int(os.getenv("USER_RATE_WINDOW", "60"))
 
-MAX_PROMPT_LENGTH = 2000
-MIN_PROMPT_LENGTH = 10
 
-RATE_LIMIT_WINDOW = 60
-RATE_LIMIT_REQUESTS = 15
+# ============================================================
+# PLAN LIMITS
+# ============================================================
 
 PLAN_LIMITS = {
     "free": 3,
@@ -55,468 +53,7 @@ PLAN_LIMITS = {
 
 
 # ============================================================
-# LOGGING
-# ============================================================
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
-
-logger = logging.getLogger(APP_NAME)
-
-
-# ============================================================
-# GEMINI CLIENT
-# ============================================================
-
-if not GEMINI_API_KEY:
-    logger.warning(
-        "GEMINI_API_KEY is missing. "
-        "Server will start, but generation will fail."
-    )
-    client = None
-else:
-    try:
-        client = genai.Client(
-            api_key=GEMINI_API_KEY
-        )
-    except Exception:
-        logger.exception(
-            "Could not initialize Gemini client."
-        )
-        client = None
-
-
-# ============================================================
-# SUPABASE CLIENT
-# ============================================================
-
-if not SUPABASE_URL or not SUPABASE_SECRET_KEY:
-    logger.warning(
-        "Supabase environment variables are missing. "
-        "Server will start, but authenticated generation "
-        "will not work until they are configured."
-    )
-    supabase = None
-else:
-    try:
-        supabase: Optional[Client] = create_client(
-            SUPABASE_URL,
-            SUPABASE_SECRET_KEY
-        )
-    except Exception:
-        logger.exception(
-            "Could not initialize Supabase client."
-        )
-        supabase = None
-
-
-# ============================================================
-# FASTAPI
-# ============================================================
-
-app = FastAPI(
-    title=APP_NAME,
-    description="AI-powered marketing growth copilot.",
-    version="3.0.0"
-)
-
-
-# ============================================================
-# CORS
-# ============================================================
-
-allowed_origins = [
-    FRONTEND_URL,
-    "https://faceless-ai-website.vercel.app",
-]
-
-allowed_origins = list(dict.fromkeys(
-    origin.strip()
-    for origin in allowed_origins
-    if origin and origin.strip()
-))
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
-)
-
-
-# ============================================================
-# RATE LIMITER
-# ============================================================
-
-request_log = defaultdict(deque)
-
-
-def get_client_identifier(
-    request: Request
-) -> str:
-
-    forwarded = request.headers.get(
-        "x-forwarded-for"
-    )
-
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-
-    if request.client:
-        return request.client.host
-
-    return "unknown"
-
-
-def check_rate_limit(
-    request: Request
-):
-
-    client_id = get_client_identifier(
-        request
-    )
-
-    now = time.time()
-
-    timestamps = request_log[client_id]
-
-    while (
-        timestamps
-        and now - timestamps[0] > RATE_LIMIT_WINDOW
-    ):
-        timestamps.popleft()
-
-    if len(timestamps) >= RATE_LIMIT_REQUESTS:
-        raise HTTPException(
-            status_code=429,
-            detail=(
-                "Too many requests. "
-                "Please wait a moment and try again."
-            )
-        )
-
-    timestamps.append(now)
-
-
-# ============================================================
-# AUTHENTICATION
-# ============================================================
-
-def get_bearer_token(
-    authorization: Optional[str]
-) -> str:
-
-    if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail="Missing Authorization header."
-        )
-
-    parts = authorization.strip().split(
-        " ",
-        1
-    )
-
-    if (
-        len(parts) != 2
-        or parts[0].lower() != "bearer"
-        or not parts[1].strip()
-    ):
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid Bearer token."
-        )
-
-    return parts[1].strip()
-
-
-def get_authenticated_user(
-    authorization: Optional[str]
-) -> Any:
-
-    if supabase is None:
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Supabase authentication is not configured "
-                "on the server."
-            )
-        )
-
-    token = get_bearer_token(
-        authorization
-    )
-
-    try:
-        response = supabase.auth.get_user(
-            token
-        )
-
-        user = response.user
-
-        if not user or not user.id:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid or expired access token."
-            )
-
-        return user
-
-    except HTTPException:
-        raise
-
-    except Exception:
-        logger.exception(
-            "Supabase token verification failed."
-        )
-
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired access token."
-        )
-
-
-# ============================================================
-# PLAN
-# ============================================================
-
-def get_user_plan(
-    user_id: str
-) -> str:
-
-    if supabase is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Supabase is not configured."
-        )
-
-    try:
-
-        result = (
-            supabase
-            .table("profiles")
-            .select("plan")
-            .eq("user_id", user_id)
-            .maybe_single()
-            .execute()
-        )
-
-        data = result.data
-
-        if not data:
-            return "free"
-
-        plan = str(
-            data.get("plan") or "free"
-        ).strip().lower()
-
-        if plan not in PLAN_LIMITS:
-            logger.warning(
-                "Unknown plan '%s' for user %s. "
-                "Using free plan.",
-                plan,
-                user_id
-            )
-
-            return "free"
-
-        return plan
-
-    except Exception:
-
-        logger.exception(
-            "Could not read profile for user %s.",
-            user_id
-        )
-
-        raise HTTPException(
-            status_code=500,
-            detail="Could not read your account plan."
-        )
-
-
-# ============================================================
-# MONTH
-# ============================================================
-
-def current_month() -> str:
-
-    return time.strftime(
-        "%Y-%m",
-        time.gmtime()
-    )
-
-
-# ============================================================
-# MONTHLY USAGE
-# ============================================================
-
-def get_monthly_usage(
-    user_id: str
-) -> int:
-
-    if supabase is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Supabase is not configured."
-        )
-
-    month = current_month()
-
-    try:
-
-        result = (
-            supabase
-            .table("monthly_usage")
-            .select("generations")
-            .eq("user_id", user_id)
-            .eq("month", month)
-            .maybe_single()
-            .execute()
-        )
-
-        if not result.data:
-            return 0
-
-        return max(
-            int(
-                result.data.get(
-                    "generations",
-                    0
-                )
-                or 0
-            ),
-            0
-        )
-
-    except Exception:
-
-        logger.exception(
-            "Could not read monthly usage for %s.",
-            user_id
-        )
-
-        raise HTTPException(
-            status_code=500,
-            detail="Could not read your monthly usage."
-        )
-
-
-def check_plan_limit(
-    user_id: str,
-    plan: str
-) -> int:
-
-    used = get_monthly_usage(
-        user_id
-    )
-
-    limit = PLAN_LIMITS[plan]
-
-    if used >= limit:
-
-        raise HTTPException(
-            status_code=429,
-            detail={
-                "error": "monthly_limit_reached",
-                "message": (
-                    f"{plan.capitalize()} plan "
-                    f"monthly generation limit reached."
-                ),
-                "plan": plan,
-                "used": used,
-                "limit": limit,
-                "month": current_month(),
-            }
-        )
-
-    return used
-
-
-def increment_monthly_usage(
-    user_id: str
-) -> int:
-
-    if supabase is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Supabase is not configured."
-        )
-
-    month = current_month()
-
-    try:
-
-        existing = (
-            supabase
-            .table("monthly_usage")
-            .select("id,generations")
-            .eq("user_id", user_id)
-            .eq("month", month)
-            .maybe_single()
-            .execute()
-        )
-
-        if existing.data:
-
-            row_id = existing.data["id"]
-
-            current = int(
-                existing.data.get(
-                    "generations",
-                    0
-                )
-                or 0
-            )
-
-            new_count = current + 1
-
-            (
-                supabase
-                .table("monthly_usage")
-                .update({
-                    "generations": new_count
-                })
-                .eq("id", row_id)
-                .execute()
-            )
-
-            return new_count
-
-        (
-            supabase
-            .table("monthly_usage")
-            .insert({
-                "user_id": user_id,
-                "month": month,
-                "generations": 1,
-            })
-            .execute()
-        )
-
-        return 1
-
-    except Exception:
-
-        logger.exception(
-            "Could not increment monthly usage for %s.",
-            user_id
-        )
-
-        raise HTTPException(
-            status_code=500,
-            detail=(
-                "Generation succeeded, but usage "
-                "could not be recorded."
-            )
-        )
-
-
-# ============================================================
-# REQUEST MODEL
+# VALID WORKFLOWS
 # ============================================================
 
 VALID_MODES = {
@@ -530,254 +67,478 @@ VALID_MODES = {
 }
 
 
+# ============================================================
+# REQUIRED ENVIRONMENT
+# ============================================================
+
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY is missing")
+
+if not SUPABASE_URL:
+    raise RuntimeError("SUPABASE_URL is missing")
+
+if not SUPABASE_ANON_KEY:
+    raise RuntimeError("SUPABASE_ANON_KEY is missing")
+
+if not SUPABASE_SERVICE_ROLE_KEY:
+    raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is missing")
+
+
+# ============================================================
+# GEMINI CLIENT
+# ============================================================
+
+gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+
+
+# ============================================================
+# FASTAPI
+# ============================================================
+
+app = FastAPI(
+    title="FacelessAI Growth Copilot API",
+    version="5.0.0"
+)
+
+
+# ============================================================
+# CORS
+# ============================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://faceless-ai-website.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+
+# ============================================================
+# RATE LIMIT STORAGE
+# ============================================================
+
+ip_requests = defaultdict(deque)
+user_requests = defaultdict(deque)
+
+
+def check_rate_limit(store, key, limit, window):
+    now = time.time()
+    bucket = store[key]
+
+    while bucket and now - bucket[0] > window:
+        bucket.popleft()
+
+    if len(bucket) >= limit:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please wait a moment and try again."
+        )
+
+    bucket.append(now)
+
+
+def get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for", "")
+
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+
+    if request.client:
+        return request.client.host
+
+    return "unknown"
+
+
+# ============================================================
+# AUTHENTICATION
+# ============================================================
+
+def get_bearer_token(request: Request) -> str:
+    authorization = request.headers.get("authorization", "")
+
+    if not authorization.lower().startswith("bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Login required. Please log in before generating."
+        )
+
+    token = authorization[7:].strip()
+
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication token."
+        )
+
+    return token
+
+
+def get_authenticated_user(request: Request) -> dict:
+    token = get_bearer_token(request)
+
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/auth/v1/user",
+            headers={
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": f"Bearer {token}",
+            },
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        print(
+            f"AUTH SERVICE ERROR: {type(exc).__name__}: {exc}",
+            flush=True,
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail="Authentication service is temporarily unavailable."
+        ) from exc
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=401,
+            detail="Your login session is invalid or expired. Please log in again."
+        )
+
+    try:
+        user = response.json()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Invalid authentication response."
+        ) from exc
+
+    user_id = user.get("id")
+
+    if not user_id:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid user session."
+        )
+
+    return user
+
+
+# ============================================================
+# SUPABASE HELPERS
+# ============================================================
+
+def supabase_headers():
+    return {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "Content-Type": "application/json",
+    }
+
+
+def get_user_plan(user_id: str) -> str:
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/profiles",
+            headers=supabase_headers(),
+            params={
+                "id": f"eq.{user_id}",
+                "select": "plan",
+                "limit": "1",
+            },
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        print(
+            f"PLAN LOOKUP ERROR: {type(exc).__name__}: {exc}",
+            flush=True,
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail="Account service is temporarily unavailable."
+        ) from exc
+
+    if response.status_code != 200:
+        print(
+            f"PLAN LOOKUP HTTP {response.status_code}: {response.text}",
+            flush=True,
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail="Could not verify your account plan."
+        )
+
+    try:
+        rows = response.json()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Invalid account response."
+        ) from exc
+
+    if not rows:
+        return "free"
+
+    plan = str(rows[0].get("plan", "free")).lower()
+
+    if plan not in PLAN_LIMITS:
+        return "free"
+
+    return plan
+
+
+def current_month() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m")
+
+
+def get_monthly_usage(user_id: str) -> int:
+    month = current_month()
+
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/monthly_usage",
+            headers=supabase_headers(),
+            params={
+                "user_id": f"eq.{user_id}",
+                "month": f"eq.{month}",
+                "select": "used",
+                "limit": "1",
+            },
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Usage service is temporarily unavailable."
+        ) from exc
+
+    if response.status_code != 200:
+        print(
+            f"USAGE READ ERROR {response.status_code}: {response.text}",
+            flush=True,
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail="Could not verify usage."
+        )
+
+    rows = response.json()
+
+    if not rows:
+        return 0
+
+    return int(rows[0].get("used", 0))
+
+
+def increment_monthly_usage(user_id: str) -> int:
+    month = current_month()
+
+    current_used = get_monthly_usage(user_id)
+    new_used = current_used + 1
+
+    try:
+        response = requests.post(
+            f"{SUPABASE_URL}/rest/v1/monthly_usage",
+            headers={
+                **supabase_headers(),
+                "Prefer": "resolution=merge-duplicates,return=representation",
+            },
+            json={
+                "user_id": user_id,
+                "month": month,
+                "used": new_used,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            },
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Usage service is temporarily unavailable."
+        ) from exc
+
+    if response.status_code not in (200, 201):
+        print(
+            f"USAGE WRITE ERROR {response.status_code}: {response.text}",
+            flush=True,
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail="Could not update usage."
+        )
+
+    return new_used
+
+
+def check_and_consume_usage(user_id: str, plan: str):
+    limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])
+
+    used = get_monthly_usage(user_id)
+
+    if used >= limit:
+        raise HTTPException(
+            status_code=402,
+            detail=(
+                f"Monthly {plan} limit reached: "
+                f"{used}/{limit} generations used. "
+                "Your allowance resets next month."
+            ),
+        )
+
+    new_used = increment_monthly_usage(user_id)
+
+    return new_used, limit
+
+
+# ============================================================
+# REQUEST MODEL
+# ============================================================
+
 class GenerateRequest(BaseModel):
-
-    mode: str = Field(
-        ...,
-        min_length=1,
-        max_length=50
-    )
-
-    prompt: str = Field(
-        ...,
-        min_length=MIN_PROMPT_LENGTH,
-        max_length=MAX_PROMPT_LENGTH
-    )
-
-    @field_validator("mode")
-    @classmethod
-    def validate_mode(
-        cls,
-        value: str
-    ) -> str:
-
-        value = value.strip().lower()
-
-        if value not in VALID_MODES:
-            raise ValueError(
-                "Invalid mode. Allowed modes: "
-                + ", ".join(
-                    sorted(VALID_MODES)
-                )
-            )
-
-        return value
-
-    @field_validator("prompt")
-    @classmethod
-    def validate_prompt(
-        cls,
-        value: str
-    ) -> str:
-
-        value = value.strip()
-
-        if len(value) < MIN_PROMPT_LENGTH:
-            raise ValueError(
-                "Please provide a more detailed idea."
-            )
-
-        if len(value) > MAX_PROMPT_LENGTH:
-            raise ValueError(
-                f"Prompt cannot exceed "
-                f"{MAX_PROMPT_LENGTH} characters."
-            )
-
-        return value
+    mode: str = Field(..., min_length=1, max_length=30)
+    prompt: str = Field(..., min_length=10, max_length=2000)
 
 
 # ============================================================
-# MODE INSTRUCTIONS
+# WORKFLOW INSTRUCTIONS
 # ============================================================
 
-MODE_INSTRUCTIONS = {
+WORKFLOW_INSTRUCTIONS = {
 
     "offer": """
-Create a strong, clear and commercially useful offer.
+Create a strong, specific business offer.
 
 Include:
-1. Core offer
-2. Target customer
-3. Main problem
-4. Desired outcome
-5. Unique value proposition
-6. Offer structure
-7. Pricing suggestion if enough information exists
-8. Risk reversal or guarantee idea only when appropriate
-9. Strong CTA
+- Clear offer name
+- Target customer
+- Core problem
+- Desired outcome
+- Main value proposition
+- Deliverables
+- Differentiation
+- Pricing/packaging suggestion if useful
+- Risk reversal or guarantee idea only if appropriate
+- Strong CTA
 
-Do not invent testimonials, customer numbers,
-revenue figures or fake proof.
+Make it practical and easy to understand.
+Do not invent fake testimonials, fake customers, fake statistics, or guaranteed results.
 """,
 
     "landing": """
 Create conversion-focused landing page copy.
 
 Include:
-1. Hero headline
-2. Supporting subheadline
-3. Problem
-4. Solution
-5. Benefits
-6. How it works
-7. Features
-8. Objection handling
-9. CTA sections
-10. FAQ
-11. Final CTA
+- Hero headline
+- Subheadline
+- Problem
+- Solution
+- Benefits
+- How it works
+- Features where useful
+- Objection handling
+- Social-proof placeholders only when appropriate
+- CTA
+- FAQ ideas
 
-Make the copy ready to paste into a real website.
-Do not use fake testimonials or fake statistics.
+Make the copy specific to the user's business.
+Do not invent fake testimonials, fake statistics, or fake claims.
 """,
 
     "email": """
-Create a professional cold outreach email sequence.
+Create a natural B2B cold email sequence.
 
 Include:
-1. Subject line options
-2. Opening
-3. Personalization angle
-4. Problem
-5. Value proposition
-6. CTA
-7. Follow-up 1
-8. Follow-up 2
+- Subject line options
+- Initial email
+- Follow-up 1
+- Follow-up 2
+- Simple CTA
 
-Keep it concise, natural and non-spammy.
-Do not make unsupported claims.
+Keep it concise, human and non-spammy.
+Avoid manipulative claims.
+Personalization should be based only on information provided by the user.
 """,
 
     "dm": """
-Create a high-quality sales DM sequence.
+Create a conversational sales DM sequence.
 
 Include:
-1. First message
-2. Follow-up
-3. Value message
-4. Objection response
-5. Soft close
-6. Final follow-up
+- Opening message
+- Follow-up
+- Value message
+- Soft CTA
+- Optional final follow-up
 
-Make it conversational rather than robotic.
-Do not use fake urgency or fake social proof.
+Make it natural and not pushy.
+Avoid spammy language and unrealistic claims.
 """,
 
     "ads": """
-Create an advertising campaign concept.
+Create a practical paid-ad campaign concept.
 
 Include:
-1. Campaign angle
-2. Target audience
-3. Core message
-4. 5 headline variations
-5. 3 primary-text variations
-6. 3 CTA variations
-7. Creative concepts
-8. Testing ideas
+- Campaign objective
+- Target audience
+- 3-5 hooks
+- Primary text variations
+- Headline variations
+- CTA options
+- Creative concepts
+- Testing ideas
 
-Do not claim guaranteed results.
+Do not claim guaranteed performance.
+Do not invent performance statistics.
 """,
 
     "content": """
-Create a practical content engine.
+Create a practical content pack.
 
 Include:
-1. Content strategy
-2. 10 content ideas
-3. Hooks
-4. Short-form post/video concepts
-5. CTA ideas
-6. Repurposing strategy
+- Content strategy
+- Strong hooks
+- Post/video ideas
+- Short explanations
+- CTA ideas
+- A 7-day content outline
 
-Make ideas specific to the user's audience.
-Avoid generic filler.
+Make the content useful rather than generic.
+Keep it relevant to the user's business and audience.
 """,
 
     "campaign": """
-Build a complete coordinated marketing campaign from one idea.
+Create a coordinated marketing campaign from the user's brief.
 
-Generate:
+Include:
+- Campaign positioning
+- Offer
+- Landing-page angle
+- Cold-email angle
+- Sales-DM angle
+- Ad angles
+- Content ideas
+- CTA
+- Suggested execution order
 
-1. Offer
-2. Positioning
-3. Landing page messaging
-4. Cold email
-5. Sales DM
-6. Ad campaign
-7. Content ideas
-8. Campaign sequence
-9. CTA
-10. Execution checklist
-
-All assets must be connected to the same positioning,
-audience and offer.
-
-Do not create fake testimonials,
-fake customer counts,
-fake revenue,
-fake logos,
-fake case studies,
-or guaranteed-result claims.
-
-Make the result practical enough that a founder,
-creator, freelancer or agency could actually use it.
-"""
+Make the assets consistent with one another.
+Do not invent fake proof, statistics or guaranteed outcomes.
+""",
 }
-
-
-# ============================================================
-# SYSTEM PROMPT
-# ============================================================
-
-SYSTEM_PROMPT = """
-You are the senior marketing strategist and growth copywriter
-inside FacelessAI Growth Copilot.
-
-Your job is to turn a user's rough business idea into
-specific, useful marketing assets.
-
-CORE RULES:
-
-- Write in clear professional English.
-- Be specific rather than generic.
-- Optimize for usefulness and execution.
-- Understand the user's audience before writing.
-- Never invent testimonials.
-- Never invent customer counts.
-- Never invent revenue numbers.
-- Never invent case studies.
-- Never invent logos or partnerships.
-- Never claim guaranteed viral growth.
-- Never guarantee revenue.
-- Never fabricate data.
-- Do not use unnecessary emojis.
-- Avoid repetitive filler.
-- Do not begin with generic AI disclaimers.
-- Use clean Markdown headings.
-- Make outputs easy to copy and use.
-- If important information is missing, make a reasonable
-  clearly-labeled assumption rather than inventing facts.
-- Prefer short paragraphs and useful bullet points.
-- Make every section actionable.
-
-QUALITY STANDARD:
-
-The output should feel like it was prepared by an experienced
-growth marketer for a real business, not like generic AI text.
-"""
 
 
 # ============================================================
 # GEMINI ERROR DETECTION
 # ============================================================
 
-def is_retryable_error(
-    error: Exception
-) -> bool:
+def is_temporary_error(error: Exception) -> bool:
+    text = str(error).upper()
 
-    message = str(error).upper()
-
-    retryable_terms = [
+    temporary_signals = [
         "429",
         "500",
         "502",
@@ -788,257 +549,344 @@ def is_retryable_error(
         "TIMEOUT",
         "DEADLINE",
         "INTERNAL",
-        "SERVICE_UNAVAILABLE",
-        "TEMPORARY",
     ]
 
-    return any(
-        term in message
-        for term in retryable_terms
-    )
+    return any(signal in text for signal in temporary_signals)
 
 
 # ============================================================
 # GEMINI GENERATION
 # ============================================================
 
-def generate_with_model(
-    model_name: str,
-    mode: str,
-    prompt: str
-) -> str:
+def generate_marketing_asset(mode: str, user_prompt: str) -> str:
 
-    if client is None:
+    workflow = WORKFLOW_INSTRUCTIONS.get(mode)
 
-        raise RuntimeError(
-            "Gemini API is not configured. "
-            "Please add GEMINI_API_KEY "
-            "to Render environment variables."
+    if not workflow:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported workflow."
         )
 
-    mode_instruction = MODE_INSTRUCTIONS[
-        mode
-    ]
+    system_prompt = f"""
+You are the AI engine for FacelessAI Growth Copilot.
 
-    full_prompt = f"""
-USER'S BUSINESS IDEA / REQUEST:
+FacelessAI helps creators, freelancers, agencies and businesses
+turn a business idea into useful marketing assets.
 
-{prompt}
+Current workflow:
+{mode}
 
-WORKFLOW:
+Workflow requirements:
+{workflow}
 
-{mode_instruction}
+User brief:
+{user_prompt}
 
-Now produce the final marketing output.
+General requirements:
 
-Remember:
-- Stay specific.
-- Keep everything connected to the user's idea.
-- Do not fabricate proof.
-- Do not promise guaranteed results.
-- Make the result directly usable.
+- Be specific.
+- Be practical.
+- Write copy that can actually be used.
+- Understand the user's business before writing.
+- Avoid generic filler.
+- Do not mention that you are an AI unless necessary.
+- Do not invent testimonials.
+- Do not invent customer counts.
+- Do not invent revenue figures.
+- Do not invent case studies.
+- Do not guarantee sales, leads, virality or conversion rates.
+- Use clear headings.
+- Use concise sections.
+- Use Markdown.
+- Return only the finished marketing asset.
 """
 
-    response = client.models.generate_content(
-        model=model_name,
-        contents=full_prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            temperature=0.75,
-            max_output_tokens=5000,
-        ),
-    )
+    models = [
+        PRIMARY_MODEL,
+        FALLBACK_MODEL,
+    ]
 
-    if not response:
-        raise RuntimeError(
-            "Gemini returned an empty response."
-        )
+    errors = []
 
-    text = getattr(
-        response,
-        "text",
-        None
-    )
-
-    if not text:
-        raise RuntimeError(
-            "Gemini returned no usable text."
-        )
-
-    text = text.strip()
-
-    if not text:
-        raise RuntimeError(
-            "Gemini returned an empty result."
-        )
-
-    return text
-
-
-# ============================================================
-# GENERATION WITH RETRIES + FALLBACK
-# ============================================================
-
-def generate_ai_output(
-    mode: str,
-    prompt: str
-) -> str:
-
-    models = []
-
-    if PRIMARY_MODEL:
-        models.append(
-            PRIMARY_MODEL
-        )
-
-    if (
-        FALLBACK_MODEL
-        and FALLBACK_MODEL != PRIMARY_MODEL
-    ):
-        models.append(
-            FALLBACK_MODEL
-        )
-
-    last_error: Optional[
-        Exception
-    ] = None
-
-    for model_name in models:
+    for model in models:
 
         for attempt in range(3):
 
             try:
-
-                logger.info(
-                    "Generating | mode=%s | model=%s | attempt=%s",
-                    mode,
-                    model_name,
-                    attempt + 1
+                print(
+                    f"GENERATION: model={model} "
+                    f"attempt={attempt + 1}/3 "
+                    f"mode={mode}",
+                    flush=True,
                 )
 
-                result = generate_with_model(
-                    model_name=model_name,
-                    mode=mode,
-                    prompt=prompt
+                response = gemini_client.models.generate_content(
+                    model=model,
+                    contents=system_prompt,
                 )
 
-                logger.info(
-                    "Generation successful | mode=%s | model=%s",
-                    mode,
-                    model_name
+                result = (response.text or "").strip()
+
+                if not result:
+                    raise RuntimeError(
+                        f"{model} returned an empty response."
+                    )
+
+                print(
+                    f"GENERATION SUCCESS: model={model} "
+                    f"characters={len(result)}",
+                    flush=True,
                 )
 
                 return result
 
-            except Exception as error:
+            except Exception as exc:
 
-                last_error = error
-
-                logger.warning(
-                    "Generation failed | mode=%s | "
-                    "model=%s | attempt=%s | error=%s",
-                    mode,
-                    model_name,
-                    attempt + 1,
-                    str(error)
+                print(
+                    f"GENERATION ERROR: "
+                    f"model={model} "
+                    f"attempt={attempt + 1} "
+                    f"error={type(exc).__name__}: {exc}",
+                    flush=True,
                 )
 
-                if not is_retryable_error(
-                    error
-                ):
+                errors.append(
+                    f"{model}: {type(exc).__name__}: {exc}"
+                )
+
+                if not is_temporary_error(exc):
                     break
 
-                                if attempt < 2:
-                    time.sleep(1.5 * (attempt + 1))
+                if attempt < 2:
+                    delay = (2 ** attempt) + random.uniform(
+                        0.3,
+                        1.0
+                    )
 
-    raise HTTPException(
-        status_code=502,
-        detail="AI generation failed. Please try again."
+                    time.sleep(delay)
+
+    raise RuntimeError(
+        "Gemini could not generate the requested asset. "
+        + " | ".join(errors[-4:])
     )
 
+
+# ============================================================
+# ROOT
+# ============================================================
 
 @app.get("/")
 def root():
     return {
-        "name": APP_NAME,
-        "status": "online",
-        "message": "FacelessAI backend is running."
+        "success": True,
+        "service": "FacelessAI Growth Copilot API",
+        "status": "running",
+        "version": "5.0.0",
+        "primary_model": PRIMARY_MODEL,
+        "fallback_model": FALLBACK_MODEL,
     }
 
+
+# ============================================================
+# HEALTH
+# ============================================================
 
 @app.get("/health")
 def health():
     return {
         "status": "ok",
-        "gemini_configured": bool(GEMINI_API_KEY),
-        "supabase_configured": bool(
-            SUPABASE_URL and SUPABASE_SECRET_KEY
-        ),
         "primary_model": PRIMARY_MODEL,
-        "fallback_model": FALLBACK_MODEL
+        "fallback_model": FALLBACK_MODEL,
+        "plans": {
+            "free": 3,
+            "starter": 100,
+            "pro": 500,
+        },
     }
 
+
+# ============================================================
+# GENERATE
+# ============================================================
 
 @app.post("/generate")
 def generate(
-    request: GenerateRequest,
-    authorization: Optional[str] = Header(default=None)
+    request: Request,
+    payload: GenerateRequest,
 ):
-    user = get_authenticated_user(authorization)
-    user_id = str(user.id)
+
+    print(
+        f"REQUEST /generate mode={payload.mode}",
+        flush=True,
+    )
+
+    # --------------------------------------------------------
+    # IP RATE LIMIT
+    # --------------------------------------------------------
+
+    ip = get_client_ip(request)
+
+    check_rate_limit(
+        ip_requests,
+        ip,
+        IP_RATE_LIMIT,
+        IP_RATE_WINDOW,
+    )
+
+    # --------------------------------------------------------
+    # AUTH
+    # --------------------------------------------------------
+
+    user = get_authenticated_user(request)
+
+    user_id = user["id"]
+
+    # --------------------------------------------------------
+    # USER RATE LIMIT
+    # --------------------------------------------------------
+
+    check_rate_limit(
+        user_requests,
+        user_id,
+        USER_RATE_LIMIT,
+        USER_RATE_WINDOW,
+    )
+
+    # --------------------------------------------------------
+    # VALIDATE MODE
+    # --------------------------------------------------------
+
+    mode = payload.mode.strip().lower()
+
+    if mode not in VALID_MODES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Invalid workflow. Supported workflows: "
+                + ", ".join(sorted(VALID_MODES))
+            ),
+        )
+
+    # --------------------------------------------------------
+    # VALIDATE PROMPT
+    # --------------------------------------------------------
+
+    prompt = payload.prompt.strip()
+
+    if len(prompt) < 10:
+        raise HTTPException(
+            status_code=400,
+            detail="Please provide a little more detail."
+        )
+
+    if len(prompt) > 2000:
+        raise HTTPException(
+            status_code=400,
+            detail="Prompt must be 2000 characters or less."
+        )
+
+    # --------------------------------------------------------
+    # PLAN
+    # --------------------------------------------------------
 
     plan = get_user_plan(user_id)
 
-    if request.mode == "campaign" and plan != "pro":
-        raise HTTPException(
-            status_code=403,
-            detail={
-                "error": "campaign_requires_pro",
-                "message": "Campaign Builder is available on Pro only."
-            }
-        )
-
-    used = check_plan_limit(user_id, plan)
-
-    result = generate_with_gemini(
-        mode=request.mode,
-        prompt=request.prompt
+    print(
+        f"AUTH OK user={user_id[:8]}... "
+        f"plan={plan} mode={mode}",
+        flush=True,
     )
 
-    new_usage = increment_monthly_usage(user_id)
+    # --------------------------------------------------------
+    # PRO CAMPAIGN BUILDER
+    # --------------------------------------------------------
+
+    if mode == "campaign" and plan != "pro":
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Campaign Builder is available on the Pro plan. "
+                "Upgrade to Pro to use it."
+            ),
+        )
+
+    # --------------------------------------------------------
+    # USAGE
+    # --------------------------------------------------------
+
+    used, limit = check_and_consume_usage(
+        user_id,
+        plan,
+    )
+
+    print(
+        f"USAGE user={user_id[:8]}... "
+        f"plan={plan} "
+        f"used={used}/{limit}",
+        flush=True,
+    )
+
+    # --------------------------------------------------------
+    # GENERATE
+    # --------------------------------------------------------
+
+    try:
+
+        result = generate_marketing_asset(
+            mode,
+            prompt,
+        )
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+
+        print(
+            f"FINAL GENERATION ERROR: "
+            f"{type(exc).__name__}: {exc}",
+            flush=True,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "The AI could not generate the asset right now. "
+                "Please try again."
+            ),
+        ) from exc
+
+    # --------------------------------------------------------
+    # RESPONSE
+    # --------------------------------------------------------
 
     return {
         "success": True,
-        "user_id": user_id,
-        "plan": plan,
         "result": result,
+        "mode": mode,
+        "plan": plan,
         "usage": {
-            "used": new_usage,
-            "limit": PLAN_LIMITS[plan],
-            "remaining": max(
-                PLAN_LIMITS[plan] - new_usage,
-                0
-            )
-        }
+            "used": used,
+            "limit": limit,
+            "remaining": max(limit - used, 0),
+        },
     }
 
 
-@app.post("/generate-video")
-def generate_video():
-    raise HTTPException(
-        status_code=410,
-        detail="Video generation is temporarily disabled."
-    )
+# ============================================================
+# STARTUP
+# ============================================================
 
+@app.on_event("startup")
+def startup_event():
 
-if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.getenv("PORT", "8000"))
-
-    uvicorn.run(
-        "server:app",
-        host="0.0.0.0",
-        port=port,
-        reload=False
-    )
+    print("=" * 60)
+    print("FacelessAI Growth Copilot API")
+    print("=" * 60)
+    print(f"Primary model : {PRIMARY_MODEL}")
+    print(f"Fallback model: {FALLBACK_MODEL}")
+    print("Plans         : Free 3 | Starter 100 | Pro 500")
+    print("Endpoint      : POST /generate")
+    print("Health        : GET /health")
+    print("=" * 60)
