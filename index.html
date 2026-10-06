@@ -585,6 +585,17 @@ const quickIdeas = {
   ]
 };
 
+function getClientId(){
+  let clientId=localStorage.getItem("facelessai_client_id");
+
+  if(!clientId){
+    clientId=crypto.randomUUID();
+    localStorage.setItem("facelessai_client_id",clientId);
+  }
+
+  return clientId;
+}
+
 let currentMode = "offer";
 let currentNiche = "Other";
 let currentResult = "";
@@ -728,11 +739,16 @@ async function generateAsset(){
   `;
 
   try{
-    const response=await fetch(BACKEND_URL+"/generate",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({mode:currentMode,niche:currentNiche,prompt:prompt})
-    });
+  const response=await fetch(BACKEND_URL+"/generate",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      mode:currentMode,
+      niche:currentNiche,
+      prompt:prompt,
+      client_id:getClientId()
+    })
+  });
 
     let data=null;
     try{data=await response.json();}catch(error){data=null;}
