@@ -770,7 +770,7 @@ def generate(body: GenerateRequest):
         },
     )
 
-customer_id = body.client_id.strip()
+   customer_id = body.client_id.strip()
 
     # -----------------------------------------------------
     # GET PLAN
