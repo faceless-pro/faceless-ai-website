@@ -761,11 +761,16 @@ def generate(body: GenerateRequest):
     # Later HTML can send a persistent client_id here.
     #
 
-    customer_id = (
-        body.client_id.strip()
-        if body.client_id
-        else "anonymous"
+    if not body.client_id:
+    raise HTTPException(
+        status_code=400,
+        detail={
+            "error": "client_id_required",
+            "message": "Client ID is required."
+        },
     )
+
+customer_id = body.client_id.strip()
 
     # -----------------------------------------------------
     # GET PLAN
