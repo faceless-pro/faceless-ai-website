@@ -762,7 +762,7 @@ def generate(body: GenerateRequest):
     #
 
     if not body.client_id:
-       raise HTTPException(
+        raise HTTPException(
         status_code=400,
         detail={
             "error": "client_id_required",
