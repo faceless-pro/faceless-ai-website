@@ -758,20 +758,21 @@ def generate(body: GenerateRequest):
     # Therefore all anonymous requests use one temporary
     # anonymous bucket.
     #
-    # Later HTML can send a persistent client_id here.
-    #
+    # Later HTML can send a persistent
+    client_id here.
+       #
+ 
+      if not body.client_id:
+          raise HTTPException(
+             status_code=400,
+             detail={
+               "error": "client_id_required",
+                "message": "Client ID is required."
+            },
+     )
 
-    if not body.client_id:
-        raise HTTPException(
-        status_code=400,
-        detail={
-            "error": "client_id_required",
-            "message": "Client ID is required."
-        },
-    )
-
-   customer_id = body.client_id.strip()
-
+    customer_id = body.client_id.strip()  
+        
     # -----------------------------------------------------
     # GET PLAN
     # -----------------------------------------------------
